@@ -1,85 +1,116 @@
-* {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+/* --- Root Theme Variables --- */
+        :root {
+            --neon-purple: #8a2be2;
+            --bg-dark: #0d0e12;
+            --tp-green: #00e676;
+            --tp-red: #ff3d00;
+            --tp-hold: #29b6f6;
+            --tp-yellow: #ffd600;
+            --pivot-gray: #eceff1;
         }
 
-        body {
-            background-color: #0b0c10;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+        /* --- Active/Held Button State --- */
+        .tf-btn.active {
+            background: var(--neon-purple) !important;
+            border-color: var(--neon-purple) !important;
+            color: #fff !important;
+            box-shadow: 0 0 12px var(--neon-purple);
         }
 
-        .container {
+        /* --- Premium Trading Levels Layout Styles --- */
+        .levels-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
+            margin: 40px auto;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 20px;
+            box-sizing: border-box;
+            background: rgba(20, 22, 27, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
         }
 
-        .row {
+        .level-row {
             display: flex;
             align-items: center;
             width: 100%;
         }
 
-        .label {
-            width: 80px;
-            font-size: 1.5rem;
-            font-weight: 500;
+        .level-label {
+            width: 90px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #90a4ae;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* Elements */
-        .line {
+        .level-line {
             flex-grow: 1;
-            height: 4px;
-            border-radius: 2px;
-        }
-
-        .box {
-            flex-grow: 1;
-            height: 60px;
+            height: 3px;
             border-radius: 4px;
-            background-color: transparent;
         }
 
-        /* Unique Center Point */
-        .center-point {
+        .level-box {
             flex-grow: 1;
-            height: 55px;
-            border: 4px solid #c2c4c7;
+            height: 24px; /* Made narrow here */
             border-radius: 6px;
+            background-color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        /* Center Pivot Block */
+        .pivot-block {
+            flex-grow: 1;
+            height: 24px; /* Made narrow here */
+            border: 3px solid var(--pivot-gray);
+            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-            background-color: rgba(255, 255, 255, 0.05);
+            font-size: 1.1rem; /* Slightly reduced font size to fit smaller height */
+            font-weight: 700;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05), 0 0 15px rgba(236, 239, 241, 0.15);
+            gap: 8px;
         }
 
-        .center-point span {
-            direction: rtl;
-            margin-left: 10px;
+        .pivot-block span {
+            font-weight: 500;
+            opacity: 0.9;
         }
 
-        /* Color Themes */
-        .lbl-top-hold { color: #4fa3e3; }
-        .bg-top-hold { background-color: #f4d03f; height: 8px; }
+        /* Specific Level Branding */
+        .lbl-hold { color: var(--tp-hold); }
+        .line-top-hold { 
+            background: linear-gradient(90deg, transparent, var(--tp-yellow)); 
+            height: 6px;
+            box-shadow: 0 0 10px rgba(255, 214, 0, 0.3);
+        }
+        .line-bot-hold { 
+            background: linear-gradient(90deg, transparent, var(--tp-yellow)); 
+            height: 6px;
+            box-shadow: 0 0 10px rgba(255, 214, 0, 0.3);
+        }
 
-        .lbl-green { color: #e8e8e8; }
-        .line-green { background-color: #4caf50; }
-        .box-green { border: 4px solid #4caf50; }
+        .line-green { 
+            background: var(--tp-green); 
+            box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+        }
+        .box-green { 
+            border: 3px solid var(--tp-green); 
+            box-shadow: inset 0 0 12px rgba(0, 230, 118, 0.05), 0 0 12px rgba(0, 230, 118, 0.2);
+        }
 
-        .lbl-red { color: #e8e8e8; }
-        .line-red { background-color: #e53935; }
-        .box-red { border: 4px solid #e53935; }
-
-        .lbl-bot-hold { color: #4fa3e3; }
-        .bg-bot-hold { background-color: #d4ac0d; height: 8px; }
+        .line-red { 
+            background: var(--tp-red); 
+            box-shadow: 0 0 8px rgba(255, 61, 0, 0.4);
+        }
+        .box-red { 
+            border: 3px solid var(--tp-red); 
+            box-shadow: inset 0 0 12px rgba(255, 61, 0, 0.05), 0 0 12px rgba(255, 61, 0, 0.2);
+        }

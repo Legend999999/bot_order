@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
@@ -5,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>San FX - Master Gateway</title>
-    
 </head>
 <body>
 
@@ -40,42 +40,37 @@
             <div class="device-id-val" id="device-id-display">...</div>
         </div>
 
-        <div id="hub-section" class="hub-menu">
+        <div id="hub-section" class="hub-menu" style="display: none;">
             <div class="hub-title" id="txt-hub-title">هەڵبژاردنی نەخشەی شیکاری</div>
             
-        
+            <a href="matrix24.html" class="hub-card w-mat">
+                <span class="hub-icon">🧿</span>
+                <div class="hub-info">
+                    <span class="hub-name" id="h-n4">تەلەسمی گەن & بۆت</span>
+                    <span class="hub-desc" id="h-d4">ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ</span>
+                </div>
+            </a>
 
-                <a href="matrix24.html" class="hub-card w-mat">
-                    <span class="hub-icon">🧿</span>
-                    <div class="hub-info">
-                        <span class="hub-name" id="h-n4">تەلەسمی گەن & بۆت</span>
-                        <span class="hub-desc" id="h-d4">ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ</span>
-                    </div>
-                </a>
-
-                       <div class="hub-grid">
+            <div class="hub-grid">
                 <a href="calculator.html" class="hub-card w-plan">
                     <span class="hub-icon">🎡</span>
                     <div class="hub-info">
-                        <span class="hub-name" id="h-n1">حسابات</span>
-                        <span class="hub-desc" id="h-d1">حسابکردنی ژمارەکان</span>
+                        <span class="hub-name" id="h-n1">Pivot</span>
+                        <span class="hub-desc" id="h-d1">Mathematical Pivot Levels</span>
                     </div>
                 </a>
             </div>
         </div>
     </div>
 
-    <div id="welcome-transition" class="welcome-transition">
+    <div id="welcome-transition" class="welcome-transition" style="display: none;">
         <div class="eagle-logo-box">
             <div class="logo-main-icon">🦅</div>
         </div>
-        
-        <div class="welcome-copyright" id="welcome-copyright">
-            </div>
+        <div class="welcome-copyright" id="welcome-copyright"></div>
     </div>
 
     <script>
-        /* فەرهەنگی وەرگێڕانی زمانەکان */
         const lexicon = {
             ku: {
                 title: "Master Suite Pro",
@@ -84,7 +79,7 @@
                 device_id: "ئایدی تایبەتی مۆبایلەکەت:",
                 placeholder: "کلیلی چوونەژوورەوە...",
                 hub_title: "هەڵبژاردنی نەخشەی شیکاری",
-                h_n1: "حسابات", h_d1: "حسابکردنی ژمارەکان",
+                h_n1: "Pivot", h_d1: "Mathematical Pivot Levels",
                 h_n2: "نەخشەی شەش‌گۆشە (Hexagon)", h_d2: "هێکساگرامی کات و نرخ بۆ وەرچەرخانەکان",
                 h_n3: "چوارگۆشەی ٩ (Square of 9)", h_d3: "خشتەی کلاسیکی گەن بۆ دۆزینەوەی ئامانج",
                 h_n4: "تەلەسمی گەن & بۆت", h_d4: "ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ",
@@ -138,7 +133,8 @@
         function setLanguage(selectedLang) {
             lang = selectedLang;
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('btn-lang-' + lang).classList.add('active');
+            const activeBtn = document.getElementById('btn-lang-' + lang);
+            if(activeBtn) activeBtn.classList.add('active');
             
             document.documentElement.dir = (lang === 'en') ? 'ltr' : 'rtl';
             
@@ -151,12 +147,8 @@
             
             document.getElementById('txt-hub-title').innerText = dict.hub_title;
             document.getElementById('h-n1').innerText = dict.h_n1; document.getElementById('h-d1').innerText = dict.h_d1;
-            document.getElementById('h-n2').innerText = dict.h_n2; document.getElementById('h-d2').innerText = dict.h_d2;
-            document.getElementById('h-n3').innerText = dict.h_n3; document.getElementById('h-d3').innerText = dict.h_d3;
             document.getElementById('h-n4').innerText = dict.h_n4; document.getElementById('h-d4').innerText = dict.h_d4;
-            document.getElementById('h-n5').innerText = dict.h_n5; document.getElementById('h-d5').innerText = dict.h_d5;
 
-            // جێگیرکردنی دەقی مافی پارێزراو
             document.getElementById('txt-dev-credit-lock').innerHTML = dict.copyright;
             document.getElementById('welcome-copyright').innerHTML = dict.copyright;
 
@@ -178,6 +170,7 @@
         })();
         document.getElementById('device-id-display').innerText = deviceID;
 
+        // Optimization: Fast Async validation checks local timestamp fast
         async function validateLicense() {
             let key = document.getElementById('license-input').value.trim().toUpperCase();
             let msg = document.getElementById('lock-msg');
@@ -187,16 +180,13 @@
                 let response = await fetch(`https://rebarfx-astro-default-rtdb.firebaseio.com/licenses/${key}.json`);
                 let data = await response.json();
                 
-                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && new Date() <= new Date(data.expiry)) {
+                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && Date.now() <= new Date(data.expiry).getTime()) {
                     localStorage.setItem('rfx_license_saved', key);
                     msg.style.color = "#00ffcc";
                     msg.innerText = lexicon[lang].succ_msg;
                     
-                    // دوای دۆزینەوەی کلیلەکە بۆ ٢ چرکە دەوەستێت ئینجا دەچێتە سەر لۆگۆ
-                    setTimeout(() => {
-                        triggerWelcomeSequence();
-                    }, 2000);
-                    
+                    // Reduced delay on manual click to 400ms for responsiveness
+                    setTimeout(() => { triggerWelcomeSequence(); }, 400);
                 } else {
                     msg.style.color = "#ff3333";
                     msg.innerText = lexicon[lang].err_wrong;
@@ -207,12 +197,13 @@
             }
         }
 
+        // Optimization: Reduced welcome screen animation from 5000ms down to a snappy 800ms
         function triggerWelcomeSequence() {
             document.getElementById('gateway-main').style.display = 'none';
             let transitionScreen = document.getElementById('welcome-transition');
             transitionScreen.style.display = 'flex';
+            transitionScreen.style.opacity = '1';
             
-            // کاتی دەرکەوتنی لۆگۆکە کەم کرایەوە بۆ ٥ چرکە
             setTimeout(() => {
                 transitionScreen.style.opacity = '0';
                 setTimeout(() => {
@@ -221,33 +212,30 @@
                     document.getElementById('lock-section').style.display = 'none';
                     document.getElementById('lang-menu').style.display = 'none';
                     document.getElementById('hub-section').style.display = 'flex';
-                }, 500); 
-            }, 5000); 
+                }, 150); 
+            }, 800); 
+        }
+
+        function routeDirectToHub() {
+            document.getElementById('lock-section').style.display = 'none';
+            document.getElementById('lang-menu').style.display = 'none';
+            document.getElementById('hub-section').style.display = 'flex';
         }
 
         window.onload = () => {
             let savedLang = localStorage.getItem('rfx_lang') || 'ku';
             setLanguage(savedLang);
 
-            // ئەگەر لە نەخشە گەڕایەوە یەکسەر هەڵبژاردنەکان دەکاتەوە
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('showHub') === 'true' && localStorage.getItem('rfx_license_saved')) {
-                document.getElementById('lock-section').style.display = 'none';
-                document.getElementById('lang-menu').style.display = 'none';
-                document.getElementById('hub-section').style.display = 'flex';
+                routeDirectToHub();
                 return;
             }
 
-            // ئەگەر پێشتر کلیلەکە هەبوو، بۆ ٣ چرکە چاوەڕێ دەکات بۆ ئەوەی مەجالی گۆڕینی زمانت هەبێت
             let savedKey = localStorage.getItem('rfx_license_saved');
             if(savedKey) {
-                let msg = document.getElementById('lock-msg');
-                msg.style.color = "#00ffcc";
-                msg.innerText = lexicon[lang].auto_login || "چوونەژوورەوەی خۆکار...";
-                
-                setTimeout(() => {
-                    verifySavedKey(savedKey);
-                }, 3000);
+                // Optimization: Instantly verify without waiting 3 seconds on load
+                verifySavedKey(savedKey);
             }
         };
 
@@ -255,11 +243,12 @@
             try {
                 let response = await fetch(`https://rebarfx-astro-default-rtdb.firebaseio.com/licenses/${k}.json`);
                 let data = await response.json();
-                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && new Date() <= new Date(data.expiry)) {
-                    triggerWelcomeSequence(); 
+                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && Date.now() <= new Date(data.expiry).getTime()) {
+                    routeDirectToHub(); // Instant bypass to content if verified
                 }
             } catch(e){}
         }
     </script>
 </body>
 </html>
+
