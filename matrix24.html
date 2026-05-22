@@ -83,7 +83,7 @@
                 bot_err: "تکایە نرخێکی دروست بنووسە!",
                 bot_greet: (h) => `سڵاو! ئۆردەر بۆ کاتژمێر ${h}:00 ئامادە دەکەم، نرخی ئێستام پێ بڵێ:`,
                 bot_res_title: (h) => `📊 <b>شیکاری بۆ کاتژمێر ${h}:00</b><br>لە نەخشەکەدا نرخەکەت دەکەوێتە نێوان:<br>`,
-                bot_buy_title: `<b>🟢 پلانی کڕین لەناو کەناڵ (BUY):</b><br>`, bot_sell_title: `<b>🔴 پلانی فرۆشتن لەناو کەناڵ (SELL):</b><br>`,
+                bot_buy_title: `<b>🟢 پلانی کڕین  (BUY):</b><br>`, bot_sell_title: `<b>🔴 پلانی فرۆشتن (SELL):</b><br>`,
                 bot_buy_entry: (v) => `چوونەژوورەوە: ئەگەر بەر <b>${v}</b> کەوت و گەڕایەوە<br>`, bot_sell_entry: (v) => `چوونەژوورەوە: ئەگەر بەر <b>${v}</b> کەوت و دابەزی<br>`,
                 bot_q1: "🎯 TP1 (چارەک): ", bot_q2: "🎯 TP2 (نیوە): ", bot_q3: "🎯 TP3 (سێ چارەک): ", bot_q4: "🎯 TP4 (سەقف): ", bot_q4s: "🎯 TP4 (بنکە): ", bot_sl: "🛑 ستۆپ لۆس: "
             },
@@ -434,10 +434,14 @@
                 ${resTitle}
                 <span style="color:var(--neon-gold); font-size:18px; display:inline-block; margin-top:5px;">[ ${gridBelow} ] — [ ${gridAbove} ]</span>
             `;
-
+// BUY BOX WITH CONFIRMATION ZONE
             document.getElementById('buyBox').innerHTML = `
                 ${t.bot_buy_title}
-                ${t.bot_buy_entry(gridBelow)}
+                <div style="background: rgba(0,255,204,0.08); border: 1px dashed #00ffcc; padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 12px; text-align: center; line-height: 1.4;">
+                    ⚠️ <b>ZONE CONFIRMATION:</b> ${gridBelow} – ${parseFloat((gridBelow + stepVal).toFixed(2))}<br>
+                    <span style="color: #bbb;">چوونەژوورەوە ئەگەر بەریکەوت و بەرز بوویەوە</span>
+                </div>
+         
                 ${t.bot_q1} <span class="target-val">${b1}</span><br>
                 ${t.bot_q2} <span class="target-val">${b2}</span><br>
                 ${t.bot_q3} <span class="target-val">${b3}</span><br>
@@ -445,9 +449,14 @@
                 ${t.bot_sl} <span style="color:#ff3333; font-weight:bold; font-family:monospace;">${buySL}</span>
             `;
 
+            // SELL BOX WITH CONFIRMATION ZONE
             document.getElementById('sellBox').innerHTML = `
                 ${t.bot_sell_title}
-                ${t.bot_sell_entry(gridAbove)}
+                <div style="background: rgba(255,51,153,0.08); border: 1px dashed var(--neon-pink); padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 12px; text-align: center; line-height: 1.4;">
+                    ⚠️ <b>ZONE CONFIRMATION:</b> ${parseFloat((gridAbove - stepVal).toFixed(2))} – ${gridAbove}<br>
+                    <span style="color: #bbb;">چوونەژوورەوە ئەگەر بەریکەوت و دابەزی</span>
+                </div>
+
                 ${t.bot_q1} <span class="target-val">${s1}</span><br>
                 ${t.bot_q2} <span class="target-val">${s2}</span><br>
                 ${t.bot_q3} <span class="target-val">${s3}</span><br>
