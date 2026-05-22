@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <link rel="stylesheet" href="index.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>San FX - Master Gateway</title>
+    
+</head>
+<body>
+
+    <div class="stars-bg"></div>
+
+    <div class="gateway-container" id="gateway-main">
+        
+        <div class="lang-toolbar" id="lang-menu">
+            <button class="lang-btn active" id="btn-lang-ku" onclick="setLanguage('ku')">کوردی</button>
+            <button class="lang-btn" id="btn-lang-ar" onclick="setLanguage('ar')">عربي</button>
+            <button class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">EN</button>
+        </div>
+
+        <div id="lock-section">
+            <div class="logo-wrapper">
+                <div class="logo-circle">🦅</div>
+            </div>
+            
+            <div class="app-title" id="txt-title">Master Suite Pro</div>
+            <div class="app-subtitle" id="txt-subtitle">سیستەمی پێشکەوتووی بازاڕەکانی دارایی</div>
+            
+            <div class="creators-brand" id="txt-dev-credit-lock"></div>
+            
+            <div class="input-group">
+                <input type="password" id="license-input" placeholder="••••••••">
+            </div>
+            
+            <button class="activate-btn" id="btn-activate" onclick="validateLicense()">چالاککردن</button>
+            <div class="msg-display" id="lock-msg"></div>
+            
+            <div class="device-id-label" id="txt-device-id">ئایدی تایبەتی مۆبایلەکەت:</div>
+            <div class="device-id-val" id="device-id-display">...</div>
+        </div>
+
+        <div id="hub-section" class="hub-menu">
+            <div class="hub-title" id="txt-hub-title">هەڵبژاردنی نەخشەی شیکاری</div>
+            
+        
+
+                <a href="matrix24.html" class="hub-card w-mat">
+                    <span class="hub-icon">🧿</span>
+                    <div class="hub-info">
+                        <span class="hub-name" id="h-n4">تەلەسمی گەن & بۆت</span>
+                        <span class="hub-desc" id="h-d4">ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ</span>
+                    </div>
+                </a>
+
+           
+            </div>
+        </div>
+    </div>
+
+    <div id="welcome-transition" class="welcome-transition">
+        <div class="eagle-logo-box">
+            <div class="logo-main-icon">🦅</div>
+        </div>
+        
+        <div class="welcome-copyright" id="welcome-copyright">
+            </div>
+    </div>
+
+    <script>
+        /* فەرهەنگی وەرگێڕانی زمانەکان */
+        const lexicon = {
+            ku: {
+                title: "Master Suite Pro",
+                subtitle: "سیستەمی پێشکەوتووی بازاڕەکانی دارایی",
+                activate: "چالاککردن",
+                device_id: "ئایدی تایبەتی مۆبایلەکەت:",
+                placeholder: "کلیلی چوونەژوورەوە...",
+                hub_title: "هەڵبژاردنی نەخشەی شیکاری",
+                h_n1: "نەخشەی گەن (Wheel)", h_d1: "خشتەی بازنەیی کات و نرخ، ئەندازەی گەن",
+                h_n2: "نەخشەی شەش‌گۆشە (Hexagon)", h_d2: "هێکساگرامی کات و نرخ بۆ وەرچەرخانەکان",
+                h_n3: "چوارگۆشەی ٩ (Square of 9)", h_d3: "خشتەی کلاسیکی گەن بۆ دۆزینەوەی ئامانج",
+                h_n4: "تەلەسمی گەن & بۆت", h_d4: "ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ",
+                h_n5: "شیکاری فەلەکی (Astro Map)", h_d5: "نەخشەی ئەستێرەکان، گەڕانەوەی هەسارەکان",
+                err_wrong: "❌ کلیلەکە هەڵەیە یان بەسەرچووە!",
+                err_net: "⚠️ هێڵی ئینتەرنێت پێویستە بۆ پشکنینی کلیل!",
+                succ_msg: "✅ سەرکەوتوو بوو، تکایە چاوەڕێ بە...",
+                auto_login: "چوونەژوورەوەی خۆکار...",
+                copyright: "مافی ئەم بەرهەمە پارێزراوە تایبەتە بە:<br>دروستکەر و پەرەپێدەری یاسا و نەخشەی گەن بەشێوازێکی سەردەمیانە<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX</strong>"
+            },
+            ar: {
+                title: "Master Suite Pro",
+                subtitle: "النظام المتقدم للتحليل المالي",
+                activate: "تفعيل الدخول",
+                device_id: "معرّف الجهاز الخاص بك:",
+                placeholder: "مفتاح الدخول...",
+                hub_title: "إختر خريطة التحليل",
+                h_n1: "عجلة جان (Gann Wheel)", h_d1: "خريطة دائرية للوقت والسعر والهندسة",
+                h_n2: "السداسي (Hexagon)", h_d2: "هيكساجرام الوقت والسعر للانعكاسات",
+                h_n3: "مربع 9 (Square of 9)", h_d3: "مصفوفة جان الكلاسيكية للأهداف",
+                h_n4: "مصفوفة 24 & البوت", h_d4: "المصفوفة اليومية وبوت الإشارات الرقمية",
+                h_n5: "التحليل الفلكي (Astro)", h_d5: "خريطة الكواكب، التراجع الكوكبي",
+                err_wrong: "❌ المفتاح غير صحيح أو منتهي الصلاحية!",
+                err_net: "⚠️ الاتصال بالإنترنت مطلوب للتحقق من المفتاح!",
+                succ_msg: "✅ تم التفعيل بنجاح، يرجى الانتظار...",
+                auto_login: "تسجيل الدخول التلقائي...",
+                copyright: "جميع حقوق هذا المنتج محفوظة وخاصة بـ:<br>صانع ومطور قوانين وخريطة جان بطريقة عصرية<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX</strong>"
+            },
+            en: {
+                title: "Master Suite Pro",
+                subtitle: "Advanced Financial Trading System",
+                activate: "Activate Suite",
+                device_id: "Your Unique Device ID:",
+                placeholder: "Enter License Key...",
+                hub_title: "Select Analysis Chart",
+                h_n1: "Gann Wheel (Planetary)", h_d1: "Circular Time/Price Chart & Geometry",
+                h_n2: "Gann Hexagon Chart", h_d2: "Time/Price Hexagram for Reversals",
+                h_n3: "Square of 9", h_d3: "Classic Gann Matrix for Targets",
+                h_n4: "Matrix 24 & Bot", h_d4: "Daily 24H Matrix & Signal Bot",
+                h_n5: "Astro Map Pro", h_d5: "Planetary Alignments & Retrogrades",
+                err_wrong: "❌ Invalid or expired license key!",
+                err_net: "⚠️ Network connection required for validation!",
+                succ_msg: "✅ Success, please wait...",
+                auto_login: "Auto-login in progress...",
+                copyright: "All rights for this product are reserved & belong to:<br>Creator & Developer of Gann Rules and Map in a Modern Way<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX</strong>"
+            }
+        };
+
+        let lang = 'ku';
+
+        function setLanguage(selectedLang) {
+            lang = selectedLang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-lang-' + lang).classList.add('active');
+            
+            document.documentElement.dir = (lang === 'en') ? 'ltr' : 'rtl';
+            
+            let dict = lexicon[lang];
+            document.getElementById('txt-title').innerText = dict.title;
+            document.getElementById('txt-subtitle').innerText = dict.subtitle;
+            document.getElementById('btn-activate').innerText = dict.activate;
+            document.getElementById('txt-device-id').innerText = dict.device_id;
+            document.getElementById('license-input').placeholder = dict.placeholder;
+            
+            document.getElementById('txt-hub-title').innerText = dict.hub_title;
+            document.getElementById('h-n1').innerText = dict.h_n1; document.getElementById('h-d1').innerText = dict.h_d1;
+            document.getElementById('h-n2').innerText = dict.h_n2; document.getElementById('h-d2').innerText = dict.h_d2;
+            document.getElementById('h-n3').innerText = dict.h_n3; document.getElementById('h-d3').innerText = dict.h_d3;
+            document.getElementById('h-n4').innerText = dict.h_n4; document.getElementById('h-d4').innerText = dict.h_d4;
+            document.getElementById('h-n5').innerText = dict.h_n5; document.getElementById('h-d5').innerText = dict.h_d5;
+
+            // جێگیرکردنی دەقی مافی پارێزراو
+            document.getElementById('txt-dev-credit-lock').innerHTML = dict.copyright;
+            document.getElementById('welcome-copyright').innerHTML = dict.copyright;
+
+            let lockMsg = document.getElementById('lock-msg');
+            if(lockMsg.innerText !== "" && lockMsg.style.color === "rgb(0, 255, 204)") {
+                lockMsg.innerText = dict.auto_login;
+            }
+            
+            try { localStorage.setItem('rfx_lang', lang); } catch(e) {}
+        }
+
+        let deviceID = (() => {
+            let id = localStorage.getItem('rfx_device_id');
+            if(!id) {
+                id = 'RFX-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                localStorage.setItem('rfx_device_id', id);
+            }
+            return id;
+        })();
+        document.getElementById('device-id-display').innerText = deviceID;
+
+        async function validateLicense() {
+            let key = document.getElementById('license-input').value.trim().toUpperCase();
+            let msg = document.getElementById('lock-msg');
+            if(!key) return;
+
+            try {
+                let response = await fetch(`https://rebarfx-astro-default-rtdb.firebaseio.com/licenses/${key}.json`);
+                let data = await response.json();
+                
+                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && new Date() <= new Date(data.expiry)) {
+                    localStorage.setItem('rfx_license_saved', key);
+                    msg.style.color = "#00ffcc";
+                    msg.innerText = lexicon[lang].succ_msg;
+                    
+                    // دوای دۆزینەوەی کلیلەکە بۆ ٢ چرکە دەوەستێت ئینجا دەچێتە سەر لۆگۆ
+                    setTimeout(() => {
+                        triggerWelcomeSequence();
+                    }, 2000);
+                    
+                } else {
+                    msg.style.color = "#ff3333";
+                    msg.innerText = lexicon[lang].err_wrong;
+                }
+            } catch(e) {
+                msg.style.color = "#ff3333";
+                msg.innerText = lexicon[lang].err_net;
+            }
+        }
+
+        function triggerWelcomeSequence() {
+            document.getElementById('gateway-main').style.display = 'none';
+            let transitionScreen = document.getElementById('welcome-transition');
+            transitionScreen.style.display = 'flex';
+            
+            // کاتی دەرکەوتنی لۆگۆکە کەم کرایەوە بۆ ٥ چرکە
+            setTimeout(() => {
+                transitionScreen.style.opacity = '0';
+                setTimeout(() => {
+                    transitionScreen.style.display = 'none';
+                    document.getElementById('gateway-main').style.display = 'block';
+                    document.getElementById('lock-section').style.display = 'none';
+                    document.getElementById('lang-menu').style.display = 'none';
+                    document.getElementById('hub-section').style.display = 'flex';
+                }, 500); 
+            }, 5000); 
+        }
+
+        window.onload = () => {
+            let savedLang = localStorage.getItem('rfx_lang') || 'ku';
+            setLanguage(savedLang);
+
+            // ئەگەر لە نەخشە گەڕایەوە یەکسەر هەڵبژاردنەکان دەکاتەوە
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('showHub') === 'true' && localStorage.getItem('rfx_license_saved')) {
+                document.getElementById('lock-section').style.display = 'none';
+                document.getElementById('lang-menu').style.display = 'none';
+                document.getElementById('hub-section').style.display = 'flex';
+                return;
+            }
+
+            // ئەگەر پێشتر کلیلەکە هەبوو، بۆ ٣ چرکە چاوەڕێ دەکات بۆ ئەوەی مەجالی گۆڕینی زمانت هەبێت
+            let savedKey = localStorage.getItem('rfx_license_saved');
+            if(savedKey) {
+                let msg = document.getElementById('lock-msg');
+                msg.style.color = "#00ffcc";
+                msg.innerText = lexicon[lang].auto_login || "چوونەژوورەوەی خۆکار...";
+                
+                setTimeout(() => {
+                    verifySavedKey(savedKey);
+                }, 3000);
+            }
+        };
+
+        async function verifySavedKey(k) {
+            try {
+                let response = await fetch(`https://rebarfx-astro-default-rtdb.firebaseio.com/licenses/${k}.json`);
+                let data = await response.json();
+                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && new Date() <= new Date(data.expiry)) {
+                    triggerWelcomeSequence(); 
+                }
+            } catch(e){}
+        }
+    </script>
+</body>
+</html>

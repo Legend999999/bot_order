@@ -1,0 +1,81 @@
+        :root { --neon-cyan: #00ffcc; --neon-gold: #d4af37; --neon-pink: #ff3399; --neon-purple: #b366ff; --bg-dark: #000; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; direction: ltr; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        
+        /* Header */
+        .header { position: fixed; top: 0; width: 100%; background: rgba(12, 12, 12, 0.95); padding: 12px 15px; border-bottom: 1px solid var(--neon-cyan); z-index: 9999; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; backdrop-filter: blur(5px); direction: ltr;}
+        .menu-toggle { background: var(--neon-cyan); border: none; color: #000; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); order: 1; }
+        .center-brand-text { color: var(--neon-gold); font-weight: bold; font-size: 9px; font-family: monospace; order: 2; flex: 1; text-align: center; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        .back-arrow-btn { background: transparent; border: none; color: var(--neon-cyan); font-size: 24px; cursor: pointer; transition: 0.3s; padding: 0 5px; display: flex; align-items: center; order: 3; text-decoration: none;}
+        .back-arrow-btn:active { transform: scale(0.9); color: #fff; }
+        
+        /* Sidebar */
+        .sidebar { position: fixed; top: 0; width: 310px; height: 100%; background: #0a0a0f; z-index: 9999999; transition: 0.3s; padding: 85px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
+        
+        html[dir="rtl"] .sidebar { right: -320px; border-left: 1px solid var(--neon-cyan); direction: rtl; }
+        html[dir="rtl"] .sidebar.active { right: 0; }
+        html[dir="rtl"] .close-menu { left: 15px; right: auto; }
+        
+        html[dir="ltr"] .sidebar { left: -320px; border-right: 1px solid var(--neon-cyan); direction: ltr; }
+        html[dir="ltr"] .sidebar.active { left: 0; }
+        html[dir="ltr"] .close-menu { right: 15px; left: auto; }
+
+        .close-menu { position: absolute; top: 15px; background: none; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        
+        /* Form Inputs */
+        .menu-item { margin-top: 15px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        .menu-item label { display: block; color: var(--neon-cyan); font-size: 12px; margin-bottom: 6px; font-weight: bold; text-align: center; }
+        input, select { background: #0a0a0a; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; text-align: center; font-weight: bold; font-family: monospace;}
+        input:focus, select:focus { border-color: var(--neon-cyan); }
+        .helper-text { font-size: 10px; color: #888; margin-top: 5px; text-align: center; }
+        
+        /* Map Area */
+        #viewport-maps { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: block; z-index: 10; background: radial-gradient(circle at center, #111 0%, #000 80%);}
+        .map-area { position: absolute; width: 5600px; height: 5600px; display: flex; align-items: center; justify-content: center; cursor: grab; left: 50%; top: 50%; transform: translate(-50%, -50%);}
+        .map-area:active { cursor: grabbing; }
+        #zoom-layer { position: relative; transform-origin: center; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;}
+        canvas { background: transparent; display: block;}
+        
+        #container-talisman { position: relative; display: flex; align-items: center; justify-content: center;}
+
+        /* Bot Styling */
+        #rebar-bot-btn {
+            position: fixed; bottom: 30px; right: 20px; z-index: 100001;
+            background: linear-gradient(135deg, var(--neon-gold), #ff9900);
+            color: #000; padding: 12px 20px; border-radius: 30px;
+            font-weight: bold; font-size: 15px; cursor: grab;
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.5);
+            border: 2px solid #fff; display: flex; align-items: center; gap: 8px;
+            user-select: none; touch-action: none;
+        }
+        #rebar-bot-btn:active { cursor: grabbing; }
+        
+        #bot-modal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 15, 0.98); border: 2px solid var(--neon-gold);
+            padding: 25px; border-radius: 15px; z-index: 100002; width: 85%; max-width: 360px;
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.4); text-align: center;
+        }
+        html[dir="rtl"] #bot-modal { direction: rtl; }
+        html[dir="ltr"] #bot-modal { direction: ltr; }
+
+        #bot-modal h3 { color: var(--neon-gold); margin-top: 0; border-bottom: 1px dashed #444; padding-bottom: 10px; }
+        .bot-msg { font-size: 14px; color: #fff; margin-bottom: 15px; line-height: 1.5; font-weight: bold;}
+        .bot-input { font-size: 20px; padding: 12px; border: 2px solid var(--neon-cyan); border-radius: 8px; margin-bottom: 15px; color: #fff; background: #000; width: 90%; text-align: center; font-family: monospace;}
+        .bot-btn-submit { background: var(--neon-cyan); color: #000; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,255,204,0.3);}
+        .bot-btn-submit:active { transform: scale(0.98); }
+        
+        html[dir="rtl"] .close-bot { position: absolute; top: 15px; left: 15px; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+        html[dir="ltr"] .close-bot { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+        
+        #bot-results { display: none; margin-top: 15px; background: #050508; padding: 15px; border-radius: 8px; border: 1px solid #334; max-height: 350px; overflow-y: auto;}
+        html[dir="rtl"] #bot-results { text-align: right; }
+        html[dir="ltr"] #bot-results { text-align: left; }
+        
+        .signal-box { margin-top: 10px; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.8;}
+        html[dir="rtl"] .buy-signal { background: rgba(0, 255, 204, 0.08); border-right: 4px solid var(--neon-cyan); color: var(--neon-cyan); border-left: none;}
+        html[dir="ltr"] .buy-signal { background: rgba(0, 255, 204, 0.08); border-left: 4px solid var(--neon-cyan); color: var(--neon-cyan); border-right: none;}
+        
+        html[dir="rtl"] .sell-signal { background: rgba(255, 51, 153, 0.08); border-right: 4px solid var(--neon-pink); color: var(--neon-pink); margin-top: 10px; border-left: none;}
+        html[dir="ltr"] .sell-signal { background: rgba(255, 51, 153, 0.08); border-left: 4px solid var(--neon-pink); color: var(--neon-pink); margin-top: 10px; border-right: none;}
+        
+        .target-val { color: #fff; font-family: monospace; font-size: 15px; font-weight: bold; }

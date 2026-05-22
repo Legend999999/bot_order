@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <link rel="stylesheet" href="matrix24.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>San FX - Matrix 24 & Bot</title>
+
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="header">
+        <button class="menu-toggle" id="btn-menu" data-i18n="btn_menu">☰ ڕێکخستن</button>
+        <div class="center-brand-text">@San_FX</div>
+        <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
+    </div>
+
+    <div id="rebar-bot-btn" data-i18n="btn_bot">🤖 بۆتی گەن</div>
+
+    <div id="bot-modal">
+        <button class="close-bot" onclick="window.closeBot()">✕</button>
+        <h3 data-i18n="bot_title">🤖 بۆتی شیكاریی گه‌ن</h3>
+        <div class="bot-msg" id="bot-greeting">...</div>
+        <input type="number" id="botPriceInput" class="bot-input" data-i18n-ph="bot_ph" placeholder="نرخ... (نموونە 4700)">
+        <button class="bot-btn-submit" onclick="window.generateMatrixSignal()" data-i18n="bot_submit">ئامادەکردنی ئۆردەر 🎯</button>
+        
+        <div id="bot-results">
+            <div style="color: #fff; text-align: center; margin-bottom: 10px; font-weight: bold; border-bottom: 1px dashed #555; padding-bottom: 10px;" id="bot-status"></div>
+            <div class="signal-box buy-signal" id="buyBox"></div>
+            <div class="signal-box sell-signal" id="sellBox"></div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-menu" id="btn-close-menu">✕</button>
+        
+        <h3 style="color: var(--neon-pink); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; margin-top: 0;" data-i18n="opt_tal">🧿 تەلەسمی گەن</h3>
+
+        <div id="controls-talisman">
+            <div class="menu-item">
+                <label style="color: #00ffcc;" data-i18n="lbl_tal_center">سەنتەر (Center Price)</label>
+                <input type="number" id="sq24BasePrice" value="4795">
+            </div>
+            <div class="menu-item">
+                <label style="color: #00ffcc;" data-i18n="lbl_tal_dir">ئاراستەی نەخشە (پێشاندان)</label>
+                <select id="sq24TrendDir">
+                    <option value="up" data-i18n="opt_up">📈 بەرزبوونەوە (+)</option>
+                    <option value="down" selected data-i18n="opt_down">📉 دابەزین (-)</option>
+                </select>
+            </div>
+            <div class="menu-item" style="border-left: 3px solid #ff3399; background: rgba(255, 51, 153, 0.05);">
+                <label style="color:var(--neon-pink);" data-i18n="lbl_tal_time">کاتی دەستکرد (بۆ پشکنین)</label>
+                <input type="time" id="sq24ManualTime" oninput="window.drawSq24(); window.updateBotTime();">
+                <div class="helper-text" data-i18n="help_live">بەتاڵی بهێڵە بۆ کاتی لایڤ</div>
+            </div>
+            <div class="menu-item" style="border-bottom: none;">
+                <label style="color: #00ffcc;" data-i18n="lbl_tal_step">بڕی هەنگاو (Step)</label>
+                <input type="number" id="sq24StepValue" value="1" step="0.5">
+            </div>
+        </div>
+    </div>
+
+    <div id="viewport-maps">
+        <div class="map-area" id="map">
+            <div id="zoom-layer">
+                <div id="container-talisman">
+                    <canvas id="sq24Canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // فەرهەنگی زمانەکان
+        const lexicon = {
+            ku: {
+                btn_menu: "☰ ڕێکخستن", opt_tal: "🧿 تەلەسمی گەن (Matrix 24)",
+                lbl_tal_center: "سەنتەر (Center Price)", lbl_tal_dir: "ئاراستەی نەخشە (پێشاندان)",
+                lbl_tal_time: "کاتی دەستکرد (بۆ پشکنین)", lbl_tal_step: "بڕی هەنگاو (Step)",
+                help_live: "بەتاڵی بهێڵە بۆ کاتی لایڤ",
+                opt_up: "📈 بەرزبوونەوە (+)", opt_down: "📉 دابەزین (-)",
+                btn_bot: "🤖 بۆتی گەن", bot_title: "🤖 بۆتی شیكاریی گه‌ن", bot_ph: "نرخ... (نموونە 4700)", bot_submit: "ئامادەکردنی ئۆردەر 🎯",
+                bot_err: "تکایە نرخێکی دروست بنووسە!",
+                bot_greet: (h) => `سڵاو! ئۆردەر بۆ کاتژمێر ${h}:00 ئامادە دەکەم، نرخی ئێستام پێ بڵێ:`,
+                bot_res_title: (h) => `📊 <b>شیکاری بۆ کاتژمێر ${h}:00</b><br>لە نەخشەکەدا نرخەکەت دەکەوێتە نێوان:<br>`,
+                bot_buy_title: `<b>🟢 پلانی کڕین لەناو کەناڵ (BUY):</b><br>`, bot_sell_title: `<b>🔴 پلانی فرۆشتن لەناو کەناڵ (SELL):</b><br>`,
+                bot_buy_entry: (v) => `چوونەژوورەوە: ئەگەر بەر <b>${v}</b> کەوت و گەڕایەوە<br>`, bot_sell_entry: (v) => `چوونەژوورەوە: ئەگەر بەر <b>${v}</b> کەوت و دابەزی<br>`,
+                bot_q1: "🎯 TP1 (چارەک): ", bot_q2: "🎯 TP2 (نیوە): ", bot_q3: "🎯 TP3 (سێ چارەک): ", bot_q4: "🎯 TP4 (سەقف): ", bot_q4s: "🎯 TP4 (بنکە): ", bot_sl: "🛑 ستۆپ لۆس: "
+            },
+            ar: {
+                btn_menu: "☰ إعدادات", opt_tal: "🧿 مصفوفة 24 & البوت",
+                lbl_tal_center: "المركز (Center Price)", lbl_tal_dir: "اتجاه الخريطة (العرض)",
+                lbl_tal_time: "وقت يدوي (للاختبار)", lbl_tal_step: "قيمة الخطوة (Step)",
+                help_live: "اتركه فارغاً للوقت الحي",
+                opt_up: "📈 صعود (+)", opt_down: "📉 هبوط (-)",
+                btn_bot: "🤖 بوت جان", bot_title: "🤖 بوت التحليل الرقمي", bot_ph: "السعر... (مثال 4700)", bot_submit: "تجهيز الطلب 🎯",
+                bot_err: "الرجاء إدخال سعر صحيح!",
+                bot_greet: (h) => `مرحباً! أجهز طلب الساعة ${h}:00، أدخل السعر الحالي:`,
+                bot_res_title: (h) => `📊 <b>تحليل الساعة ${h}:00</b><br>السعر يقع في القناة بين:<br>`,
+                bot_buy_title: `<b>🟢 خطة الشراء (BUY):</b><br>`, bot_sell_title: `<b>🔴 خطة البيع (SELL):</b><br>`,
+                bot_buy_entry: (v) => `الدخول: إذا لامس <b>${v}</b> وارتد<br>`, bot_sell_entry: (v) => `الدخول: إذا لامس <b>${v}</b> وهبط<br>`,
+                bot_q1: "🎯 TP1 (ربع): ", bot_q2: "🎯 TP2 (نصف): ", bot_q3: "🎯 TP3 (ثلاثة أرباع): ", bot_q4: "🎯 TP4 (سقف): ", bot_q4s: "🎯 TP4 (قاع): ", bot_sl: "🛑 وقف الخسارة: "
+            },
+            en: {
+                btn_menu: "☰ Settings", opt_tal: "🧿 Matrix 24 & Bot",
+                lbl_tal_center: "Center Price", lbl_tal_dir: "Map Direction",
+                lbl_tal_time: "Manual Time (Testing)", lbl_tal_step: "Step Value",
+                help_live: "Leave empty for live time",
+                opt_up: "📈 UP Trend (+)", opt_down: "📉 DOWN Trend (-)",
+                btn_bot: "🤖 Gann Bot", bot_title: "🤖 Gann Signal Bot", bot_ph: "Price... (e.g. 4700)", bot_submit: "Prepare Order 🎯",
+                bot_err: "Please enter a valid price!",
+                bot_greet: (h) => `Hello! Preparing order for ${h}:00, enter current price:`,
+                bot_res_title: (h) => `📊 <b>Analysis for Hour ${h}:00</b><br>Price falls in the channel between:<br>`,
+                bot_buy_title: `<b>🟢 BUY Plan (Inside Channel):</b><br>`, bot_sell_title: `<b>🔴 SELL Plan (Inside Channel):</b><br>`,
+                bot_buy_entry: (v) => `Entry: If it hits <b>${v}</b> and bounces<br>`, bot_sell_entry: (v) => `Entry: If it hits <b>${v}</b> and drops<br>`,
+                bot_q1: "🎯 TP1 (25%): ", bot_q2: "🎯 TP2 (50%): ", bot_q3: "🎯 TP3 (75%): ", bot_q4: "🎯 TP4 (Ceiling): ", bot_q4s: "🎯 TP4 (Floor): ", bot_sl: "🛑 Stop Loss: "
+            }
+        };
+
+        let currentLang = 'ku';
+
+        function applyLanguage() {
+            try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
+            document.documentElement.dir = currentLang === 'en' ? 'ltr' : 'rtl';
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.innerHTML = lexicon[currentLang][key];
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.placeholder = lexicon[currentLang][key];
+            });
+            window.updateBotTime();
+        }
+
+        // کۆنترۆڵکردنی مینوو و دەستپێک
+        document.addEventListener('DOMContentLoaded', function() {
+            var btnMenu = document.getElementById('btn-menu');
+            var btnCloseMenu = document.getElementById('btn-close-menu');
+            var sidebar = document.getElementById('sidebar');
+
+            if(btnMenu) {
+                btnMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                });
+            }
+            if(btnCloseMenu) {
+                btnCloseMenu.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                });
+            }
+            
+            applyLanguage();
+            loadSet();
+            initBotDrag();
+            px = 0; py = 0;
+            upT();
+            drawSq24();
+            
+            // ئەپدەیتکردنەوەی نەخشە هەموو خولەکێک
+            setInterval(() => { drawSq24(); }, 60000);
+        });
+
+        const savedIds = ['sq24BasePrice', 'sq24TrendDir', 'sq24ManualTime', 'sq24StepValue'];
+
+        function loadSet() {
+            try {
+                savedIds.forEach(id => { 
+                    let v = localStorage.getItem('rfx_tal_' + id); 
+                    let el = document.getElementById(id); 
+                    if(v !== null && el) el.value = v; 
+                });
+            } catch(e) {}
+        }
+
+        function saveSet() {
+            try {
+                savedIds.forEach(id => { 
+                    let el = document.getElementById(id); 
+                    if(el) localStorage.setItem('rfx_tal_' + id, el.value); 
+                });
+            } catch(e) {}
+        }
+
+        savedIds.forEach(id => {
+            let el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('change', () => { saveSet(); drawSq24(); window.updateBotTime(); });
+                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); drawSq24(); window.updateBotTime(); });
+            }
+        });
+
+        // یارمەتیدەری ماتماتیکی بۆ دۆزینەوەی یەکخستنی کات و نرخ
+        window.isTimePriceSquared = function(price, base, timeAngle) {
+            if(price <= 0) return false;
+            let priceAngle = Math.abs(Math.sqrt(price) - Math.sqrt(base)) * 180;
+            let diff = Math.abs((priceAngle % 360) - timeAngle);
+            if(diff > 180) diff = 360 - diff;
+            return (diff <= 3 || Math.abs(diff - 45) <= 3 || Math.abs(diff - 90) <= 3 || Math.abs(diff - 180) <= 3);
+        }
+
+        // کێشانی ماتریکسی ٢٤ کاتژمێری
+        window.drawSq24 = function() {
+            const canvas = document.getElementById('sq24Canvas'); if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const CANVAS_SIZE = 5600; 
+            canvas.width = canvas.height = CANVAS_SIZE;
+            canvas.style.width = CANVAS_SIZE + 'px'; canvas.style.height = CANVAS_SIZE + 'px';
+            
+            const cx = CANVAS_SIZE / 2, cy = CANVAS_SIZE / 2;
+            const base = parseFloat(document.getElementById('sq24BasePrice').value) || 0;
+            const stepVal = parseFloat(document.getElementById('sq24StepValue').value) || 1;
+            const trendDir = document.getElementById('sq24TrendDir').value;
+            const manualTimeInput = document.getElementById('sq24ManualTime').value;
+            const size = 24, rGrid = 1900, rClock = 1980; 
+            const goldenHours = [10, 11, 15, 16, 18]; 
+
+            let now = new Date(); let h = now.getHours(), m = now.getMinutes();
+            let isManual = false; 
+            if (manualTimeInput) { 
+                h = parseInt(manualTimeInput.split(':')[0]); 
+                m = parseInt(manualTimeInput.split(':')[1]); 
+                isManual = true; 
+            }
+            
+            let liveAngleDeg = ((h + m/60) / 24) * 360; 
+            let liveRad = (liveAngleDeg - 90) * Math.PI / 180;
+            let activeColHour = h === 0 ? 24 : h; 
+            let themeColor = isManual ? "#ff3399" : "#00ffcc";
+
+            ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            // کێشانی بازنەی دەرەوەی کاتژمێر
+            ctx.beginPath(); ctx.arc(cx, cy, rClock, 0, 2 * Math.PI); 
+            ctx.lineWidth = 6; ctx.strokeStyle = "rgba(0, 255, 204, 0.4)"; ctx.stroke();
+            
+            ctx.beginPath(); ctx.arc(cx, cy, rClock - 20, 0, 2 * Math.PI); 
+            ctx.lineWidth = 3; ctx.strokeStyle = "rgba(212, 175, 55, 0.3)"; ctx.stroke();
+
+            // کێشانی نیشانەکانی کاتژمێر لە دەوروبەری
+            for(let a = 0; a < 360; a += 15) {
+                let rad = (a * Math.PI) / 180 - Math.PI/2;
+                let hourUnit = (a/15 === 0) ? 24 : a/15;
+                let isGolden = goldenHours.includes(hourUnit); 
+                let isActiveHour = (hourUnit === activeColHour);
+                let strokeCol = isActiveHour ? themeColor : (isGolden ? '#d4af37' : 'rgba(255,255,255,0.7)');
+                
+                ctx.lineWidth = isActiveHour ? 12 : (isGolden ? 10 : 5); 
+                ctx.strokeStyle = strokeCol;
+                ctx.beginPath(); 
+                ctx.moveTo(cx + (rClock - 35) * Math.cos(rad), cy + (rClock - 35) * Math.sin(rad));
+                ctx.lineTo(cx + (rClock + 35) * Math.cos(rad), cy + (rClock + 35) * Math.sin(rad)); 
+                ctx.stroke();
+
+                ctx.fillStyle = isActiveHour ? themeColor : (isGolden ? '#d4af37' : 'rgba(255,255,255,0.6)');
+                ctx.font = isActiveHour ? "bold 85px monospace" : (isGolden ? "bold 75px monospace" : "bold 55px monospace");
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                if(isActiveHour || isGolden) { ctx.shadowBlur = 20; ctx.shadowColor = ctx.fillStyle; }
+                ctx.fillText((isGolden && !isActiveHour ? "⭐ " : "") + hourUnit + "H", cx + (rClock + 110) * Math.cos(rad), cy + (rClock + 110) * Math.sin(rad)); 
+                ctx.shadowBlur = 0;
+            }
+
+            // کێشانی هێڵی کاتی ئێستا
+            ctx.beginPath(); 
+            ctx.moveTo(cx + (rClock - 40) * Math.cos(liveRad), cy + (rClock - 40) * Math.sin(liveRad));
+            ctx.lineTo(cx + (rClock + 40) * Math.cos(liveRad), cy + (rClock + 40) * Math.sin(liveRad));
+            ctx.lineWidth = 10; ctx.strokeStyle = "#fff"; 
+            ctx.shadowBlur = 20; ctx.shadowColor = themeColor; 
+            ctx.stroke(); ctx.shadowBlur = 0;
+
+            // دروستکردنی خشتەی ٢٤ × ٢٤
+            let cellSize = (rGrid * 1.35) / size; 
+            let startX = cx - (size * cellSize) / 2; 
+            let startY = cy - (size * cellSize) / 2;
+            
+            for(let row = 0; row < size; row++) {
+                for(let col = 0; col < size; col++) {
+                    let colHour = col + 1; 
+                    let val;
+                    if (trendDir === 'up') { 
+                        val = parseFloat((base + ((23 - row) * size + col) * stepVal).toFixed(2)); 
+                    } else { 
+                        val = parseFloat((base - (row * size + col) * stepVal).toFixed(2)); 
+                    }
+                    
+                    let x = startX + col * cellSize, y = startY + row * cellSize;
+                    let isActiveCol = (colHour === activeColHour); 
+                    let isGolden = goldenHours.includes(colHour);
+                    let isSquaring = false;
+                    
+                    // پشکنینی Square of Time and Price بۆ ستوونی ئەکتیڤ
+                    if (val > 0) {
+                        let priceAngle = Math.abs(Math.sqrt(val) - Math.sqrt(base)) * 180;
+                        let diff = Math.abs((priceAngle % 360) - ((colHour * 15) % 360));
+                        if(diff > 180) diff = 360 - diff;
+                        isSquaring = isActiveCol && (diff <= 3 || Math.abs(diff - 45) <= 3 || Math.abs(diff - 90) <= 3 || Math.abs(diff - 180) <= 3);
+                    }
+                    
+                    let cellW = cellSize - 6; 
+                    let cellGrad = ctx.createLinearGradient(x, y, x + cellW, y + cellW);
+                    
+                    if (isSquaring) { 
+                        cellGrad.addColorStop(0, themeColor); cellGrad.addColorStop(1, '#006666'); 
+                    } else if (isGolden) { 
+                        cellGrad.addColorStop(0, '#262000'); cellGrad.addColorStop(1, '#1a1500'); 
+                    } else { 
+                        cellGrad.addColorStop(0, '#16161f'); cellGrad.addColorStop(1, '#0a0a0f'); 
+                    }
+
+                    ctx.fillStyle = cellGrad; 
+                    ctx.fillRect(x + 3, y + 3, cellW, cellW);
+                    
+                    ctx.strokeStyle = isSquaring ? "#fff" : (isActiveCol ? "rgba(0, 255, 204, 0.4)" : (isGolden ? "rgba(212, 175, 55, 0.4)" : "rgba(255,255,255,0.08)"));
+                    ctx.lineWidth = isSquaring ? 2 : 1; 
+                    ctx.strokeRect(x + 3, y + 3, cellW, cellW);
+
+                    ctx.fillStyle = isSquaring ? "#000" : (isActiveCol ? "#fff" : (isGolden ? "#ccc" : "#778"));
+                    ctx.font = isSquaring ? `bold ${cellW * 0.4}px monospace` : `bold ${cellW * 0.3}px monospace`;
+                    ctx.fillText(val, x + cellSize/2, y + cellSize/2 + (cellW * 0.1));
+                }
+            }
+
+            // ناوەڕاستی نەخشە
+            let centerText = currentLang === 'ku' ? "سەنتەر" : (currentLang === 'ar' ? "المركز" : "Center");
+            ctx.beginPath(); ctx.arc(cx, cy, 220, 0, 2*Math.PI); 
+            ctx.fillStyle = "#05050a"; ctx.fill(); 
+            ctx.strokeStyle = themeColor; ctx.lineWidth = 5; ctx.stroke();
+            ctx.fillStyle = "#fff"; ctx.font = "bold 35px Tahoma"; 
+            ctx.fillText(centerText, cx, cy - 45);
+            ctx.fillStyle = themeColor; ctx.font = "bold 75px monospace"; 
+            ctx.shadowBlur = 20; ctx.shadowColor = themeColor; 
+            ctx.fillText(base, cx, cy + 30); 
+            ctx.shadowBlur = 0;
+        }
+
+        // --- Bot Drag Logic ---
+        let isDraggingBot = false, botStartX, botStartY, initialBotX, initialBotY;
+        const botBtn = document.getElementById('rebar-bot-btn');
+        
+        function initBotDrag() {
+            if(!botBtn) return;
+            botBtn.addEventListener('mousedown', dragBotStart); document.addEventListener('mousemove', dragBotMove); document.addEventListener('mouseup', dragBotEnd);
+            botBtn.addEventListener('touchstart', dragBotStart, {passive: false}); document.addEventListener('touchmove', dragBotMove, {passive: false}); document.addEventListener('touchend', dragBotEnd);
+        }
+
+        function dragBotStart(e) {
+            if(e.type === 'touchstart') { botStartX = e.touches[0].clientX; botStartY = e.touches[0].clientY; } else { botStartX = e.clientX; botStartY = e.clientY; }
+            initialBotX = botBtn.offsetLeft; initialBotY = botBtn.offsetTop; isDraggingBot = true; 
+        }
+
+        function dragBotMove(e) {
+            if (!isDraggingBot) return; let currentX, currentY;
+            if(e.type === 'touchmove') { currentX = e.touches[0].clientX; currentY = e.touches[0].clientY; e.preventDefault(); } else { currentX = e.clientX; currentY = e.clientY; }
+            botBtn.style.left = (initialBotX + (currentX - botStartX)) + 'px'; botBtn.style.top = (initialBotY + (currentY - botStartY)) + 'px'; botBtn.style.bottom = 'auto'; botBtn.style.right = 'auto';
+        }
+
+        function dragBotEnd(e) {
+            if(!isDraggingBot) return; isDraggingBot = false;
+            let finalX = e.type === 'touchend' ? e.changedTouches[0].clientX : e.clientX; let finalY = e.type === 'touchend' ? e.changedTouches[0].clientY : e.clientY;
+            if (Math.abs(finalX - botStartX) < 10 && Math.abs(finalY - botStartY) < 10) window.openBot();
+        }
+
+        window.updateBotTime = function() {
+            let h = new Date().getHours(); 
+            let manual = document.getElementById('sq24ManualTime').value;
+            if(manual) h = parseInt(manual.split(':')[0]);
+            
+            let t = lexicon[currentLang] || lexicon['ku'];
+            let greetingTxt = t.bot_greet ? t.bot_greet(h === 0 ? 24 : h) : `سڵاو! ئۆردەر بۆ کاتژمێر ${h === 0 ? 24 : h}:00 ئامادە دەکەم، نرخی ئێستام پێ بڵێ:`;
+            document.getElementById('bot-greeting').innerHTML = greetingTxt;
+        }
+
+        window.openBot = function() { 
+            window.updateBotTime(); 
+            document.getElementById('bot-modal').style.display = 'block'; 
+            document.getElementById('bot-results').style.display = 'none'; 
+            document.getElementById('botPriceInput').value = ''; 
+        }
+        window.closeBot = function() { document.getElementById('bot-modal').style.display = 'none'; }
+
+        // --- Bot Signal Generator Matrix 24 Logic ---
+        window.generateMatrixSignal = function() {
+            let p = parseFloat(document.getElementById('botPriceInput').value);
+            let t = lexicon[currentLang] || lexicon['ku'];
+            
+            if(!p || p <= 0) { alert(t.bot_err); return; }
+
+            let base = parseFloat(document.getElementById('sq24BasePrice').value) || 0;
+            let stepVal = parseFloat(document.getElementById('sq24StepValue').value) || 1;
+            let trendDir = document.getElementById('sq24TrendDir').value;
+            
+            let h = new Date().getHours(); let manual = document.getElementById('sq24ManualTime').value;
+            if(manual) h = parseInt(manual.split(':')[0]);
+            let targetHour = h === 0 ? 24 : h; let col = targetHour - 1; 
+
+            let n_float;
+            if (trendDir === 'up') {
+                n_float = (p - base - col * stepVal) / (24 * stepVal);
+            } else {
+                n_float = (base - p - col * stepVal) / (24 * stepVal);
+            }
+
+            let n1 = Math.floor(n_float);
+            let n2 = Math.ceil(n_float);
+            if (n1 === n2) n2 = n1 + 1; 
+
+            let val1, val2;
+            if (trendDir === 'up') {
+                val1 = base + (n1 * 24 + col) * stepVal;
+                val2 = base + (n2 * 24 + col) * stepVal;
+            } else {
+                val1 = base - (n1 * 24 + col) * stepVal;
+                val2 = base - (n2 * 24 + col) * stepVal;
+            }
+
+            let gridBelow = parseFloat(Math.min(val1, val2).toFixed(2));
+            let gridAbove = parseFloat(Math.max(val1, val2).toFixed(2));
+
+            let dist = gridAbove - gridBelow;
+            let q1 = dist * 0.25, q2 = dist * 0.50, q3 = dist * 0.75;
+            
+            let b1 = parseFloat((gridBelow + q1).toFixed(2)), b2 = parseFloat((gridBelow + q2).toFixed(2)), b3 = parseFloat((gridBelow + q3).toFixed(2)), b4 = gridAbove;
+            let s1 = parseFloat((gridAbove - q1).toFixed(2)), s2 = parseFloat((gridAbove - q2).toFixed(2)), s3 = parseFloat((gridAbove - q3).toFixed(2)), s4 = gridBelow;
+
+            let slOffset = parseFloat((stepVal * 1.5).toFixed(2)); 
+            let buySL = parseFloat((gridBelow - slOffset).toFixed(2));
+            let sellSL = parseFloat((gridAbove + slOffset).toFixed(2));
+
+            let resTitle = t.bot_res_title(targetHour);
+            
+            document.getElementById('bot-status').innerHTML = `
+                ${resTitle}
+                <span style="color:var(--neon-gold); font-size:18px; display:inline-block; margin-top:5px;">[ ${gridBelow} ] — [ ${gridAbove} ]</span>
+            `;
+
+            document.getElementById('buyBox').innerHTML = `
+                ${t.bot_buy_title}
+                ${t.bot_buy_entry(gridBelow)}
+                ${t.bot_q1} <span class="target-val">${b1}</span><br>
+                ${t.bot_q2} <span class="target-val">${b2}</span><br>
+                ${t.bot_q3} <span class="target-val">${b3}</span><br>
+                ${t.bot_q4} <span class="target-val">${b4}</span><br>
+                ${t.bot_sl} <span style="color:#ff3333; font-weight:bold; font-family:monospace;">${buySL}</span>
+            `;
+
+            document.getElementById('sellBox').innerHTML = `
+                ${t.bot_sell_title}
+                ${t.bot_sell_entry(gridAbove)}
+                ${t.bot_q1} <span class="target-val">${s1}</span><br>
+                ${t.bot_q2} <span class="target-val">${s2}</span><br>
+                ${t.bot_q3} <span class="target-val">${s3}</span><br>
+                ${t.bot_q4s} <span class="target-val">${s4}</span><br>
+                ${t.bot_sl} <span style="color:#ff3333; font-weight:bold; font-family:monospace;">${sellSL}</span>
+            `;
+
+            document.getElementById('bot-results').style.display = 'block';
+        }
+
+        // --- Map Zoom & Pan ---
+        let sc = window.innerWidth < 600 ? 0.2 : 0.3;
+        let px = 0, py = 0, dg = false, sx, sy, iDist = 0;
+        const vM = document.getElementById('viewport-maps'), zL = document.getElementById('zoom-layer');
+        
+        function upT() { zL.style.transform = `translate(${px}px, ${py}px) scale(${sc})`; }
+        function getEP(e) { return e.touches && e.touches.length > 0 ? {x: e.touches[0].clientX, y: e.touches[0].clientY} : {x: e.clientX, y: e.clientY}; }
+
+        vM.addEventListener('mousedown', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#rebar-bot-btn') || e.target.closest('#bot-modal')) return;
+            let p = getEP(e); dg = true; sx = p.x - px; sy = p.y - py; vM.style.cursor = 'grabbing';
+        });
+        
+        window.addEventListener('mousemove', e => {
+            if(dg) { let p = getEP(e); px = p.x - sx; py = p.y - sy; upT(); }
+        });
+        
+        window.addEventListener('mouseup', () => { dg = false; vM.style.cursor = 'grab'; });
+        
+        vM.addEventListener('wheel', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#bot-modal')) return;
+            e.preventDefault(); sc += e.deltaY * -0.001; sc = Math.min(Math.max(0.05, sc), 5); upT();
+        }, {passive: false});
+        
+        vM.addEventListener('touchstart', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#rebar-bot-btn') || e.target.closest('#bot-modal')) return;
+            if(e.touches.length === 2) { dg = false; iDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
+            else { let p = getEP(e); dg = true; sx = p.x - px; sy = p.y - py; }
+        }, {passive: false});
+        
+        vM.addEventListener('touchmove', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#rebar-bot-btn') || e.target.closest('#bot-modal')) return;
+            if(e.touches.length === 2) {
+                e.preventDefault(); const d = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                sc = Math.min(Math.max(0.05, sc * (d / iDist)), 5); iDist = d; upT();
+            } else if(dg) { e.preventDefault(); let p = getEP(e); px = p.x - sx; py = p.y - sy; upT(); }
+        }, {passive: false});
+        
+        window.addEventListener('touchend', () => { dg = false; });
+    </script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+        :root {
+            --neon-cyan: #00ffcc;
+            --neon-gold: #d4af37;
+            --neon-purple: #b366ff;
+            --neon-orange: #ff9900;
+            --neon-pink: #ff3399;
+            --bg-dark: #050508;
+        }
+
+        body {
+            background: #000;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .stars-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #111122 0%, #000000 100%);
+            z-index: 1;
+        }
+
+        /* Main Box Card */
+        .gateway-container {
+            background: rgba(10, 10, 15, 0.96);
+            border: 2px solid var(--neon-gold);
+            border-radius: 20px;
+            padding: 30px 25px;
+            width: 90%;
+            max-width: 420px;
+            max-height: 90vh;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Language Selector Toolbar inside Lock */
+        .lang-toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 50;
+        }
+
+        .lang-btn {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .lang-btn.active, .lang-btn:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        /* Logo Icon Animation (Lock Screen) */
+        .logo-wrapper {
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .logo-circle {
+            width: 90px;
+            height: 90px;
+            background: #000;
+            border: 3px solid var(--neon-gold);
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+            animation: pulseGlow 3s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); border-color: var(--neon-gold); }
+            100% { box-shadow: 0 0 40px rgba(0, 255, 204, 0.6); border-color: var(--neon-cyan); }
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            margin: 5px 0;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .app-subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        /* مافی پارێزراو لە ناو قوفڵەکە */
+        .creators-brand {
+            font-size: 12px;
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #333;
+        }
+
+        /* Lock Screen Fields */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 14px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            text-align: center;
+            font-family: monospace;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        input[type="password"]:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+        }
+
+        .activate-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--neon-gold) 0%, #aa8529 100%);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+
+        .activate-btn:active {
+            transform: scale(0.98);
+        }
+
+        .msg-display {
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ff3333;
+            min-height: 20px;
+        }
+
+        .device-id-label {
+            font-size: 11px;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .device-id-val {
+            font-size: 14px;
+            color: var(--neon-cyan);
+            font-family: monospace;
+            margin-top: 5px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* --- شاشەی لۆگۆی نوێی داڵۆیەکە (Full Screen Overlay) --- */
+        .welcome-transition {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #0a0a0f 0%, #000000 100%);
+            z-index: 1500000;
+            transition: opacity 0.5s ease;
+        }
+
+        .eagle-logo-box {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: #050508;
+            position: relative;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.4), inset 0 0 20px rgba(0, 255, 204, 0.1);
+            border: 2px solid var(--neon-gold);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .eagle-logo-box::before {
+            content: '';
+            position: absolute;
+            width: 88%; height: 88%;
+            border-radius: 50%;
+            border: 3px dashed var(--neon-cyan);
+            animation: spinRight 10s linear infinite;
+        }
+
+        .eagle-logo-box::after {
+            content: '';
+            position: absolute;
+            width: 75%; height: 75%;
+            border-radius: 50%;
+            border: 3px dotted var(--neon-purple);
+            animation: spinLeft 15s linear infinite;
+        }
+
+        .logo-main-icon {
+            font-size: 80px;
+            z-index: 5;
+            text-shadow: 0 0 25px var(--neon-gold);
+        }
+
+        @keyframes spinRight { 100% { transform: rotate(360deg); } }
+        @keyframes spinLeft { 100% { transform: rotate(-360deg); } }
+
+        .welcome-copyright {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.8;
+            opacity: 0;
+            animation: fadeInText 1s ease forwards 0.5s;
+            text-align: center;
+            max-width: 85%;
+        }
+
+        .welcome-copyright strong {
+            color: var(--neon-cyan);
+            font-size: 18px;
+            display: block;
+            margin-top: 15px;
+            direction: ltr;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
+            letter-spacing: 1px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInText {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Hub Section (هەڵبژاردنی هەر ٥ نەخشەکە) --- */
+        .hub-menu {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .hub-title {
+            font-size: 22px;
+            color: var(--neon-gold);
+            margin-bottom: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            text-align: center;
+        }
+
+        .hub-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hub-card {
+            background: rgba(5, 5, 5, 0.85);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            text-decoration: none;
+            text-align: right;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; height: 100%; width: 4px;
+        }
+
+        /* ڕەنگی تایبەت بۆ هەر نەخشەیەک */
+        .hub-card.w-plan { border-color: rgba(212, 175, 55, 0.4); color: #fff; }
+        .hub-card.w-plan::before { background: var(--neon-gold); }
+        .hub-card.w-plan:hover { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+
+        .hub-card.w-hex { border-color: rgba(0, 255, 204, 0.4); color: #fff; }
+        .hub-card.w-hex::before { background: var(--neon-cyan); }
+        .hub-card.w-hex:hover { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 255, 204, 0.2); }
+
+        .hub-card.w-sq9 { border-color: rgba(255, 153, 0, 0.4); color: #fff; }
+        .hub-card.w-sq9::before { background: var(--neon-orange); }
+        .hub-card.w-sq9:hover { border-color: var(--neon-orange); box-shadow: 0 0 15px rgba(255, 153, 0, 0.2); }
+
+        .hub-card.w-mat { border-color: rgba(255, 51, 153, 0.4); color: #fff; }
+        .hub-card.w-mat::before { background: var(--neon-pink); }
+        .hub-card.w-mat:hover { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 51, 153, 0.2); }
+
+        .hub-card.w-astro { border-color: rgba(179, 102, 255, 0.4); color: #fff; }
+        .hub-card.w-astro::before { background: var(--neon-purple); }
+        .hub-card.w-astro:hover { border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(179, 102, 255, 0.2); }
+
+        .hub-card:active { transform: scale(0.97); }
+
+        .hub-icon { font-size: 30px; min-width: 40px; text-align: center; }
+        .hub-info { display: flex; flex-direction: column; flex: 1; }
+        .hub-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+        .hub-desc { font-size: 11px; color: #aaa; line-height: 1.4; }
+    
