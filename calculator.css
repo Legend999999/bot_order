@@ -1,0 +1,109 @@
+        :root { --neon-cyan: #00ffcc; --neon-gold: #d4af37; --neon-pink: #ff3399; --neon-purple: #b366ff; --neon-blue: #33ccff; --bg-dark: #000; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; direction: ltr; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        
+        /* Header */
+        .header { position: fixed; top: 0; width: 100%; background: rgba(12, 12, 12, 0.95); padding: 12px 15px; border-bottom: 1px solid var(--neon-purple); z-index: 9999; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; backdrop-filter: blur(5px); direction: ltr;}
+        .menu-toggle { background: var(--neon-purple); border: none; color: #fff; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 0 10px rgba(179, 102, 255, 0.3); order: 1; }
+        .center-brand-text { color: var(--neon-gold); font-weight: bold; font-size: 9px; font-family: monospace; order: 2; flex: 1; text-align: center; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        .back-arrow-btn { background: transparent; border: none; color: var(--neon-purple); font-size: 24px; cursor: pointer; transition: 0.3s; padding: 0 5px; display: flex; align-items: center; order: 3; text-decoration: none;}
+        .back-arrow-btn:active { transform: scale(0.9); color: #fff; }
+        
+        /* Sidebar */
+        .sidebar { position: fixed; top: 0; width: 310px; height: 100%; background: #0a0a0f; z-index: 9999999; transition: 0.3s; padding: 85px 20px 120px 20px; box-sizing: border-box; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
+        html[dir="rtl"] .sidebar { right: -320px; border-left: 1px solid var(--neon-purple); direction: rtl; }
+        html[dir="rtl"] .sidebar.active { right: 0; }
+        html[dir="rtl"] .close-menu { left: 15px; right: auto; }
+        html[dir="ltr"] .sidebar { left: -320px; border-right: 1px solid var(--neon-purple); direction: ltr; }
+        html[dir="ltr"] .sidebar.active { left: 0; }
+        html[dir="ltr"] .close-menu { right: 15px; left: auto; }
+        .close-menu { position: absolute; top: 15px; background: none; border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        
+        /* Form Inputs */
+        .menu-item { margin-top: 15px; border-bottom: 1px dashed #333; padding-bottom: 15px; }
+        .menu-item label { display: block; color: var(--neon-purple); font-size: 13px; margin-bottom: 6px; font-weight: bold; text-align: center; }
+        input, select { background: #0a0a0a; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; text-align: center; font-weight: bold; font-family: monospace;}
+        input:focus, select:focus { border-color: var(--neon-purple); }
+        .helper-text { font-size: 11px; color: #888; margin-top: 8px; text-align: center; line-height: 1.5; }
+        .toggle-group { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--neon-cyan); font-size: 13px; font-weight: bold; margin-top: 10px; }
+        .toggle-group input { width: auto; transform: scale(1.2); accent-color: var(--neon-cyan); }
+
+        /* API & Search Boxes */
+        .api-box { background: rgba(0, 255, 204, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); margin-bottom: 15px; text-align: center;}
+        .api-box label { color: var(--neon-cyan); font-size: 14px; font-weight: bold; margin-bottom: 10px; display: block;}
+        
+        .search-box { background: rgba(212, 175, 55, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-gold); margin-bottom: 15px; text-align: center;}
+        .search-box label { color: var(--neon-gold); font-size: 14px; font-weight: bold; margin-bottom: 15px; display: block;}
+        .search-group { margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 12px;}
+        .search-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .search-group input { border-color: #555; color: #fff; font-size: 14px; margin-bottom: 8px;}
+        .search-group input:focus { border-color: var(--neon-gold); }
+        .degree-result { font-size: 14px; font-weight: bold; background: #000; padding: 4px 8px; border-radius: 4px; border: 1px solid #333; display: inline-block;}
+
+        /* Map Area */
+        #viewport-maps { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: block; z-index: 10; background: radial-gradient(circle at center, #0a0a1a 0%, #000 80%);}
+        .map-area { position: absolute; width: 6000px; height: 6000px; display: flex; align-items: center; justify-content: center; cursor: grab; left: 50%; top: 50%; transform: translate(-50%, -50%);}
+        .map-area:active { cursor: grabbing; }
+        #zoom-layer { position: relative; transform-origin: center; display: flex; align-items: center; justify-content: center;}
+        
+        /* Astro Wheel Styles */
+        .master-wheel { position: relative; width: 1100px; height: 1100px; display: block; }
+        .ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; }
+        
+        .degree-ring { width: 1020px; height: 1020px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 0 10px rgba(255,255,255,0.02); }
+        .degree-text { color: #ccc; font-size: 11px; font-weight: bold; font-family: monospace; z-index: 40; text-shadow: 0 0 5px #000;}
+        .zodiac-ring { width: 940px; height: 940px; border: 2px solid rgba(138, 43, 226, 0.3); box-shadow: 0 0 30px rgba(138, 43, 226, 0.2); }
+        .live-price-ring { width: 830px; height: 830px; border: 2px dotted rgba(0, 255, 204, 0.4); box-shadow: 0 0 20px rgba(0,255,204,0.1), inset 0 0 20px rgba(0,255,204,0.1); }
+        .planet-ring { width: 720px; height: 720px; border: 2px dashed rgba(255, 255, 255, 0.4); box-shadow: 0 0 25px rgba(255,255,255,0.15), inset 0 0 25px rgba(255,255,255,0.15); }
+        
+        .center-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 65px; height: 65px; background: #000; border: 2px solid #b366ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #b366ff; font-size: 13px; z-index: 100; box-shadow: 0 0 20px rgba(138, 43, 226, 0.4); text-shadow: 0 0 5px #b366ff;}
+        .node { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; pointer-events: none; }
+        .zodiac-node { font-size: 12px; font-weight: bold; z-index: 55; background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 4px; border: 1px solid; }
+        .planet-node { font-size: 13px; font-weight: bold; z-index: 500; background: rgba(10,10,15,0.95); padding: 4px 8px; border-radius: 6px; border: 1px solid; box-shadow: inset 0 0 5px rgba(255,255,255,0.1); transition: 0.3s;}
+        
+        .live-marker { font-size: 15px !important; font-weight: 900 !important; color: #000 !important; background: var(--neon-cyan) !important; border: 2px solid #fff !important; box-shadow: 0 0 20px var(--neon-cyan) !important; z-index: 600; text-shadow: none !important; transition: all 0.5s ease-out;}
+        .search-marker { font-size: 13px !important; font-weight: bold !important; color: #fff !important; background: rgba(212, 175, 55, 0.9) !important; border: 1px solid var(--neon-gold) !important; box-shadow: 0 0 15px var(--neon-gold) !important; z-index: 550;}
+        
+        svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 450; }
+        .rx-tag { color: #ff3333; font-size: 10px; font-weight: bold; vertical-align: super; margin-left: 2px;}
+
+        /* Floating Info Button & Modals */
+        #astro-info-btn { position: fixed; bottom: 20px; left: 20px; background: rgba(212, 175, 55, 0.15); border: 2px solid var(--neon-gold); color: var(--neon-gold); padding: 12px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 14px; z-index: 10001; box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3); backdrop-filter: blur(5px); transition: 0.3s; }
+        #astro-info-btn:active { transform: scale(0.95); }
+
+        #phase-container { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: rgba(15, 10, 25, 0.95); border: 1px solid var(--neon-gold); border-radius: 12px; padding: 12px 15px; z-index: 9999; box-shadow: 0 0 20px rgba(212,175,55,0.2); width: 90%; max-width: 450px; display: none; grid-template-columns: 1fr 1fr; gap: 10px; backdrop-filter: blur(5px); }
+        .phase-col { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .phase-title { font-size: 11px; color: var(--neon-gold); margin-bottom: 5px; font-weight: bold; text-transform: uppercase;}
+        .phase-val { font-size: 13px; color: #fff; font-weight: bold; }
+        .eclipse-warn { color: #ff3333; font-size: 11px; font-weight: bold; margin-top: 5px; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        #view-astro-info { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 420px; max-height: 85vh; background: rgba(15, 10, 25, 0.98); border: 2px solid var(--neon-gold); border-radius: 12px; padding: 0; box-sizing: border-box; display: none; z-index: 10005; box-shadow: 0 10px 50px rgba(0,0,0,0.9); flex-direction: column; }
+        .dash-header { text-align: center; color: var(--neon-gold); font-size: 16px; font-weight: bold; padding: 15px; border-bottom: 1px dashed var(--neon-gold); background: rgba(0,0,0,0.5); border-radius: 12px 12px 0 0; }
+        .dash-content { padding: 15px; overflow-y: auto; flex: 1; }
+        .section-title { color: #fff; font-size: 14px; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold;}
+        
+        .info-card { background: rgba(0,0,0,0.6); border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+        html[dir="rtl"] .info-card { border-right: 4px solid #aaa; text-align: right; }
+        html[dir="ltr"] .info-card { border-left: 4px solid #aaa; text-align: left; }
+        .info-card.gold-asset { border-color: #ffd700; background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(255, 215, 0, 0.1) 100%); }
+        .info-card.crypto-asset { border-color: #ff99cc; background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(255, 153, 204, 0.1) 100%); }
+        .info-card.macro-asset { border-color: #00ffcc; background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0, 255, 204, 0.1) 100%); }
+        .info-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 6px; }
+        .info-title { font-weight: bold; font-size: 13px; color: #fff; }
+        .info-body { font-size: 11px; line-height: 1.6; color: #ccc; }
+        .info-body strong { color: #fff; }
+
+        .signal-card { background: rgba(0,0,0,0.7); border-radius: 6px; padding: 10px; margin-bottom: 10px; border: 1px solid #333;}
+        html[dir="rtl"] .signal-card.buy { border-right: 4px solid #00ffcc; }
+        html[dir="ltr"] .signal-card.buy { border-left: 4px solid #00ffcc; }
+        html[dir="rtl"] .signal-card.sell { border-right: 4px solid #ff3333; }
+        html[dir="ltr"] .signal-card.sell { border-left: 4px solid #ff3333; }
+        html[dir="rtl"] .signal-card.neutral { border-right: 4px solid #ffcc00; }
+        html[dir="ltr"] .signal-card.neutral { border-left: 4px solid #ffcc00; }
+        .sig-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #444; padding-bottom: 5px; margin-bottom: 6px; }
+        .sig-title { font-weight: bold; font-size: 13px; color: #fff; }
+        .sig-impact { font-size: 10px; color: #00ffcc; background: #111; padding: 4px; border-radius: 4px; margin-bottom: 6px; border: 1px dashed #333; line-height: 1.5;}
+        .sig-body { font-size: 11px; line-height: 1.5; color: #ddd; margin-bottom: 6px; }
+        .sig-times { display: flex; justify-content: space-between; font-size: 10px; color: #888; background: #050505; padding: 6px; border-radius: 4px; border: 1px solid #222;}
+        .sig-times span strong { color: #00ffcc; display: block; margin-top: 2px; font-size: 11px;}
+        .sig-times span.end strong { color: #ff3333; }

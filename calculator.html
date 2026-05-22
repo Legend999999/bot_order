@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <link rel="stylesheet" href="calculator.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>San FX - Mathematical Pivot Levels</title>
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="header">
+        <button class="menu-toggle" id="btn-menu" data-i18n="btn_menu">☰ ڕێکخستن</button>
+        <div class="center-brand-text">@San_FX</div>
+        <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-menu" id="btn-close-menu">✕</button>
+        
+        <h3 style="color: var(--neon-purple); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; margin-top: 0;" data-i18n="side_title">ڕێکخستنی فەلەکی</h3>
+
+        <div id="controls-astro">
+            
+
+            <div class="search-box">
+                <label data-i18n="lbl_search">🔍 گەڕان (قیمەت، بەروار، کات)</label>
+                
+                <div class="search-group">
+                    <input type="number" id="searchPrice" data-i18n-ph="ph_search_price" placeholder="گەڕان بۆ نرخ..." oninput="window.updateAstro()">
+                    <select id="astroPriceConvMethod" onchange="window.updateAstro()" style="font-size: 11px; padding: 4px; background:#111;">
+                        <option value="sqrt" data-i18n="opt_conv_sqrt">ڕەگی دووجا (Square Root)</option>
+                        <option value="mod" data-i18n="opt_conv_mod">دابەشکردن (Modulo 360)</option>
+                    </select>
+                    <div class="degree-result" id="resPriceDeg" style="color: var(--neon-gold);">--°</div>
+                </div>
+                
+                <div class="search-group">
+                    <input type="date" id="searchDate" onchange="window.updateAstro()" style="color: var(--neon-blue);">
+                    <div class="degree-result" id="resDateDeg" style="color: var(--neon-blue);">--°</div>
+                </div>
+                
+                <div class="search-group">
+                    <input type="time" id="searchTime" onchange="window.updateAstro()" style="color: var(--neon-pink);">
+                    <div class="degree-result" id="resTimeDeg" style="color: var(--neon-pink);">--°</div>
+                </div>
+                
+                <div class="helper-text" data-i18n="help_search">هەر یەکێک بنووسیت ڕاستەوخۆ دەچێتە سەر نەخشەکە.</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const lexicon = {
+            ku: {
+                btn_menu: "☰ ڕێکخستن", side_title: "ڕێکخستنی فەلەکی",
+                lbl_api: "📡 داتای لایڤ بە دەوری بازنەکە (API)", api_off: "بکوژێنەوە (Off)", api_btc: "بیتکۆین (BTC)", api_gold: "زێڕ (PAXG/XAU)",
+                lbl_search: "🔍 گەڕان (قیمەت، بەروار، کات)", ph_search_price: "گەڕان بۆ نرخ...", help_search: "هەر یەکێک بنووسیت ڕاستەوخۆ دەچێتە سەر نەخشەکە.",
+                opt_conv_sqrt: "ڕەگی دووجا (Square Root)", opt_conv_mod: "دابەشکردن (Modulo 360)",
+                lbl_geom: "شێوەی ئەندازەیی (Geometry)", geo_none: "بێ شێوە (None)", geo_tetra: "تێتراگرام (چوارگۆشە - 90°)", geo_penta: "پێنتاگرام (٥ پەڕ - 72°)", geo_hexa: "هێکساگرام (٦ پەڕ - 60°)",
+                lbl_astro_datetime: "بەروار و کات (هەسارەکان)", help_live: "بەتاڵی بهێڵەوە بۆ کاتی لایڤ",
+                toggle_planets: " پیشاندانی هەسارەکان", toggle_aspects: " هێڵی پەیوەندییەکان"
+            },
+            ar: {
+                btn_menu: "☰ إعدادات", side_title: "إعدادات الفلك",
+                lbl_api: "📡 بيانات حية على الدائرة (API)", api_off: "إيقاف (Off)", api_btc: "بيتكوين (BTC)", api_gold: "ذهب (PAXG)",
+                lbl_search: "🔍 البحث وتحويل الدرجات", ph_search_price: "بحث عن سعر...", help_search: "يتم تعيين كل إدخال مباشرة على الخريطة.",
+                opt_conv_sqrt: "الجذر التربيعي", opt_conv_mod: "القسمة (Modulo 360)",
+                lbl_geom: "الشكل الهندسي (Geometry)", geo_none: "بدون (None)", geo_tetra: "مربع (90°)", geo_penta: "خماسي (72°)", geo_hexa: "سداسي (60°)",
+                lbl_astro_datetime: "التاريخ والوقت", help_live: "اتركه فارغاً للوقت الحي",
+                toggle_planets: " إظهار الكواكب", toggle_aspects: " خطوط الزوايا"
+            },
+            en: {
+                btn_menu: "☰ Settings", side_title: "Astro Settings",
+                lbl_api: "📡 Live Data on Wheel (API)", api_off: "Off", api_btc: "Bitcoin (BTC)", api_gold: "Gold (PAXG)",
+                lbl_search: "🔍 Search & Plot Degrees", ph_search_price: "Search Price...", help_search: "Any input will be automatically plotted on the map.",
+                opt_conv_sqrt: "Square Root Method", opt_conv_mod: "Modulo 360",
+                lbl_geom: "Geometry Overlay", geo_none: "None", geo_tetra: "Square (90°)", geo_penta: "Pentagon (72°)", geo_hexa: "Hexagram (60°)",
+                lbl_astro_datetime: "Date & Time (Backtest)", help_live: "Leave empty for live time",
+                toggle_planets: " Show Planets", toggle_aspects: " Aspect Lines"
+            }
+        };
+
+        let currentLang = 'ku';
+
+        function applyLanguage() {
+            try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
+            document.documentElement.dir = currentLang === 'en' ? 'ltr' : 'rtl';
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.innerHTML = lexicon[currentLang][key];
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.placeholder = lexicon[currentLang][key];
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('btn-menu').addEventListener('click', function(e) { 
+                e.stopPropagation(); 
+                document.getElementById('sidebar').classList.toggle('active'); 
+            });
+            document.getElementById('btn-close-menu').addEventListener('click', function() { 
+                document.getElementById('sidebar').classList.remove('active'); 
+            });
+
+            applyLanguage();
+        });
+    </script>
+</body>
+</html>
