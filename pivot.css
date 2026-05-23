@@ -4,9 +4,11 @@
     --bg-dark: #0d0e12;
     --tp-green: #00e676;
     --tp-red: #ff3d00;
-    --tp-hold: #29b6f6;
+    --tp-hold: #ffffff;
     --tp-yellow: #ffd600;
     --pivot-gray: rgba(255, 255, 255, 0.7);
+    --panel-bg: rgba(20, 22, 27, 0.65);
+    --box-inside: rgba(0, 0, 0, 0.5);
 }
 
 /* --- Active/Held Button State --- */
@@ -17,114 +19,117 @@
     box-shadow: 0 0 10px var(--neon-purple);
 }
 
-/* --- Premium Trading Levels Layout Styles --- */
-/* --- Premium Trading Levels Layout Styles --- */
+/* --- Modern Grid-Table Container --- */
 .levels-container {
     width: 100%;
     max-width: 360px;
-    margin: 0 auto; /* Removed top/bottom margin to allow flex centering */
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    margin: 0 auto;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: auto 1fr; /* Structure: label on left auto-sized, values stretch on right */
+    align-items: center;
+    row-gap: 12px;
+    column-gap: 16px;
     box-sizing: border-box;
-    background: rgba(20, 22, 27, 0.6);
-    border-radius: 10px;
+    background: var(--panel-bg);
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
     
-    /* Centering Rules */
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    
 }
-.level-row {
+/* Adds a vertical background line behind the labels */
+
+/* --- Clean Typography Labels --- */
+/* Turns all labels into sleek squares */
+.level-label {
+    background: #12131a; /* Sleek deep dark background */
+    border: 1px solid rgba(7, 199, 0, 0.63); /* Subtle neon purple border */
+    border-radius: 6px;
+    padding: 6px 10px;
+    min-width: 75px; /* Slightly wider for perfect text spacing */
+    text-align: center !important;
+    box-sizing: border-box;
+    font-size: 0.85rem;
+    text-shadow: 0 0 8px rgba(241, 0, 0, 0.877); /* Soft text glow */
+    box-shadow: inset 0 0 6px rgba(138, 43, 226, 0.1), 0 2px 4px rgba(0, 0, 0, 0.5); /* Premium depth shadow */
+}
+.lbl-hold { color: var(--tp-hold); }
+/* Overrides the box style specifically for TP Hold labels */
+.level-label.lbl-hold {
+    border-color: var(--tp-yellow);
+    box-shadow: inset 0 0 6px rgba(255, 214, 0, 0.1), 0 0 8px rgba(255, 214, 0, 0.2);
+    text-shadow: 0 0 8px rgba(12, 4, 4, 0);
+}
+/* --- High-End Value Blocks --- */
+.level-box, .pivot-block {
+    width: 100%;
+    height: 34px;
+    box-sizing: border-box;
+    border-radius: 8px;
     display: flex;
     align-items: center;
-    width: 100%;
+    justify-content: center; /* Text sits perfectly on the right */
+    padding-right: 14px; /* Clean internal offset space */
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #ffffff;
+    background: var(--box-inside);
+    transition: all 0.25s ease;
 }
-
-.level-label {
-    width: 70px; /* Narrowed from 90px */
-    font-size: 0.95rem; /* Smaller from 1.15rem */
-    font-weight: 600;
-    color: #90a4ae;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
+/* Update this in pivot.css to turn lines into boxes */
 .level-line {
     flex-grow: 1;
-    height: 2px;
-    border-radius: 2px;
-}
-
-/* Thicker premium box targets */
-.level-box {
-    flex-grow: 1;
-    height: 32px; /* Reduced height from 45px */
+    height: 34px; /* Matches level-box height */
+    box-sizing: border-box;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centers the value text inside */
     font-size: 0.95rem;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease;
-}
-
-/* Center Pivot Block - Sleek badge layout */
-.pivot-block {
-    flex-grow: 1;
-    height: 28px; /* Reduced height from 38px */
-    border: 1.5px solid var(--pivot-gray);
-    border-radius: 5px;
-    display: flex;
-    flex-direction: row; 
-    justify-content: center;
-    align-items: center;
-    font-size: 0.95rem; /* Smaller text from 1.1rem */
-    font-weight: 600;
-    color: #ffffff;
-    background: #12131a; 
-    gap: 6px;
-}
-
-.pivot-block span {
-    font-weight: 500;
-    opacity: 0.9;
-}
-
-/* Specific Level Branding */
-.lbl-hold { color: var(--tp-hold); }
-
-/* Solid outer boundary limits */
-.line-top-hold, .line-bot-hold { 
-    background: var(--tp-yellow); 
-    height: 3px; /* Slightly thinner boundary line */
-    box-shadow: 0 0 8px rgba(255, 214, 0, 0.5);
-    line-height: 28px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #000;
     font-weight: bold;
+    transition: all 0.25s ease;
+}
+/* Center Pivot Badge Styling */
+.pivot-block {
+    grid-column: 1 / -1; /* Spans across full width of table */
+    justify-content: center;
+    padding-right: 0;
+    height: 30px;
+    background: #12131a;
+    border: 1.5px solid var(--pivot-gray);
 }
 
-.line-green { 
-    background: var(--tp-green); 
-    box-shadow: 0 0 6px rgba(0, 230, 118, 0.3);
-    font-size: 0.95rem;
-}
+/* --- State Branding Modifications --- */
 .box-green { 
-    border: 2px solid var(--tp-green); /* Thinner border edge */
-    box-shadow: inset 0 0 8px rgba(0, 230, 118, 0.05), 0 0 8px rgba(0, 230, 118, 0.15);
-}
-
-.line-red { 
-    background: var(--tp-red); 
-    box-shadow: 0 0 6px rgba(255, 61, 0, 0.3);
-    font-size: 0.95rem;
+    border: 1.5px solid var(--tp-green);
+    box-shadow: inset 0 0 6px rgba(0, 230, 118, 0.05), 0 0 8px rgba(0, 230, 118, 0.1);
 }
 .box-red { 
-    border: 2px solid var(--tp-red); 
-    box-shadow: inset 0 0 8px rgba(255, 61, 0, 0.05), 0 0 8px rgba(255, 61, 0, 0.15);
+    border: 1.5px solid var(--tp-red); 
+    box-shadow: inset 0 0 6px rgba(255, 61, 0, 0.05), 0 0 8px rgba(255, 61, 0, 0.1);
+}
+
+/* Intermittent Dashed Clean Layout for TP1 */
+#tp1-top-val {
+    background: transparent;
+    border: 2px dashed var(--tp-green);
+}
+#tp1-bot-val {
+    background: transparent;
+    border: 2px dashed var(--tp-red);
+}
+
+/* Outer Boundary Solid Lines */
+.line-top-hold, .line-bot-hold { 
+    background: var(--tp-yellow); 
+    color: #000000;
+    justify-content: center;
+    padding-right: 0;
+    height: 28px;
+    box-shadow: 0 0 10px rgba(255, 214, 0, 0.3);
 }

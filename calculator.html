@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
@@ -16,89 +15,58 @@ html
         <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
     </div>
 
-    <div class="levels-container">
-        <div class="level-row">
-            <div class="level-label lbl-hold">Tp hold</div>
-            <div class="level-line line-top-hold" id="tphold-top-val">---</div>
-        </div>
+<div class="levels-container">
+    <div class="level-label lbl-hold">Tp hold</div>
+    <div class="level-line line-top-hold" id="tphold-top-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp4</div>
-            <div class="level-box box-green" id="tp4-top-val" style="display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;">---</div>
-        </div>
+    <div class="level-label">Tp4</div>
+    <div class="level-box box-green" id="tp4-top-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp3</div>
-            <div class="level-line line-green" id="tp3-top-val" style="padding-left: 10px; color: var(--tp-green); font-weight: bold;">---</div>
-        </div>
+    <div class="level-label">Tp3</div>
+    <div class="level-box box-green" id="tp3-top-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp2</div>
-            <div class="level-box box-green" id="tp2-top-val" style="display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;">---</div>
-        </div>
+    <div class="level-label">Tp2</div>
+    <div class="level-box box-green" id="tp2-top-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp1</div>
-            <div class="level-line line-green" id="tp1-top-val" style="padding-left: 10px; color: var(--tp-green); font-weight: bold;">---</div>
-        </div>
+    <div class="level-label">Tp1</div>
+    <div class="level-box" id="tp1-top-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label"></div>
-            <div class="pivot-block">
-                Pivot <span id="pivot-center-val">---</span>
-            </div>
-        </div>
+    <div class="pivot-block" id="pivot-center-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp1</div>
-            <div class="level-line line-red" id="tp1-bot-val" style="padding-left: 10px; color: var(--tp-red); font-weight: bold;">---</div>
-        </div>
+    <div class="level-label">Tp1</div>
+    <div class="level-box" id="tp1-bot-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp2</div>
-            <div class="level-box box-red" id="tp2-bot-val" style="display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;">---</div>
-        </div>
+    <div class="level-label">Tp2</div>
+    <div class="level-box box-red" id="tp2-bot-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp3</div>
-            <div class="level-line line-red" id="tp3-bot-val" style="padding-left: 10px; color: var(--tp-red); font-weight: bold;">---</div>
-        </div>
+    <div class="level-label">Tp3</div>
+    <div class="level-box box-red" id="tp3-bot-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label">Tp4</div>
-            <div class="level-box box-red" id="tp4-bot-val" style="display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff;">---</div>
-        </div>
+    <div class="level-label">Tp4</div>
+    <div class="level-box box-red" id="tp4-bot-val">---</div>
 
-        <div class="level-row">
-            <div class="level-label lbl-hold">Tp hold</div>
-            <div class="level-line line-bot-hold" id="tphold-bot-val">---</div>
-        </div>
-    </div>
+    <div class="level-label lbl-hold">Tp hold</div>
+    <div class="level-line line-bot-hold" id="tphold-bot-val">---</div>
+</div>
 
     <div class="sidebar" id="sidebar">
         <button class="close-menu" id="btn-close-menu">✕</button>
-        
         <h3 style="color: #fff; text-align: center; margin-top: 0; margin-bottom: 20px; padding: 10px 16px; font-family: 'Geeza Pro', 'Calibri', 'Tahoma', sans-serif; font-size: 17px; font-weight: bold; background: rgba(157, 78, 221, 0.06); border: 1px solid rgba(157, 78, 221, 0.2); border-radius: 8px; box-shadow: inset 0 0 8px #000000;" data-i18n="side_title">ژمێریاری جان</h3>
         
         <div id="controls-astro">
             <div class="search-box" style="display: flex; flex-direction: column; gap: 12px; padding: 10px;">
-                
                 <div class="search-group">
                     <input type="number" id="highPrice" placeholder="نرخی high" oninput="window.updateAstro()" style="width: 100%; padding: 10px; box-sizing: border-box;">
                 </div>
-                
                 <div class="search-group">
                     <input type="number" id="lowPrice" placeholder="نرخی low" oninput="window.updateAstro()" style="width: 100%; padding: 10px; box-sizing: border-box;">
                 </div>
-
                 <div class="timeframe-buttons" style="display: flex; gap: 8px; width: 100%;">
                     <button class="tf-btn" data-tf="4h" style="flex: 1; padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s ease;">4h</button>
                     <button class="tf-btn" data-tf="1d" style="flex: 1; padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s ease;">1d</button>
                     <button class="tf-btn" data-tf="1w" style="flex: 1; padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s ease;">1w</button>
                 </div>
-
                 <button id="btn-prepare" style="width: 100%; padding: 10px; background: var(--neon-purple, #9d4edd); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px;" onclick="window.updateAstro()">ئامادەکردن</button>
-                
             </div>
         </div>
     </div>
@@ -117,7 +85,6 @@ html
             });
         }
 
-        // Mathematical Rule Engine Fixed
         window.updateAstro = function() {
             const highInput = document.getElementById('highPrice').value;
             const lowInput = document.getElementById('lowPrice').value;
@@ -126,14 +93,11 @@ html
 
             const high = parseFloat(highInput);
             const low = parseFloat(lowInput);
-            
-            if (high <= low) return; // Prevent breakdown if data entry is incorrect
+            if (high <= low) return;
 
-            // Since explicit close isn't present, we evaluate an organic pivot distribution floor
             const pivot = (high + low) / 2;
             const range = high - low;
 
-            // Proper mathematical pivot tier distribution
             const tp1_top = (pivot * 2) - low;
             const tp2_top = pivot + range;
             const tp3_top = high + 2 * (pivot - low);
@@ -146,7 +110,6 @@ html
             const tp4_bot = tp3_bot - (range * 0.5);
             const tphold_bot = tp4_bot - (range * 0.5);
 
-            // UI updates
             document.getElementById('pivot-center-val').innerText = pivot.toFixed(2);
             
             document.getElementById('tp1-top-val').innerText = tp1_top.toFixed(2);
@@ -174,8 +137,8 @@ html
             const tfButtons = document.querySelectorAll('.tf-btn');
             tfButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    tfButtons.forEach(btn => btn.style.background = '#222'); // Reset styling
-                    this.style.background = '#9d4edd'; // Apply active purple visually
+                    tfButtons.forEach(btn => btn.style.background = '#222'); 
+                    this.style.background = '#9d4edd'; 
                     selectedTimeframe = this.getAttribute('data-tf');
                     window.updateAstro();
                 });
@@ -186,4 +149,3 @@ html
     </script>
 </body>
 </html>
-
