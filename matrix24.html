@@ -434,14 +434,38 @@
                 ${resTitle}
                 <span style="color:var(--neon-gold); font-size:18px; display:inline-block; margin-top:5px;">[ ${gridBelow} ] — [ ${gridAbove} ]</span>
             `;
-// BUY BOX WITH CONFIRMATION ZONE
+
+            
+
+            // --- DETECT POTENTIAL MANIPULATION WINDOWS ---
+            let buyFakeoutRange = parseFloat((gridBelow - (stepVal * 0.5)).toFixed(2));
+            let sellFakeoutRange = parseFloat((gridAbove + (stepVal * 0.5)).toFixed(2));
+
+            // تێستی زمان بۆ نیشاندانی ئاگادارکەرەوەی فێڵەکان بەپێی زمانی لایڤ
+            let fakeoutBuyMsg = currentLang === 'ku' ? `ئەگەر نرخ دابەزی بۆ <b>${buyFakeoutRange}</b> و خێرا گەڕایەوە سەرێ، فێڵە (Trap). ڕاستەوخۆ بکڕە.` : 
+                               (currentLang === 'ar' ? `إذا هبط السعر إلى <b>${buyFakeoutRange}</b> وارتد فوراً للأعلى، فهذه مصيدة سيولة. ادخل شراء فوراً.` : 
+                               `If price spikes down to <b>${buyFakeoutRange}</b> and snaps back above, it is a Liquidity Trap. Enter BUY immediately.`);
+            
+            let fakeoutSellMsg = currentLang === 'ku' ? `ئەگەر نرخ بەرزبووەوە بۆ <b>${sellFakeoutRange}</b> و خێرا دابەزییەوە خوارێ، فێڵە (Trap). ڕاستەوخۆ بفرۆشە.` : 
+                                (currentLang === 'ar' ? `إذا ارتفع السعر إلى <b>${sellFakeoutRange}</b> وهبط فوراً للأسفل، فهذه مصيدة ستوبات. ادخل بيع فوراً.` : 
+                                `If price spikes up to <b>${sellFakeoutRange}</b> and snaps back below, it is a Stop Hunt Trap. Enter SELL immediately.`);
+
+            let zoneBuyLabel = currentLang === 'ku' ? `چوونەژوورەوە ئەگەر بەریکەوت و بەرز بوویەوە` : (currentLang === 'ar' ? `الدخول: إذا لامس وارتد للأعلى` : `Wait for a rebound here before entry!`);
+            let zoneSellLabel = currentLang === 'ku' ? `چوونەژوورەوە ئەگەر بەریکەوت و دابەزی` : (currentLang === 'ar' ? `الدخول: إذا لامس وهبط للأسفل` : `Wait for a reversal here before entry!`);
+
+            // BUY BOX WITH CONFIRMATION & FAKEOUT SCANNER
             document.getElementById('buyBox').innerHTML = `
                 ${t.bot_buy_title}
                 <div style="background: rgba(0,255,204,0.08); border: 1px dashed #00ffcc; padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 12px; text-align: center; line-height: 1.4;">
                     ⚠️ <b>ZONE CONFIRMATION:</b> ${gridBelow} – ${parseFloat((gridBelow + stepVal).toFixed(2))}<br>
-                    <span style="color: #bbb;">چوونەژوورەوە ئەگەر بەریکەوت و بەرز بوویەوە</span>
+                    <span style="color: #bbb;">${zoneBuyLabel}</span>
                 </div>
-         
+                
+                <div style="background: rgba(255,165,0,0.1); border: 1px solid #ffa500; padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 11px; text-align: center; color: #ffa500; line-height: 1.4;">
+                    🔍 <b>ANTI-MANIPULATION WATCH:</b><br>
+                    ${fakeoutBuyMsg}
+                </div>
+
                 ${t.bot_q1} <span class="target-val">${b1}</span><br>
                 ${t.bot_q2} <span class="target-val">${b2}</span><br>
                 ${t.bot_q3} <span class="target-val">${b3}</span><br>
@@ -449,12 +473,17 @@
                 ${t.bot_sl} <span style="color:#ff3333; font-weight:bold; font-family:monospace;">${buySL}</span>
             `;
 
-            // SELL BOX WITH CONFIRMATION ZONE
+            // SELL BOX WITH CONFIRMATION & FAKEOUT SCANNER
             document.getElementById('sellBox').innerHTML = `
                 ${t.bot_sell_title}
                 <div style="background: rgba(255,51,153,0.08); border: 1px dashed var(--neon-pink); padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 12px; text-align: center; line-height: 1.4;">
                     ⚠️ <b>ZONE CONFIRMATION:</b> ${parseFloat((gridAbove - stepVal).toFixed(2))} – ${gridAbove}<br>
-                    <span style="color: #bbb;">چوونەژوورەوە ئەگەر بەریکەوت و دابەزی</span>
+                    <span style="color: #bbb;">${zoneSellLabel}</span>
+                </div>
+
+                <div style="background: rgba(255,165,0,0.1); border: 1px solid #ffa500; padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 11px; text-align: center; color: #ffa500; line-height: 1.4;">
+                    🔍 <b>ANTI-MANIPULATION WATCH:</b><br>
+                    ${fakeoutSellMsg}
                 </div>
 
                 ${t.bot_q1} <span class="target-val">${s1}</span><br>
@@ -463,6 +492,8 @@
                 ${t.bot_q4s} <span class="target-val">${s4}</span><br>
                 ${t.bot_sl} <span style="color:#ff3333; font-weight:bold; font-family:monospace;">${sellSL}</span>
             `;
+          
+
 
             document.getElementById('bot-results').style.display = 'block';
         }
