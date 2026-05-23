@@ -1,6 +1,7 @@
         :root {
             --neon-cyan: #00ffcc;
             --neon-gold: #d4af37;
+            --neon-blue: #00f2fe;
             --neon-purple: #b366ff;
             --neon-orange: #ff9900;
             --neon-pink: #ff3399;
@@ -325,8 +326,8 @@
 
         /* ڕەنگی تایبەت بۆ هەر نەخشەیەک */
         .hub-card.w-plan { border-color: rgba(212, 175, 55, 0.4); color: #fff; }
-        .hub-card.w-plan::before { background: var(--neon-gold); }
-        .hub-card.w-plan:hover { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+        .hub-card.w-plan::before { background: var(--neon-blue); }
+        .hub-card.w-plan:hover { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
 
         .hub-card.w-hex { border-color: rgba(0, 255, 204, 0.4); color: #fff; }
         .hub-card.w-hex::before { background: var(--neon-cyan); }

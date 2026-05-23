@@ -2,11 +2,11 @@
 :root {
     --neon-purple: #8a2be2;
     --bg-dark: #0d0e12;
-    --tp-green: #00e676;
-    --tp-red: #ff3d00;
-    --tp-hold: #ffffff;
-    --tp-yellow: #ffd600;
-    --pivot-gray: rgba(255, 255, 255, 0.7);
+    --tp-green: #10b981;
+    --tp-red:  #f87171;
+    --tp-hold: #e2e8f0;
+    --tp-yellow: #fbbf24;
+    --pivot-gray: rgba(255, 255, 255, 0.2);
     --panel-bg: rgba(20, 22, 27, 0.65);
     --box-inside: rgba(0, 0, 0, 0.5);
 }
