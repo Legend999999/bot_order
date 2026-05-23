@@ -123,7 +123,15 @@
     background: transparent;
     border: 2px dashed var(--tp-red);
 }
+#tp3-top-val {
+    background: transparent;
+    border: 2px dashed var(--tp-green);
+}
 
+#tp3-bot-val {
+    background: transparent;
+    border: 2px dashed var(--tp-red);
+}
 /* Outer Boundary Solid Lines */
 .line-top-hold, .line-bot-hold { 
     background: var(--tp-yellow); 
