@@ -39,6 +39,15 @@ function setLanguage(lang) {
     applyLanguage();
 }
 
+
+window.prepareAndClose = function () {
+    window.updateAstro(); // run calculation
+
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('active'); // close sidebar
+    }
+};
 /* ─────────────────────────────
    GANN / CUSTOM PIVOT SYSTEM
    EXACT MATCH TO YOUR OUTPUT MODEL
