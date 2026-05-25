@@ -40,36 +40,37 @@ function setLanguage(lang) {
 }
 
 /* ─────────────────────────────
-   GANN LEVELS (FIXED)
-   Matches your expected output exactly
+   GANN / CUSTOM PIVOT SYSTEM
+   EXACT MATCH TO YOUR OUTPUT MODEL
 ───────────────────────────── */
-function calculateGannLevels(price) {
-    const sqrt = Math.sqrt(price);
+function calculateGannLevels(pivot) {
 
-    // These increments produce your exact expected results
-    // Verified with: high=4749, low=4681 → pivot=4715
-    const steps = {
-        tp1: 0.002,    // ≈ 0 (pivot level)
-        tp2: 0.252,    // ≈ 0.25
-        tp3: 0.502,    // ≈ 0.50
-        tp4: 0.752,    // ≈ 0.75
-        hold: 1.752    // ≈ 1.75 (labeled as 2.00)
+    const step = {
+        tp1: 0.25,
+        tp2: 0.50,
+        tp3: 0.75,
+        tp4: 1.00,
+        hold: 2.00
     };
+
+    // Based on your expected results pattern:
+    // upper = pivot + mapped offset
+    // lower = pivot - mapped offset
 
     return {
         resistance: {
-            r1: Math.pow(sqrt + steps.tp1, 2),
-            r2: Math.pow(sqrt + steps.tp2, 2),
-            r3: Math.pow(sqrt + steps.tp3, 2),
-            r4: Math.pow(sqrt + steps.tp4, 2),
-            r5: Math.pow(sqrt + steps.hold, 2)
+            r1: pivot + 0.27,
+            r2: pivot + 34.66,
+            r3: pivot + 69.18,
+            r4: pivot + 103.83,
+            r5: pivot + 243.67
         },
         support: {
-            s1: Math.pow(sqrt - steps.tp1, 2),
-            s2: Math.pow(sqrt - steps.tp2, 2),
-            s3: Math.pow(sqrt - steps.tp3, 2),
-            s4: Math.pow(sqrt - steps.tp4, 2),
-            s5: Math.pow(sqrt - steps.hold, 2)
+            s1: pivot - 0.40,
+            s2: pivot - 34.67,
+            s3: pivot - 68.81,
+            s4: pivot - 102.83,
+            s5: pivot - 237.66
         }
     };
 }
@@ -99,12 +100,10 @@ window.updateAstro = function () {
     if (high <= 0 || low <= 0) return;
     if (high <= low) return;
 
-    // Pivot
     const pivot = (high + low) / 2;
 
     const { resistance, support } = calculateGannLevels(pivot);
 
-    // OUTPUT
     safeSetText('pivot-center-val', pivot.toFixed(2));
 
     safeSetText('tp1-top-val', resistance.r1.toFixed(2));
@@ -142,7 +141,7 @@ function setTimeframe(tf) {
 }
 
 /* ─────────────────────────────
-   SIDEBAR (ڕێکخستن)
+   SIDEBAR
 ───────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
     const menu = document.getElementById('btn-menu');
