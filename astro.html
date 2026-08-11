@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>San FX - Astro Map API</title>
+    <style>
+        :root { --neon-cyan: #00ffcc; --neon-gold: #d4af37; --neon-pink: #ff3399; --neon-purple: #b366ff; --neon-blue: #33ccff; --bg-dark: #000; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; direction: ltr; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        
+        /* Header */
+        .header { position: fixed; top: 0; width: 100%; background: rgba(12, 12, 12, 0.95); padding: 12px 15px; border-bottom: 1px solid var(--neon-purple); z-index: 9999; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; backdrop-filter: blur(5px); direction: ltr;}
+        .menu-toggle { background: var(--neon-purple); border: none; color: #fff; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 0 10px rgba(179, 102, 255, 0.3); order: 1; }
+        .center-brand-text { color: var(--neon-gold); font-weight: bold; font-size: 9px; font-family: monospace; order: 2; flex: 1; text-align: center; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        .back-arrow-btn { background: transparent; border: none; color: var(--neon-purple); font-size: 24px; cursor: pointer; transition: 0.3s; padding: 0 5px; display: flex; align-items: center; order: 3; text-decoration: none;}
+        .back-arrow-btn:active { transform: scale(0.9); color: #fff; }
+        
+        /* Sidebar */
+        .sidebar { position: fixed; top: 0; width: 310px; height: 100%; background: #0a0a0f; z-index: 9999999; transition: 0.3s; padding: 85px 20px 120px 20px; box-sizing: border-box; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
+        html[dir="rtl"] .sidebar { right: -320px; border-left: 1px solid var(--neon-purple); direction: rtl; }
+        html[dir="rtl"] .sidebar.active { right: 0; }
+        html[dir="rtl"] .close-menu { left: 15px; right: auto; }
+        html[dir="ltr"] .sidebar { left: -320px; border-right: 1px solid var(--neon-purple); direction: ltr; }
+        html[dir="ltr"] .sidebar.active { left: 0; }
+        html[dir="ltr"] .close-menu { right: 15px; left: auto; }
+        .close-menu { position: absolute; top: 15px; background: none; border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        
+        /* Form Inputs */
+        .menu-item { margin-top: 15px; border-bottom: 1px dashed #333; padding-bottom: 15px; }
+        .menu-item label { display: block; color: var(--neon-purple); font-size: 13px; margin-bottom: 6px; font-weight: bold; text-align: center; }
+        input, select { background: #0a0a0a; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; text-align: center; font-weight: bold; font-family: monospace;}
+        input:focus, select:focus { border-color: var(--neon-purple); }
+        .helper-text { font-size: 11px; color: #888; margin-top: 8px; text-align: center; line-height: 1.5; }
+        .toggle-group { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--neon-cyan); font-size: 13px; font-weight: bold; margin-top: 10px; }
+        .toggle-group input { width: auto; transform: scale(1.2); accent-color: var(--neon-cyan); }
+
+        /* API & Search Boxes */
+        .api-box { background: rgba(0, 255, 204, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-cyan); margin-bottom: 15px; text-align: center;}
+        .api-box label { color: var(--neon-cyan); font-size: 14px; font-weight: bold; margin-bottom: 10px; display: block;}
+        
+        .search-box { background: rgba(212, 175, 55, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--neon-gold); margin-bottom: 15px; text-align: center;}
+        .search-box label { color: var(--neon-gold); font-size: 14px; font-weight: bold; margin-bottom: 15px; display: block;}
+        .search-group { margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 12px;}
+        .search-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .search-group input { border-color: #555; color: #fff; font-size: 14px; margin-bottom: 8px;}
+        .search-group input:focus { border-color: var(--neon-gold); }
+        .degree-result { font-size: 14px; font-weight: bold; background: #000; padding: 4px 8px; border-radius: 4px; border: 1px solid #333; display: inline-block;}
+
+        /* Map Area */
+        #viewport-maps { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: block; z-index: 10; background: radial-gradient(circle at center, #0a0a1a 0%, #000 80%);}
+        .map-area { position: absolute; width: 6000px; height: 6000px; display: flex; align-items: center; justify-content: center; cursor: grab; left: 50%; top: 50%; transform: translate(-50%, -50%);}
+        .map-area:active { cursor: grabbing; }
+        #zoom-layer { position: relative; transform-origin: center; display: flex; align-items: center; justify-content: center;}
+        
+        /* Astro Wheel Styles */
+        .master-wheel { position: relative; width: 1100px; height: 1100px; display: block; }
+        .ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; }
+        
+        .degree-ring { width: 1020px; height: 1020px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 0 10px rgba(255,255,255,0.02); }
+        .degree-text { color: #ccc; font-size: 11px; font-weight: bold; font-family: monospace; z-index: 40; text-shadow: 0 0 5px #000;}
+        .zodiac-ring { width: 940px; height: 940px; border: 2px solid rgba(138, 43, 226, 0.3); box-shadow: 0 0 30px rgba(138, 43, 226, 0.2); }
+        .live-price-ring { width: 830px; height: 830px; border: 2px dotted rgba(0, 255, 204, 0.4); box-shadow: 0 0 20px rgba(0,255,204,0.1), inset 0 0 20px rgba(0,255,204,0.1); }
+        .planet-ring { width: 720px; height: 720px; border: 2px dashed rgba(255, 255, 255, 0.4); box-shadow: 0 0 25px rgba(255,255,255,0.15), inset 0 0 25px rgba(255,255,255,0.15); }
+        
+        .center-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 65px; height: 65px; background: #000; border: 2px solid #b366ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #b366ff; font-size: 13px; z-index: 100; box-shadow: 0 0 20px rgba(138, 43, 226, 0.4); text-shadow: 0 0 5px #b366ff;}
+        .node { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; pointer-events: none; }
+        .zodiac-node { font-size: 12px; font-weight: bold; z-index: 55; background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 4px; border: 1px solid; }
+        .planet-node { font-size: 13px; font-weight: bold; z-index: 500; background: rgba(10,10,15,0.95); padding: 4px 8px; border-radius: 6px; border: 1px solid; box-shadow: inset 0 0 5px rgba(255,255,255,0.1); transition: 0.3s;}
+        
+        .live-marker { font-size: 15px !important; font-weight: 900 !important; color: #000 !important; background: var(--neon-cyan) !important; border: 2px solid #fff !important; box-shadow: 0 0 20px var(--neon-cyan) !important; z-index: 600; text-shadow: none !important; transition: all 0.5s ease-out;}
+        .search-marker { font-size: 13px !important; font-weight: bold !important; color: #fff !important; background: rgba(212, 175, 55, 0.9) !important; border: 1px solid var(--neon-gold) !important; box-shadow: 0 0 15px var(--neon-gold) !important; z-index: 550;}
+        
+        svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 450; }
+        .rx-tag { color: #ff3333; font-size: 10px; font-weight: bold; vertical-align: super; margin-left: 2px;}
+
+        /* Floating Info Button & Modals */
+        #astro-info-btn { position: fixed; bottom: 20px; left: 20px; background: rgba(212, 175, 55, 0.15); border: 2px solid var(--neon-gold); color: var(--neon-gold); padding: 12px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; font-size: 14px; z-index: 10001; box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3); backdrop-filter: blur(5px); transition: 0.3s; }
+        #astro-info-btn:active { transform: scale(0.95); }
+
+        #phase-container { position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: rgba(15, 10, 25, 0.95); border: 1px solid var(--neon-gold); border-radius: 12px; padding: 12px 15px; z-index: 9999; box-shadow: 0 0 20px rgba(212,175,55,0.2); width: 90%; max-width: 450px; display: none; grid-template-columns: 1fr 1fr; gap: 10px; backdrop-filter: blur(5px); }
+        .phase-col { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .phase-title { font-size: 11px; color: var(--neon-gold); margin-bottom: 5px; font-weight: bold; text-transform: uppercase;}
+        .phase-val { font-size: 13px; color: #fff; font-weight: bold; }
+        .eclipse-warn { color: #ff3333; font-size: 11px; font-weight: bold; margin-top: 5px; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        #view-astro-info { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 420px; max-height: 85vh; background: rgba(15, 10, 25, 0.98); border: 2px solid var(--neon-gold); border-radius: 12px; padding: 0; box-sizing: border-box; display: none; z-index: 10005; box-shadow: 0 10px 50px rgba(0,0,0,0.9); flex-direction: column; }
+        .dash-header { text-align: center; color: var(--neon-gold); font-size: 16px; font-weight: bold; padding: 15px; border-bottom: 1px dashed var(--neon-gold); background: rgba(0,0,0,0.5); border-radius: 12px 12px 0 0; }
+        .dash-content { padding: 15px; overflow-y: auto; flex: 1; }
+        .section-title { color: #fff; font-size: 14px; border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold;}
+        
+        .info-card { background: rgba(0,0,0,0.6); border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+        html[dir="rtl"] .info-card { border-right: 4px solid #aaa; text-align: right; }
+        html[dir="ltr"] .info-card { border-left: 4px solid #aaa; text-align: left; }
+        .info-card.gold-asset { border-color: #ffd700; background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(255, 215, 0, 0.1) 100%); }
+        .info-card.crypto-asset { border-color: #ff99cc; background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(255, 153, 204, 0.1) 100%); }
+        .info-card.macro-asset { border-color: #00ffcc; background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0, 255, 204, 0.1) 100%); }
+        .info-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 6px; }
+        .info-title { font-weight: bold; font-size: 13px; color: #fff; }
+        .info-body { font-size: 11px; line-height: 1.6; color: #ccc; }
+        .info-body strong { color: #fff; }
+
+        .signal-card { background: rgba(0,0,0,0.7); border-radius: 6px; padding: 10px; margin-bottom: 10px; border: 1px solid #333;}
+        html[dir="rtl"] .signal-card.buy { border-right: 4px solid #00ffcc; }
+        html[dir="ltr"] .signal-card.buy { border-left: 4px solid #00ffcc; }
+        html[dir="rtl"] .signal-card.sell { border-right: 4px solid #ff3333; }
+        html[dir="ltr"] .signal-card.sell { border-left: 4px solid #ff3333; }
+        html[dir="rtl"] .signal-card.neutral { border-right: 4px solid #ffcc00; }
+        html[dir="ltr"] .signal-card.neutral { border-left: 4px solid #ffcc00; }
+        .sig-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #444; padding-bottom: 5px; margin-bottom: 6px; }
+        .sig-title { font-weight: bold; font-size: 13px; color: #fff; }
+        .sig-impact { font-size: 10px; color: #00ffcc; background: #111; padding: 4px; border-radius: 4px; margin-bottom: 6px; border: 1px dashed #333; line-height: 1.5;}
+        .sig-body { font-size: 11px; line-height: 1.5; color: #ddd; margin-bottom: 6px; }
+        .sig-times { display: flex; justify-content: space-between; font-size: 10px; color: #888; background: #050505; padding: 6px; border-radius: 4px; border: 1px solid #222;}
+        .sig-times span strong { color: #00ffcc; display: block; margin-top: 2px; font-size: 11px;}
+        .sig-times span.end strong { color: #ff3333; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="header">
+        <button class="menu-toggle" id="btn-menu" data-i18n="btn_menu">☰ ڕێکخستن</button>
+        <div class="center-brand-text">__w.d.gann__@San_FX</div>
+        <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
+    </div>
+
+    <button id="astro-info-btn" onclick="window.toggleAstroInfo()">
+        <span data-i18n="btn_astro_info">ℹ️ زانیاری</span>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-menu" id="btn-close-menu">✕</button>
+        
+        <h3 style="color: var(--neon-purple); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; margin-top: 0;" data-i18n="side_title">ڕێکخستنی فەلەکی</h3>
+
+        <div id="controls-astro">
+            
+            <div class="api-box">
+                <label data-i18n="lbl_api">📡 داتای لایڤ بە دەوری بازنەکە</label>
+                <select id="liveApiAsset" onchange="window.toggleLiveApi()" style="color: var(--neon-cyan); border-color: var(--neon-cyan);">
+                    <option value="none" data-i18n="api_off">بکوژێنەوە (Off)</option>
+                    <option value="BTCUSDT" data-i18n="api_btc">بیتکۆین (BTC)</option>
+                    <option value="PAXGUSDT" data-i18n="api_gold">زێڕ (PAXG/XAU)</option>
+                </select>
+                <div id="liveApiDisplay" style="color:#00ffcc; font-size:18px; margin-top:10px; font-weight:bold; font-family: monospace;">-- $</div>
+            </div>
+
+            <div class="search-box">
+                <label data-i18n="lbl_search">🔍 گەڕان (قیمەت، بەروار، کات)</label>
+                
+                <div class="search-group">
+                    <input type="number" id="searchPrice" data-i18n-ph="ph_search_price" placeholder="گەڕان بۆ نرخ..." oninput="window.updateAstro()">
+                    <select id="astroPriceConvMethod" onchange="window.updateAstro()" style="font-size: 11px; padding: 4px; background:#111;">
+                        <option value="sqrt" data-i18n="opt_conv_sqrt">ڕەگی دووجا (Square Root)</option>
+                        <option value="mod" data-i18n="opt_conv_mod">دابەشکردن (Modulo 360)</option>
+                    </select>
+                    <div class="degree-result" id="resPriceDeg" style="color: var(--neon-gold);">--°</div>
+                </div>
+                
+                <div class="search-group">
+                    <input type="date" id="searchDate" onchange="window.updateAstro()" style="color: var(--neon-blue);">
+                    <div class="degree-result" id="resDateDeg" style="color: var(--neon-blue);">--°</div>
+                </div>
+                
+                <div class="search-group">
+                    <input type="time" id="searchTime" onchange="window.updateAstro()" style="color: var(--neon-pink);">
+                    <div class="degree-result" id="resTimeDeg" style="color: var(--neon-pink);">--°</div>
+                </div>
+                
+                <div class="helper-text" data-i18n="help_search">هەر یەکێک بنووسیت ڕاستەوخۆ دەچێتە سەر نەخشەکە.</div>
+            </div>
+
+            <div class="menu-item">
+                <label data-i18n="lbl_geom">شێوەی ئەندازەیی (Geometry)</label>
+                <select id="astroGeometry" onchange="window.updateAstro()">
+                    <option value="none" data-i18n="geo_none" selected>بێ شێوە (None)</option>
+                    <option value="tetra" data-i18n="geo_tetra">تێتراگرام (چوارگۆشە - 90°)</option>
+                    <option value="penta" data-i18n="geo_penta">پێنتاگرام (٥ پەڕ - 72°)</option>
+                    <option value="hexa" data-i18n="geo_hexa">هێکساگرام (٦ پەڕ - 60°)</option>
+                </select>
+            </div>
+
+            <div class="menu-item">
+                <label data-i18n="lbl_astro_datetime">بەروار و کات (هەسارەکان)</label>
+                <input type="date" id="astroDate" onchange="window.updateAstro()">
+                <input type="time" id="astroTime" onchange="window.updateAstro()" style="margin-top: 5px;">
+                <div class="helper-text" data-i18n="help_live">بەتاڵی بهێڵەوە بۆ کاتی لایڤ</div>
+            </div>
+
+            <div class="menu-item" style="border-bottom: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
+                <div class="toggle-group"><input type="checkbox" id="astroShowPlanets" checked><span data-i18n="toggle_planets">هەسارەکان</span></div>
+                <div class="toggle-group"><input type="checkbox" id="astroShowAspects" checked><span data-i18n="toggle_aspects">هێڵی پەیوەندییەکان</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-astro-info">
+        <div class="dash-header">
+            <span style="cursor: pointer; color: #ff3333; float: left; font-size: 20px; line-height: 1;" onclick="window.toggleAstroInfo()">✕</span>
+            <span data-i18n="info_dash_title">ℹ️ زانیاری و پەیوەندییەکان</span> 
+        </div>
+        <div class="dash-content">
+            <div class="section-title" data-i18n="sec_static_info">📚 ڕێبەری هەسارەکان</div>
+            <div id="info-content-container"></div>
+
+            <div class="section-title" style="margin-top: 25px;" data-i18n="sec_live_aspects">⚡ پەیوەندییە چالاکەکان</div>
+            <div id="live-aspects-container"></div>
+        </div>
+    </div>
+
+    <div id="phase-container"></div>
+
+    <div id="viewport-maps">
+        <div class="map-area" id="map">
+            <div id="zoom-layer">
+                <div class="master-wheel" id="container-astro">
+                    <div class="ring degree-ring"></div>
+                    <div class="ring zodiac-ring"></div>
+                    <div class="ring live-price-ring"></div>
+                    <div class="ring planet-ring"></div>
+                    <div class="center-box">ASTRO</div>
+                    <svg id="svg-layer-astro"></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const lexicon = {
+            ku: {
+                btn_menu: "☰ ڕێکخستن", side_title: "ڕێکخستنی فەلەکی", btn_astro_info: "ℹ️ زانیاری",
+                lbl_api: "📡 داتای لایڤ بە دەوری بازنەکە (API)", api_off: "بکوژێنەوە (Off)", api_btc: "بیتکۆین (BTC)", api_gold: "زێڕ (PAXG/XAU)",
+                lbl_search: "🔍 گەڕان (قیمەت، بەروار، کات)", ph_search_price: "گەڕان بۆ نرخ...", help_search: "هەر یەکێک بنووسیت ڕاستەوخۆ دەچێتە سەر نەخشەکە.",
+                opt_conv_sqrt: "ڕەگی دووجا (Square Root)", opt_conv_mod: "دابەشکردن (Modulo 360)",
+                lbl_geom: "شێوەی ئەندازەیی (Geometry)", geo_none: "بێ شێوە (None)", geo_tetra: "تێتراگرام (چوارگۆشە - 90°)", geo_penta: "پێنتاگرام (٥ پەڕ - 72°)", geo_hexa: "هێکساگرام (٦ پەڕ - 60°)",
+                lbl_astro_datetime: "بەروار و کات (هەسارەکان)", help_live: "بەتاڵی بهێڵەوە بۆ کاتی لایڤ",
+                toggle_planets: " پیشاندانی هەسارەکان", toggle_aspects: " هێڵی پەیوەندییەکان",
+                ar: "Aries ♈", ta: "Taurus ♉", ge: "Gemini ♊", ca: "Cancer ♋", le: "Leo ♌", vi: "Virgo ♍", li: "Libra ♎", sc: "Scorpio ♏", sa: "Sagittarius ♐", cp: "Capricorn ♑", aq: "Aquarius ♒", pi: "Pisces ♓",
+                sec_live_aspects: "⚡ پەیوەندییە چالاکەکانی ئێستا", sec_static_info: "📚 ڕێبەری هەسارەکان (W.D. Gann)", no_signals: "هیچ پەیوەندییەکی ئەندازەیی چالاک نییە.", sig_start: "دەستپێک:", sig_end: "کۆتایی:",
+                asp_conj: "Conjunction (0°)", asp_opp: "Opposition (180°)", asp_trine: "Trine (120°)", asp_sq: "Square (90°)", asp_sext: "Sextile (60°)",
+                eff_opp: "هێزی ڕاکێشانی پێچەوانە. فشارێکی زۆر بۆ دابەزینی خێرا و گۆڕینی ترێند.", eff_trine: "هاوسەنگی وزەکان. پاڵپشتییەکی زۆر بەهێز بۆ بەردەوامبوونی ترێند.", eff_sq: "پێکدادان. دروستبوونی بەرگرییەکی سەخت و ئەگەری شکانی توند.", eff_sext: "هاوکاری هەسارەکان. هەلێکی کورتخایەن بۆ ئارامی بازاڕ.", eff_conj: "یەکگرتنی وزەکان. دروستبوونی ترێندێکی نوێی بەهێز.", eff_conj_moon: "خۆرگیران/مانگ نوێ. وەرچەرخانی مێژوویی.",
+                info_gold: "زێڕ (XAUUSD) 🪙", info_sun_moon: "<strong>☉ خۆر & ☽ مانگ:</strong> نوێنەری سەرەکی ترێندی زێڕن. مانگی پڕ و نوێ لوتکە و بنکە دیاری دەکەن.", info_nodes: "<strong>☊ / ☋ گرێکان:</strong> کاتی گیرانەکان. گەورەترین وەرچەرخانی مێژوویی زێڕ لێرەدا دەبێت.",
+                info_crypto: "بیتکۆین و جیۆلۆجی ₿ 🌋", info_pluto: "<strong>♇ پلوتۆ:</strong> نوێنەری گۆڕانکارییە قووڵەکان، جەنگ، و دیفای.", info_uranus: "<strong>♅ ئۆرانۆس:</strong> شۆکەکان، بومەلەرزە، و تەقینەوە لەناکاوەکانی کریپتۆ.",
+                info_macro: "هەواڵە ئابوورییەکان 📊", info_jup_sat: "<strong>♃ موشتەری:</strong> داتای باش و هەڵاوسان. <br><strong>♄ زوحەل:</strong> بڕیاری بانکی ناوەندی و ترس.", info_mars_merc: "<strong>♂ مەریخ:</strong> جووڵەی توند لە NFP.<br><strong>☿ عەتارید (Rx):</strong> ناجێگیریی خێرا.",
+                sun_title: "قۆناغی ئێستای خۆر", sun_spring: "🌱 بەهار (گەشە)", sun_summer: "☀️ هاوین (هێز)", sun_autumn: "🍂 پاییز (دروێنە)", sun_winter: "❄️ زستان (کەمبوونەوە)",
+                moon_title: "قۆناغی ئێستای مانگ", moon_new: "🌑 مانگی نوێ - گۆڕان", moon_waxing: "🌒 لە گەشەدایە", moon_1q: "🌓 چارەکی یەکەم", moon_wax_gib: "🌔 بەرەو پڕبوون", moon_full: "🌕 مانگی پڕ - وەرچەرخان", moon_wan_gib: "🌖 بەرەو کەمبوون", moon_3q: "🌗 چارەکی کۆتایی", moon_waning: "🌘 لە کەمبوونەوەدایە", moon_eclipse_solar: "⚠️ ئاگاداری: خۆرگیران!", moon_eclipse_lunar: "⚠️ ئاگاداری: مانگگیران!", impact_gold: "زێڕ و زیو", impact_crypto: "کریپتۆ و جیۆپۆلەتیکی 🌋", impact_news: "هەواڵی ئابووری 📊", info_dash_title: "ℹ️ زانیاری و پەیوەندییەکان"
+            },
+            ar: {
+                btn_menu: "☰ إعدادات", side_title: "إعدادات الفلك", btn_astro_info: "ℹ️ معلومات",
+                lbl_api: "📡 بيانات حية على الدائرة (API)", api_off: "إيقاف (Off)", api_btc: "بيتكوين (BTC)", api_gold: "ذهب (PAXG)",
+                lbl_search: "🔍 البحث وتحويل الدرجات", ph_search_price: "بحث عن سعر...", help_search: "يتم تعيين كل إدخال مباشرة على الخريطة.",
+                opt_conv_sqrt: "الجذر التربيعي", opt_conv_mod: "القسمة (Modulo 360)",
+                lbl_geom: "الشكل الهندسي (Geometry)", geo_none: "بدون (None)", geo_tetra: "مربع (90°)", geo_penta: "خماسي (72°)", geo_hexa: "سداسي (60°)",
+                lbl_astro_datetime: "التاريخ والوقت", help_live: "اتركه فارغاً للوقت الحي",
+                toggle_planets: " إظهار الكواكب", toggle_aspects: " خطوط الزوايا",
+                ar: "Aries ♈", ta: "Taurus ♉", ge: "Gemini ♊", ca: "Cancer ♋", le: "Leo ♌", vi: "Virgo ♍", li: "Libra ♎", sc: "Scorpio ♏", sa: "Sagittarius ♐", cp: "Capricorn ♑", aq: "Aquarius ♒", pi: "Pisces ♓",
+                sec_live_aspects: "⚡ الزوايا الفلكية الحالية", sec_static_info: "📚 دليل الكواكب (جان)", no_signals: "لا توجد زوايا نشطة.", sig_start: "يبدأ:", sig_end: "ينتهي:",
+                asp_conj: "اقتران (0°)", asp_opp: "تقابل (180°)", asp_trine: "تثليث (120°)", asp_sq: "تربيع (90°)", asp_sext: "تسديس (60°)",
+                eff_opp: "ضغط عالي لهبوط سريع وتغيير الترند.", eff_trine: "دعم قوي جداً لاستمرار الترند.", eff_sq: "مقاومة عنيفة واحتمال كسر قوي.", eff_sext: "استقرار قصير المدى.", eff_conj: "بداية ترند جديد قوي.", eff_conj_moon: "كسوف/قمر جديد. انعكاس تاريخي.",
+                info_gold: "الذهب (XAUUSD) 🪙", info_sun_moon: "<strong>☉ الشمس & ☽ القمر:</strong> المحرك الرئيسي للذهب.", info_nodes: "<strong>☊ / ☋ العقد:</strong> الكسوف والتحولات التاريخية.",
+                info_crypto: "الكريبتو والجيولوجيا ₿ 🌋", info_pluto: "<strong>♇ بلوتو:</strong> التغيرات العميقة والحروب.", info_uranus: "<strong>♅ أورانوس:</strong> الصدمات والتقلبات العنيفة.",
+                info_macro: "الأخبار الاقتصادية 📊", info_jup_sat: "<strong>♃ المشتري:</strong> تضخم. <br><strong>♄ زحل:</strong> الخوف.", info_mars_merc: "<strong>♂ المريخ:</strong> حركات عنيفة.<br><strong>☿ عطارد:</strong> تقلبات سريعة.",
+                sun_title: "طور الشمس الحالي", sun_spring: "🌱 ربيع", sun_summer: "☀️ صيف", sun_autumn: "🍂 خريف", sun_winter: "❄️ شتاء",
+                moon_title: "طور القمر الحالي", moon_new: "🌑 محاق", moon_waxing: "🌒 هلال", moon_1q: "🌓 تربيع أول", moon_wax_gib: "🌔 أحدب", moon_full: "🌕 بدر", moon_wan_gib: "🌖 أحدب", moon_3q: "🌗 تربيع أخير", moon_waning: "🌘 هلال", moon_eclipse_solar: "⚠️ كسوف الشمس!", moon_eclipse_lunar: "⚠️ خسوف القمر!", impact_gold: "الذهب", impact_crypto: "كريبتو 🌋", impact_news: "أخبار اقتصادية 📊", info_dash_title: "ℹ️ الأدلة والتأثيرات"
+            },
+            en: {
+                btn_menu: "☰ Settings", side_title: "Astro Settings", btn_astro_info: "ℹ️ Info",
+                lbl_api: "📡 Live Data on Wheel (API)", api_off: "Off", api_btc: "Bitcoin (BTC)", api_gold: "Gold (PAXG)",
+                lbl_search: "🔍 Search & Plot Degrees", ph_search_price: "Search Price...", help_search: "Any input will be automatically plotted on the map.",
+                opt_conv_sqrt: "Square Root Method", opt_conv_mod: "Modulo 360",
+                lbl_geom: "Geometry Overlay", geo_none: "None", geo_tetra: "Square (90°)", geo_penta: "Pentagon (72°)", geo_hexa: "Hexagram (60°)",
+                lbl_astro_datetime: "Date & Time (Backtest)", help_live: "Leave empty for live time",
+                toggle_planets: " Show Planets", toggle_aspects: " Aspect Lines",
+                ar: "Aries ♈", ta: "Taurus ♉", ge: "Gemini ♊", ca: "Cancer ♋", le: "Leo ♌", vi: "Virgo ♍", li: "Libra ♎", sc: "Scorpio ♏", sa: "Sagittarius ♐", cp: "Capricorn ♑", aq: "Aquarius ♒", pi: "Pisces ♓",
+                sec_live_aspects: "⚡ Live Active Aspects", sec_static_info: "📚 Gann Planetary Guide", no_signals: "No active aspects currently.", sig_start: "Start:", sig_end: "End:",
+                asp_conj: "Conjunction (0°)", asp_opp: "Opposition (180°)", asp_trine: "Trine (120°)", asp_sq: "Square (90°)", asp_sext: "Sextile (60°)",
+                eff_opp: "High pressure for rapid drops.", eff_trine: "Strong support for trend.", eff_sq: "Heavy resistance and breakouts.", eff_sext: "Short-term stability.", eff_conj: "Creates a new strong trend.", eff_conj_moon: "Eclipse/New Moon. Major reversal.",
+                info_gold: "Gold (XAUUSD) 🪙", info_sun_moon: "<strong>☉ Sun & ☽ Moon:</strong> Master trend makers.", info_nodes: "<strong>☊ / ☋ Nodes:</strong> Eclipse markers.",
+                info_crypto: "Crypto & Geology ₿ 🌋", info_pluto: "<strong>♇ Pluto:</strong> Deep systemic changes.", info_uranus: "<strong>♅ Uranus:</strong> Sudden shocks, crypto waves.",
+                info_macro: "Macro News 📊", info_jup_sat: "<strong>♃ Jupiter:</strong> Good data. <br><strong>♄ Saturn:</strong> Fear and rates.", info_mars_merc: "<strong>♂ Mars:</strong> Aggressive breakouts.<br><strong>☿ Mercury:</strong> Fast whip-saws.",
+                sun_title: "Sun Phase", sun_spring: "🌱 Spring", sun_summer: "☀️ Summer", sun_autumn: "🍂 Autumn", sun_winter: "❄️ Winter",
+                moon_title: "Lunar Phase", moon_new: "🌑 New Moon", moon_waxing: "🌒 Waxing", moon_1q: "🌓 1st Qtr", moon_wax_gib: "🌔 Gibbous", moon_full: "🌕 Full Moon", moon_wan_gib: "🌖 Gibbous", moon_3q: "🌗 3rd Qtr", moon_waning: "🌘 Waning", moon_eclipse_solar: "⚠️ Solar Eclipse!", moon_eclipse_lunar: "⚠️ Lunar Eclipse!", impact_gold: "Gold", impact_crypto: "Crypto 🌋", impact_news: "News 📊", info_dash_title: "ℹ️ Astro Guidelines"
+            }
+        };
+
+        let currentLang = 'ku';
+
+        function applyLanguage() {
+            try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
+            document.documentElement.dir = currentLang === 'en' ? 'ltr' : 'rtl';
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.innerHTML = lexicon[currentLang][key];
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.placeholder = lexicon[currentLang][key];
+            });
+
+            let t = lexicon[currentLang];
+            let infoContainer = document.getElementById('info-content-container');
+            if(infoContainer && t) {
+                infoContainer.innerHTML = `
+                    <div class="info-card gold-asset"><div class="info-head"><span class="info-title">${t.info_gold}</span></div><div class="info-body">${t.info_sun_moon}<br><br>${t.info_nodes}</div></div>
+                    <div class="info-card crypto-asset"><div class="info-head"><span class="info-title">${t.info_crypto}</span></div><div class="info-body">${t.info_pluto}<br><br>${t.info_uranus}</div></div>
+                    <div class="info-card macro-asset"><div class="info-head"><span class="info-title">${t.info_macro}</span></div><div class="info-body">${t.info_jup_sat}<br><br>${t.info_mars_merc}</div></div>
+                `;
+            }
+            
+            let phase = document.getElementById('phase-container');
+            if(phase) {
+                phase.style.direction = currentLang === 'en' ? 'ltr' : 'rtl';
+                let col1 = phase.querySelector('.phase-col:first-child');
+                if(col1) { col1.style.borderLeft = currentLang === 'en' ? 'none' : '1px dashed #444'; col1.style.borderRight = currentLang === 'en' ? '1px dashed #444' : 'none'; }
+            }
+        }
+
+        // --- Live API Logic ---
+        window.livePriceValue = null;
+        window.livePriceDegree = null;
+        let liveApiInterval;
+
+        window.toggleLiveApi = function() {
+            clearInterval(liveApiInterval);
+            let asset = document.getElementById('liveApiAsset').value;
+            if(asset === 'none') {
+                document.getElementById('liveApiDisplay').innerText = "-- $";
+                window.livePriceValue = null;
+                window.livePriceDegree = null;
+                window.updateAstro();
+                return;
+            }
+            fetchLivePrice(asset);
+            liveApiInterval = setInterval(() => fetchLivePrice(asset), 5000);
+        }
+
+        async function fetchLivePrice(symbol) {
+            try {
+                let res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
+                let data = await res.json();
+                if(data.price) {
+                    let price = parseFloat(data.price);
+                    window.livePriceValue = price;
+                    document.getElementById('liveApiDisplay').innerText = price.toFixed(2) + " $";
+                    
+                    let convMethod = document.getElementById('astroPriceConvMethod').value;
+                    if(convMethod === 'sqrt') window.livePriceDegree = (Math.sqrt(price) * 180) % 360;
+                    else window.livePriceDegree = price % 360;
+                    
+                    window.updateAstro();
+                }
+            } catch(e) { console.log("API Error", e); }
+        }
+
+        // --- Core UI Logic ---
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('btn-menu').addEventListener('click', function(e) { e.stopPropagation(); document.getElementById('sidebar').classList.toggle('active'); });
+            document.getElementById('btn-close-menu').addEventListener('click', function() { document.getElementById('sidebar').classList.remove('active'); });
+
+            applyLanguage();
+            loadAstroSet();
+            window.toggleLiveApi();
+            
+            px = 0; py = 0; upT();
+            window.updateAstro();
+            setInterval(() => { window.updateAstro(); }, 60000); // Update every minute to keep planets fresh
+        });
+
+        window.toggleAstroInfo = function() {
+            const dash = document.getElementById('view-astro-info'); 
+            dash.style.display = (dash.style.display === 'none' || dash.style.display === '') ? 'flex' : 'none';
+        };
+
+        const astIds = ['astroGeometry', 'searchPrice', 'astroPriceConvMethod', 'searchDate', 'searchTime', 'astroDate', 'astroTime'];
+        const astChecks = ['astroShowPlanets', 'astroShowAspects'];
+
+        function loadAstroSet() { 
+            try { 
+                astIds.forEach(id => { let v = localStorage.getItem('rfx_ast_' + id); let el = document.getElementById(id); if(v !== null && el) el.value = v; }); 
+                astChecks.forEach(id => { let v = localStorage.getItem('rfx_ast_' + id); let el = document.getElementById(id); if(v !== null && el) el.checked = (v === 'true'); });
+            } catch(e) {} 
+        }
+        function saveAstroSet() { 
+            try { 
+                astIds.forEach(id => { let el = document.getElementById(id); if(el) localStorage.setItem('rfx_ast_' + id, el.value); }); 
+                astChecks.forEach(id => { let el = document.getElementById(id); if(el) localStorage.setItem('rfx_ast_' + id, el.checked); });
+            } catch(e) {} 
+        }
+
+        astIds.forEach(id => {
+            let el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('change', () => { saveAstroSet(); window.updateAstro(); });
+                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveAstroSet(); window.updateAstro(); });
+            }
+        });
+        astChecks.forEach(id => {
+            let el = document.getElementById(id);
+            if(el) { el.addEventListener('change', () => { saveAstroSet(); window.updateAstro(); }); }
+        });
+
+        // --- J2000 Keplerian Astro Engine ---
+        function getPlanets(dateObj) {
+            const d = (dateObj.getTime() / 86400000) - 10957.5;
+            let gSun = (357.529 + 0.98560028 * d) % 360, qSun = (280.459 + 0.98564736 * d) % 360;
+            let LSun = qSun + 1.915 * Math.sin(gSun * Math.PI/180) + 0.020 * Math.sin(2*gSun * Math.PI/180);
+            let LMoon = (218.316 + 13.176396 * d) % 360, MMoon = (134.963 + 13.064993 * d) % 360; LMoon = LMoon + 6.289 * Math.sin(MMoon * Math.PI/180);
+            let LMerc = (252.251 + 4.092339 * d) % 360, LVen = (181.979 + 1.602130 * d) % 360, LMars = (355.433 + 0.524020 * d) % 360;
+            let LJup = (34.351 + 0.083091 * d) % 360, LSat = (50.077 + 0.033459 * d) % 360, LUra = (314.055 + 0.011731 * d) % 360;
+            let LNep = (304.349 + 0.005981 * d) % 360, LPluto = (238.929 + 0.00396 * d) % 360;
+            let LNode = (125.045 - 0.05295 * d) % 360, LSouthNode = (LNode + 180) % 360; 
+
+            let pl = [
+                { id: "Sun", symbol: "☉", angle: LSun, color: "#ffd700", speed: 0.9856 }, { id: "Moon", symbol: "☽", angle: LMoon, color: "#e6e6e6", speed: 13.176 },
+                { id: "Mercury", symbol: "☿", angle: LMerc, color: "#11ffcc", speed: 4.092 }, { id: "Venus", symbol: "♀", angle: LVen, color: "#ff66b2", speed: 1.602 },
+                { id: "Mars", symbol: "♂", angle: LMars, color: "#ff3333", speed: 0.524 }, { id: "Jupiter", symbol: "♃", angle: LJup, color: "#ffa500", speed: 0.083 },
+                { id: "Saturn", symbol: "♄", angle: LSat, color: "#b366ff", speed: 0.033 }, { id: "Uranus", symbol: "♅", angle: LUra, color: "#00ccff", speed: 0.011 },
+                { id: "Neptune", symbol: "♆", angle: LNep, color: "#3333ff", speed: 0.005 }, { id: "Pluto", symbol: "♇", angle: LPluto, color: "#ff99cc", speed: 0.003 },
+                { id: "Node", symbol: "☊", angle: LNode, color: "#ffffff", speed: -0.052 }, { id: "S-Node", symbol: "☋", angle: LSouthNode, color: "#aaaaaa", speed: -0.052 }
+            ];
+            return pl.map(p => { p.angle = p.angle % 360; if (p.angle < 0) p.angle += 360; return p; });
+        }
+
+        function getStaticTime(nowDate, orbDeg, relativeSpeed, isStart, maxOrb) { 
+            let dDiff = (maxOrb - orbDeg) / (relativeSpeed || 1);
+            let tDate = new Date(nowDate.getTime() + (isStart ? -1 : 1) * dDiff * 86400000);
+            return tDate.toLocaleDateString('en-GB') + " " + tDate.getHours().toString().padStart(2, '0') + ":00"; 
+        }
+
+        function createLine(x1, y1, x2, y2, color, dash) { 
+            let l = document.createElementNS("http://www.w3.org/2000/svg", "line"); 
+            l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2); 
+            l.setAttribute("stroke", color); l.setAttribute("stroke-dasharray", dash); return l; 
+        }
+
+        function addNode(parent, cls, x, y, txt, colorCode = null) { 
+            const n = document.createElement('div'); n.className = 'node ' + cls; n.style.left = x + 'px'; n.style.top = y + 'px'; 
+            n.innerHTML = txt; if(colorCode) { n.style.color = colorCode; n.style.borderColor = colorCode; if(cls.includes('zodiac-node')) n.style.textShadow = `0 0 10px ${colorCode}`; }
+            parent.appendChild(n); 
+        }
+
+        window.updateAstro = function() {
+            let t = lexicon[currentLang] || lexicon['ku'];
+            
+            // Map Datetime
+            let dateVal = document.getElementById('astroDate').value;
+            let timeVal = document.getElementById('astroTime').value || '00:00:00';
+            let now = dateVal ? new Date(dateVal + 'T' + timeVal) : new Date();
+            let planets = getPlanets(now);
+
+            // 1. Search Box Calculations
+            let searchP = parseFloat(document.getElementById('searchPrice').value);
+            let convMethod = document.getElementById('astroPriceConvMethod').value;
+            let manualPriceDegree = null;
+            if(searchP && searchP > 0) {
+                if(convMethod === 'sqrt') manualPriceDegree = (Math.sqrt(searchP) * 180) % 360;
+                else manualPriceDegree = searchP % 360;
+                document.getElementById('resPriceDeg').innerText = manualPriceDegree.toFixed(1) + "°";
+            } else {
+                document.getElementById('resPriceDeg').innerText = "--°";
+            }
+
+            let searchD = document.getElementById('searchDate').value;
+            let manualDateDegree = null;
+            if(searchD) {
+                let d = new Date(searchD); let year = d.getFullYear(); let springEq = new Date(year, 2, 21);
+                let diff = (d - springEq) / (1000 * 60 * 60 * 24);
+                manualDateDegree = (diff * 0.9856) % 360;
+                if(manualDateDegree < 0) manualDateDegree += 360;
+                document.getElementById('resDateDeg').innerText = manualDateDegree.toFixed(1) + "°";
+            } else {
+                document.getElementById('resDateDeg').innerText = "--°";
+            }
+
+            let searchT = document.getElementById('searchTime').value;
+            let manualTimeDegree = null;
+            if(searchT) {
+                let parts = searchT.split(':'); let h = parseInt(parts[0]); let m = parseInt(parts[1]);
+                manualTimeDegree = ((h + m/60) / 24) * 360;
+                document.getElementById('resTimeDeg').innerText = manualTimeDegree.toFixed(1) + "°";
+            } else {
+                document.getElementById('resTimeDeg').innerText = "--°";
+            }
+
+            // 2. Geometry fixed at 0 Degrees (Aries)
+            let geomMode = document.getElementById('astroGeometry').value;
+            let geomAnchor = 0; // هەمیشە لەسەر پلەی سفرە بۆ ئەوەی خوار نەبێتەوە!
+
+            const wheelDiv = document.getElementById('container-astro');
+            const svg = document.getElementById('svg-layer-astro');
+            wheelDiv.querySelectorAll('.node').forEach(el => el.remove());
+            svg.innerHTML = '';
+
+            // گۆڕینی ئاراستەی سووڕانەوەکە بۆ لای ڕاست (+1)
+            const center = 550, rDegreeRing = 510, rZodiac = 470, rLivePrice = 415, rPlanet = 360, spinDir = 1; 
+
+            // 1. Draw 0-360 Degree Ring (Clean Protractor Style)
+            for(let d=0; d<360; d+=1) {
+                let rad = (d * spinDir - 90) * Math.PI / 180;
+                let isMajor = (d % 10 === 0);
+                let isMinor = (d % 5 === 0 && !isMajor);
+                
+                let tickLen = isMajor ? 12 : (isMinor ? 8 : 4);
+                let px1 = center + rDegreeRing * Math.cos(rad);
+                let py1 = center + rDegreeRing * Math.sin(rad);
+                let px2 = center + (rDegreeRing - tickLen) * Math.cos(rad);
+                let py2 = center + (rDegreeRing - tickLen) * Math.sin(rad);
+                
+                let tickColor = isMajor ? "rgba(255,255,255,0.6)" : (isMinor ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.15)");
+                let tick = createLine(px1, py1, px2, py2, tickColor, "0");
+                tick.setAttribute("stroke-width", isMajor ? "2" : "1");
+                svg.appendChild(tick);
+
+                if(isMajor) {
+                    let tx = center + (rDegreeRing + 20) * Math.cos(rad);
+                    let ty = center + (rDegreeRing + 20) * Math.sin(rad);
+                    addNode(wheelDiv, 'degree-text', tx, ty, d + "°");
+                }
+            }
+
+            // 2. Zodiac Nodes
+            const zodiacData = [
+                {k: "ar", c: "#ff4d4d"}, {k: "ta", c: "#00cc66"}, {k: "ge", c: "#ffff66"}, {k: "ca", c: "#33ccff"}, 
+                {k: "le", c: "#ff4d4d"}, {k: "vi", c: "#00cc66"}, {k: "li", c: "#ffff66"}, {k: "sc", c: "#33ccff"}, 
+                {k: "sa", c: "#ff4d4d"}, {k: "cp", c: "#00cc66"}, {k: "aq", c: "#ffff66"}, {k: "pi", c: "#33ccff"}
+            ];
+
+            for (let i = 0; i < 12; i++) {
+                let angle = (i * 30 + 15), px = center + rZodiac * Math.cos((angle * spinDir - 90) * Math.PI / 180), py = center + rZodiac * Math.sin((angle * spinDir - 90) * Math.PI / 180);
+                addNode(wheelDiv, 'zodiac-node', px, py, t[zodiacData[i].k], zodiacData[i].c);
+            }
+
+            // 3. Draw Live Price on its own Ring
+            if (window.livePriceDegree !== null && window.livePriceDegree !== undefined) {
+                let pRad = (window.livePriceDegree * spinDir - 90) * Math.PI / 180;
+                let px = center + rLivePrice * Math.cos(pRad), py = center + rLivePrice * Math.sin(pRad);
+                addNode(wheelDiv, 'planet-node live-marker', px, py, `📡 $${window.livePriceValue.toFixed(1)}`);
+                let guideLine = createLine(center, center, px, py, "#00ffcc", "2,2"); guideLine.setAttribute("stroke-width", "2"); guideLine.setAttribute("opacity", "0.5"); svg.appendChild(guideLine);
+            }
+
+            // 4. Draw Markers for Search Inputs
+            if (manualPriceDegree !== null) {
+                let pRad = (manualPriceDegree * spinDir - 90) * Math.PI / 180;
+                let px = center + rPlanet * Math.cos(pRad), py = center + rPlanet * Math.sin(pRad);
+                addNode(wheelDiv, 'planet-node search-marker', px, py, `🎯 ${searchP}`, "#000");
+                let guideLine = createLine(center, center, px, py, "#d4af37", "4,4"); guideLine.setAttribute("stroke-width", "2"); svg.appendChild(guideLine);
+            }
+
+            if (manualDateDegree !== null) {
+                let pRad = (manualDateDegree * spinDir - 90) * Math.PI / 180;
+                let px = center + rPlanet * Math.cos(pRad), py = center + rPlanet * Math.sin(pRad);
+                addNode(wheelDiv, 'planet-node search-marker', px, py, `📅 Date`, "#000");
+                let guideLine = createLine(center, center, px, py, "#33ccff", "4,4"); guideLine.setAttribute("stroke-width", "2"); svg.appendChild(guideLine);
+            }
+
+            if (manualTimeDegree !== null) {
+                let pRad = (manualTimeDegree * spinDir - 90) * Math.PI / 180;
+                let px = center + rPlanet * Math.cos(pRad), py = center + rPlanet * Math.sin(pRad);
+                addNode(wheelDiv, 'planet-node search-marker', px, py, `⏱️ Time`, "#000");
+                let guideLine = createLine(center, center, px, py, "#ff3399", "4,4"); guideLine.setAttribute("stroke-width", "2"); svg.appendChild(guideLine);
+            }
+
+            let showPlanets = document.getElementById('astroShowPlanets') ? document.getElementById('astroShowPlanets').checked : true;
+            let showAspects = document.getElementById('astroShowAspects') ? document.getElementById('astroShowAspects').checked : true;
+
+            // Aspect Signal Generation
+            let signalsHTML = "";
+            let hasSignals = false;
+
+            for(let i=0; i<planets.length; i++) {
+                for(let j=i+1; j<planets.length; j++) {
+                    let diff = Math.abs(planets[i].angle - planets[j].angle);
+                    if(diff > 180) diff = 360 - diff;
+                    
+                    let lineCol = "", aspectName = "", effectDesc = "", cardType = "neutral", orb = 0, maxLimit = 5;
+                    
+                    if(Math.abs(diff - 0) < 6) { lineCol = "#ff3399"; aspectName = t.asp_conj; orb = diff; maxLimit = 6; effectDesc = (planets[i].id === "Sun" && planets[j].id === "Moon") ? t.eff_conj_moon : t.eff_conj; cardType = (planets[i].id === "Sun" && planets[j].id === "Moon") ? "sell" : "buy"; } 
+                    else if(Math.abs(diff - 180) < 6) { lineCol = "#ff3333"; aspectName = t.asp_opp; orb = Math.abs(diff - 180); maxLimit = 6; effectDesc = t.eff_opp; cardType = "sell"; } 
+                    else if(Math.abs(diff - 120) < 5) { lineCol = "#00ffcc"; aspectName = t.asp_trine; orb = Math.abs(diff - 120); maxLimit = 5; effectDesc = t.eff_trine; cardType = "buy"; } 
+                    else if(Math.abs(diff - 90) < 5) { lineCol = "#ff9900"; aspectName = t.asp_sq; orb = Math.abs(diff - 90); maxLimit = 5; effectDesc = t.eff_sq; cardType = "neutral"; } 
+                    else if(Math.abs(diff - 60) < 4) { lineCol = "#33ccff"; aspectName = t.asp_sext; orb = Math.abs(diff - 60); maxLimit = 4; effectDesc = t.eff_sext; cardType = "buy"; } 
+                    
+                    if(lineCol !== "") {
+                        hasSignals = true;
+                        let impactStr = ""; let combinedIDs = planets[i].id + planets[j].id;
+                        if(combinedIDs.includes("Sun") || combinedIDs.includes("Moon") || combinedIDs.includes("Venus")) impactStr += t.impact_gold;
+                        if(combinedIDs.includes("Uranus") || combinedIDs.includes("Pluto") || combinedIDs.includes("Node")) { impactStr += (impactStr !== "" ? " | " : "") + t.impact_crypto; cardType = "sell"; }
+                        if(combinedIDs.includes("Jupiter") || combinedIDs.includes("Saturn") || combinedIDs.includes("Mars") || combinedIDs.includes("Mercury")) { impactStr += (impactStr !== "" ? " | " : "") + t.impact_news; if(combinedIDs.includes("Jupiter")) cardType = "buy"; else if (combinedIDs.includes("Saturn")) cardType = "sell"; }
+
+                        let relSpeed = Math.abs(planets[i].speed - planets[j].speed) || 0.5;
+                        let startTime = getStaticTime(now, orb, relSpeed, true, maxLimit), endTime = getStaticTime(now, orb, relSpeed, false, maxLimit);
+                        
+                        signalsHTML += `
+                            <div class="signal-card ${cardType}">
+                                <div class="sig-head"><span class="sig-title">${planets[i].symbol} ${planets[i].id} & ${planets[j].symbol} ${planets[j].id}</span><span style="color:${lineCol}; font-weight:bold; font-size:11px;">${aspectName}</span></div>
+                                <div class="sig-impact">🎯 ${impactStr}</div>
+                                <div class="sig-body">${effectDesc}</div>
+                                <div class="sig-times"><span>${t.sig_start} <strong>${startTime}</strong></span><span class="end">${t.sig_end} <strong>${endTime}</strong></span></div>
+                            </div>
+                        `;
+                        
+                        if (showAspects) {
+                            let px1 = center + rPlanet * Math.cos((planets[i].angle * spinDir - 90) * Math.PI / 180), py1 = center + rPlanet * Math.sin((planets[i].angle * spinDir - 90) * Math.PI / 180);
+                            let px2 = center + rPlanet * Math.cos((planets[j].angle * spinDir - 90) * Math.PI / 180), py2 = center + rPlanet * Math.sin((planets[j].angle * spinDir - 90) * Math.PI / 180);
+                            let aspectLine = createLine(px1, py1, px2, py2, lineCol, "6,8"); aspectLine.setAttribute("stroke-width", "1.5"); aspectLine.setAttribute("opacity", "0.6"); svg.appendChild(aspectLine);
+                        }
+                    }
+                }
+            }
+            document.getElementById('live-aspects-container').innerHTML = hasSignals ? signalsHTML : `<div style="color:#aaa; font-size:12px; text-align:center; padding:10px;">${t.no_signals}</div>`;
+
+            // Planets rendering
+            if (showPlanets) {
+                planets.forEach(p => {
+                    let rad = (p.angle * spinDir - 90) * Math.PI / 180;
+                    let px = center + rPlanet * Math.cos(rad), py = center + rPlanet * Math.sin(rad), zx = center + rZodiac * Math.cos(rad), zy = center + rZodiac * Math.sin(rad);
+                    let guideLine = createLine(zx, zy, px, py, p.color, "3,3"); guideLine.setAttribute("opacity", "0.3"); svg.appendChild(guideLine);
+                    addNode(wheelDiv, 'planet-node', px, py, `${p.symbol} ${Math.floor(p.angle)}°`, p.color);
+                });
+            }
+
+            // Geometry Overlay - Placed on the Degree Ring, Anchor is Always 0
+            if(geomMode !== 'none') {
+                let ptsCount = 0, strokeColor = "";
+                if(geomMode === 'tetra') { ptsCount = 4; strokeColor = "#ff3333"; } 
+                else if(geomMode === 'penta') { ptsCount = 5; strokeColor = "#ffcc00"; }
+                else if(geomMode === 'hexa') { ptsCount = 6; strokeColor = "#00ffcc"; }
+
+                let gPts = [];
+                for(let i=0; i<ptsCount; i++) {
+                    let a = geomAnchor + (i * (360 / ptsCount)), rad = (a * spinDir - 90) * Math.PI / 180;
+                    gPts.push({ x: center + rDegreeRing * Math.cos(rad), y: center + rDegreeRing * Math.sin(rad) });
+                }
+
+                let gPath = document.createElementNS("http://www.w3.org/2000/svg", "path"), pathStr = "";
+                if(geomMode === 'tetra') { pathStr = `M ${gPts[0].x} ${gPts[0].y} L ${gPts[1].x} ${gPts[1].y} L ${gPts[2].x} ${gPts[2].y} L ${gPts[3].x} ${gPts[3].y} Z`; }
+                else if(geomMode === 'penta') { pathStr = `M ${gPts[0].x} ${gPts[0].y} L ${gPts[2].x} ${gPts[2].y} L ${gPts[4].x} ${gPts[4].y} L ${gPts[1].x} ${gPts[1].y} L ${gPts[3].x} ${gPts[3].y} Z`; }
+                else if(geomMode === 'hexa') { pathStr = `M ${gPts[0].x} ${gPts[0].y} L ${gPts[2].x} ${gPts[2].y} L ${gPts[4].x} ${gPts[4].y} Z M ${gPts[1].x} ${gPts[1].y} L ${gPts[3].x} ${gPts[3].y} L ${gPts[5].x} ${gPts[5].y} Z`; }
+
+                gPath.setAttribute("d", pathStr); gPath.setAttribute("stroke", strokeColor); gPath.setAttribute("stroke-width", "3"); gPath.setAttribute("fill", "none"); gPath.setAttribute("opacity", "0.6"); gPath.setAttribute("style", `filter: drop-shadow(0px 0px 8px ${strokeColor})`);
+                svg.appendChild(gPath);
+            }
+
+            // Moon Phase Calculation
+            let sunObj = planets.find(p => p.id === "Sun"), moonObj = planets.find(p => p.id === "Moon"), nodeObj = planets.find(p => p.id === "Node");
+            let moonDiff = (moonObj.angle - sunObj.angle + 360) % 360, moonText = "", isEclipse = false, eclipseText = "";
+            if(moonDiff < 15 || moonDiff > 345) { moonText = t.moon_new; if(nodeObj && (Math.abs(sunObj.angle - nodeObj.angle) < 18 || Math.abs(sunObj.angle - ((nodeObj.angle+180)%360)) < 18)) { isEclipse = true; eclipseText = t.moon_eclipse_solar; } } 
+            else if (moonDiff >= 80 && moonDiff <= 100) moonText = t.moon_1q;
+            else if (moonDiff >= 165 && moonDiff <= 195) { moonText = t.moon_full; if(nodeObj && (Math.abs(sunObj.angle - nodeObj.angle) < 15 || Math.abs(sunObj.angle - ((nodeObj.angle+180)%360)) < 15)) { isEclipse = true; eclipseText = t.moon_eclipse_lunar; } } 
+            else if (moonDiff >= 260 && moonDiff <= 280) moonText = t.moon_3q;
+            else if (moonDiff >= 15 && moonDiff < 80) moonText = t.moon_waxing;
+            else if (moonDiff > 100 && moonDiff < 165) moonText = t.moon_wax_gib;
+            else if (moonDiff > 195 && moonDiff < 260) moonText = t.moon_wan_gib;
+            else if (moonDiff > 280 && moonDiff <= 345) moonText = t.moon_waning;
+
+            let sunDeg = sunObj.angle, sunText = "";
+            if(sunDeg >= 0 && sunDeg < 90) sunText = t.sun_spring; else if(sunDeg >= 90 && sunDeg < 180) sunText = t.sun_summer; else if(sunDeg >= 180 && sunDeg < 270) sunText = t.sun_autumn; else sunText = t.sun_winter;
+            
+            let phaseBar = document.getElementById('phase-container'); phaseBar.style.display = 'grid';
+            let borderStyle = currentLang === 'en' ? "border-right: 1px dashed #444;" : "border-left: 1px dashed #444;";
+            phaseBar.innerHTML = `<div class="phase-col" style="${borderStyle}"><div class="phase-title">${t.sun_title}</div><div class="phase-val">${sunText}</div></div><div class="phase-col"><div class="phase-title">${t.moon_title}</div><div class="phase-val">${moonText}</div>${isEclipse ? `<div class="eclipse-warn">${eclipseText}</div>` : ''}</div>`;
+        }
+
+        // --- Map Drag & Zoom ---
+        let sc = window.innerWidth < 600 ? 0.35 : 0.5, px = 0, py = 0, dg = false, sx, sy, iDist = 0;
+        const vM = document.getElementById('viewport-maps'), zL = document.getElementById('zoom-layer');
+        function upT(){ zL.style.transform=`translate(${px}px, ${py}px) scale(${sc})`; }
+        function getEP(e){ return e.touches&&e.touches.length>0?{x:e.touches[0].clientX,y:e.touches[0].clientY}:{x:e.clientX,y:e.clientY}; }
+
+        vM.addEventListener('mousedown',e=>{ if(e.target.closest('.sidebar')||e.target.closest('.header')||e.target.closest('#view-astro-info')||e.target.closest('#phase-container')||e.target.closest('#astro-info-btn')) return; let p=getEP(e); dg=true; sx=p.x-px; sy=p.y-py; vM.style.cursor='grabbing'; });
+        window.addEventListener('mousemove',e=>{ if(dg){ let p=getEP(e); px=p.x-sx; py=p.y-sy; upT(); }});
+        window.addEventListener('mouseup',()=>{ dg=false; vM.style.cursor='grab'; });
+        vM.addEventListener('wheel',e=>{ if(e.target.closest('.sidebar')||e.target.closest('.header')||e.target.closest('#view-astro-info')||e.target.closest('#phase-container')) return; e.preventDefault(); sc+=e.deltaY*-0.001; sc=Math.min(Math.max(0.15,sc),5); upT(); }, {passive:false});
+        vM.addEventListener('touchstart',e=>{ if(e.target.closest('.sidebar')||e.target.closest('.header')||e.target.closest('#view-astro-info')||e.target.closest('#phase-container')||e.target.closest('#astro-info-btn')) return; if(e.touches.length===2){ dg=false; iDist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY); } else { let p=getEP(e); dg=true; sx=p.x-px; sy=p.y-py; } }, {passive:false});
+        vM.addEventListener('touchmove',e=>{ if(e.target.closest('.sidebar')||e.target.closest('.header')||e.target.closest('#view-astro-info')||e.target.closest('#phase-container')) return; if(e.touches.length===2){ e.preventDefault(); const d=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY); sc=Math.min(Math.max(0.15,sc*(d/iDist)),5); iDist=d; upT(); } else if(dg){ e.preventDefault(); let p=getEP(e); px=p.x-sx; py=p.y-sy; upT(); } }, {passive:false});
+        window.addEventListener('touchend',()=>{ dg=false; });
+
+    </script>
+</body>
+</html>

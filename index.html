@@ -1,11 +1,363 @@
-
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
-    <link rel="stylesheet" href="index.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>San FX - Master Gateway</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffcc;
+            --neon-gold: #d4af37;
+            --neon-purple: #b366ff;
+            --neon-orange: #ff9900;
+            --neon-pink: #ff3399;
+            --bg-dark: #050508;
+        }
+
+        body {
+            background: #000;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .stars-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #111122 0%, #000000 100%);
+            z-index: 1;
+        }
+
+        /* Main Box Card */
+        .gateway-container {
+            background: rgba(10, 10, 15, 0.96);
+            border: 2px solid var(--neon-gold);
+            border-radius: 20px;
+            padding: 30px 25px;
+            width: 90%;
+            max-width: 420px;
+            max-height: 90vh;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Language Selector Toolbar inside Lock */
+        .lang-toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 50;
+        }
+
+        .lang-btn {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .lang-btn.active, .lang-btn:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        /* Logo Icon Animation (Lock Screen) */
+        .logo-wrapper {
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .logo-circle {
+            width: 90px;
+            height: 90px;
+            background: #000;
+            border: 3px solid var(--neon-gold);
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+            animation: pulseGlow 3s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); border-color: var(--neon-gold); }
+            100% { box-shadow: 0 0 40px rgba(0, 255, 204, 0.6); border-color: var(--neon-cyan); }
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            margin: 5px 0;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .app-subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        /* مافی پارێزراو لە ناو قوفڵەکە */
+        .creators-brand {
+            font-size: 12px;
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #333;
+        }
+
+        /* Lock Screen Fields */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 14px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            text-align: center;
+            font-family: monospace;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        input[type="password"]:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+        }
+
+        .activate-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--neon-gold) 0%, #aa8529 100%);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+
+        .activate-btn:active {
+            transform: scale(0.98);
+        }
+
+        .msg-display {
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ff3333;
+            min-height: 20px;
+        }
+
+        .device-id-label {
+            font-size: 11px;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .device-id-val {
+            font-size: 14px;
+            color: var(--neon-cyan);
+            font-family: monospace;
+            margin-top: 5px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* --- شاشەی لۆگۆی نوێی داڵۆیەکە (Full Screen Overlay) --- */
+        .welcome-transition {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #0a0a0f 0%, #000000 100%);
+            z-index: 1500000;
+            transition: opacity 0.5s ease;
+        }
+
+        .eagle-logo-box {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: #050508;
+            position: relative;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.4), inset 0 0 20px rgba(0, 255, 204, 0.1);
+            border: 2px solid var(--neon-gold);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .eagle-logo-box::before {
+            content: '';
+            position: absolute;
+            width: 88%; height: 88%;
+            border-radius: 50%;
+            border: 3px dashed var(--neon-cyan);
+            animation: spinRight 10s linear infinite;
+        }
+
+        .eagle-logo-box::after {
+            content: '';
+            position: absolute;
+            width: 75%; height: 75%;
+            border-radius: 50%;
+            border: 3px dotted var(--neon-purple);
+            animation: spinLeft 15s linear infinite;
+        }
+
+        .logo-main-icon {
+            font-size: 80px;
+            z-index: 5;
+            text-shadow: 0 0 25px var(--neon-gold);
+        }
+
+        @keyframes spinRight { 100% { transform: rotate(360deg); } }
+        @keyframes spinLeft { 100% { transform: rotate(-360deg); } }
+
+        .welcome-copyright {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.8;
+            opacity: 0;
+            animation: fadeInText 1s ease forwards 0.5s;
+            text-align: center;
+            max-width: 85%;
+        }
+
+        .welcome-copyright strong {
+            color: var(--neon-cyan);
+            font-size: 18px;
+            display: block;
+            margin-top: 15px;
+            direction: ltr;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
+            letter-spacing: 1px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInText {
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Hub Section (هەڵبژاردنی هەر ٥ نەخشەکە) --- */
+        .hub-menu {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .hub-title {
+            font-size: 22px;
+            color: var(--neon-gold);
+            margin-bottom: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            text-align: center;
+        }
+
+        .hub-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hub-card {
+            background: rgba(5, 5, 5, 0.85);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            text-decoration: none;
+            text-align: right;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; height: 100%; width: 4px;
+        }
+
+        /* ڕەنگی تایبەت بۆ هەر نەخشەیەک */
+        .hub-card.w-plan { border-color: rgba(212, 175, 55, 0.4); color: #fff; }
+        .hub-card.w-plan::before { background: var(--neon-gold); }
+        .hub-card.w-plan:hover { border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+
+        .hub-card.w-hex { border-color: rgba(0, 255, 204, 0.4); color: #fff; }
+        .hub-card.w-hex::before { background: var(--neon-cyan); }
+        .hub-card.w-hex:hover { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 255, 204, 0.2); }
+
+        .hub-card.w-sq9 { border-color: rgba(255, 153, 0, 0.4); color: #fff; }
+        .hub-card.w-sq9::before { background: var(--neon-orange); }
+        .hub-card.w-sq9:hover { border-color: var(--neon-orange); box-shadow: 0 0 15px rgba(255, 153, 0, 0.2); }
+
+        .hub-card.w-mat { border-color: rgba(255, 51, 153, 0.4); color: #fff; }
+        .hub-card.w-mat::before { background: var(--neon-pink); }
+        .hub-card.w-mat:hover { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 51, 153, 0.2); }
+
+        .hub-card.w-astro { border-color: rgba(179, 102, 255, 0.4); color: #fff; }
+        .hub-card.w-astro::before { background: var(--neon-purple); }
+        .hub-card.w-astro:hover { border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(179, 102, 255, 0.2); }
+
+        .hub-card:active { transform: scale(0.97); }
+
+        .hub-icon { font-size: 30px; min-width: 40px; text-align: center; }
+        .hub-info { display: flex; flex-direction: column; flex: 1; }
+        .hub-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+        .hub-desc { font-size: 11px; color: #aaa; line-height: 1.4; }
+    </style>
 </head>
 <body>
 
@@ -40,37 +392,64 @@
             <div class="device-id-val" id="device-id-display">...</div>
         </div>
 
-        <div id="hub-section" class="hub-menu" style="display: none;">
+        <div id="hub-section" class="hub-menu">
             <div class="hub-title" id="txt-hub-title">هەڵبژاردنی نەخشەی شیکاری</div>
             
-            <a href="matrix24.html" class="hub-card w-mat">
-                <span class="hub-icon">🧿</span>
-                <div class="hub-info">
-                    <span class="hub-name" id="h-n4">تەلەسمی گەن & بۆت</span>
-                    <span class="hub-desc" id="h-d4">ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ</span>
-                </div>
-            </a>
-
             <div class="hub-grid">
-                <a href="calculator.html" class="hub-card w-plan">
-                    <span class="hub-icon">📐</span>
+                <a href="planetary.html" class="hub-card w-plan">
+                    <span class="hub-icon">🎡</span>
                     <div class="hub-info">
-                        <span class="hub-name" id="h-n1">(پێڤۆتی گۆڕانکاریی مەودای جان)</span>
-                        <span class="hub-desc" id="h-d1">Gann Range Volatility Pivot</span>
+                        <span class="hub-name" id="h-n1">نەخشەی گەن (Wheel)</span>
+                        <span class="hub-desc" id="h-d1">خشتەی بازنەیی کات و نرخ، ئەندازەی گەن</span>
+                    </div>
+                </a>
+
+                <a href="hexagon.html" class="hub-card w-hex">
+                    <span class="hub-icon">⬡</span>
+                    <div class="hub-info">
+                        <span class="hub-name" id="h-n2">نەخشەی شەش‌گۆشە</span>
+                        <span class="hub-desc" id="h-d2">هێکساگرامی کات و نرخ بۆ وەرچەرخانەکان</span>
+                    </div>
+                </a>
+
+                <a href="sq9.html" class="hub-card w-sq9">
+                    <span class="hub-icon">🔲</span>
+                    <div class="hub-info">
+                        <span class="hub-name" id="h-n3">چوارگۆشەی ٩ (Sq of 9)</span>
+                        <span class="hub-desc" id="h-d3">خشتەی کلاسیکی گەن بۆ دۆزینەوەی ئامانج</span>
+                    </div>
+                </a>
+
+                <a href="matrix24.html" class="hub-card w-mat">
+                    <span class="hub-icon">🧿</span>
+                    <div class="hub-info">
+                        <span class="hub-name" id="h-n4">تەلەسمی گەن & بۆت</span>
+                        <span class="hub-desc" id="h-d4">ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ</span>
+                    </div>
+                </a>
+
+                <a href="astro.html" class="hub-card w-astro">
+                    <span class="hub-icon">🪐</span>
+                    <div class="hub-info">
+                        <span class="hub-name" id="h-n5">شیکاری فەلەکی (Astro)</span>
+                        <span class="hub-desc" id="h-d5">نەخشەی ئەستێرەکان، گەڕانەوەی هەسارەکان</span>
                     </div>
                 </a>
             </div>
         </div>
     </div>
 
-    <div id="welcome-transition" class="welcome-transition" style="display: none;">
+    <div id="welcome-transition" class="welcome-transition">
         <div class="eagle-logo-box">
             <div class="logo-main-icon">🦅</div>
         </div>
-        <div class="welcome-copyright" id="welcome-copyright"></div>
+        
+        <div class="welcome-copyright" id="welcome-copyright">
+            </div>
     </div>
 
     <script>
+        /* فەرهەنگی وەرگێڕانی زمانەکان */
         const lexicon = {
             ku: {
                 title: "Master Suite Pro",
@@ -79,16 +458,16 @@
                 device_id: "ئایدی تایبەتی مۆبایلەکەت:",
                 placeholder: "کلیلی چوونەژوورەوە...",
                 hub_title: "هەڵبژاردنی نەخشەی شیکاری",
-                h_n1: "پێڤۆتی گۆڕانکاریی مەودای جان", h_d1: "Mathematical Pivot Levels",
+                h_n1: "نەخشەی گەن (Wheel)", h_d1: "خشتەی بازنەیی کات و نرخ، ئەندازەی گەن",
                 h_n2: "نەخشەی شەش‌گۆشە (Hexagon)", h_d2: "هێکساگرامی کات و نرخ بۆ وەرچەرخانەکان",
                 h_n3: "چوارگۆشەی ٩ (Square of 9)", h_d3: "خشتەی کلاسیکی گەن بۆ دۆزینەوەی ئامانج",
                 h_n4: "تەلەسمی گەن & بۆت", h_d4: "ماتریکسی ٢٤ کاتژمێری و بۆتی پێدانی سیگناڵ",
                 h_n5: "شیکاری فەلەکی (Astro Map)", h_d5: "نەخشەی ئەستێرەکان، گەڕانەوەی هەسارەکان",
-                err_wrong: "❌ کلیلەکە هەڵەیە یان بەسەرچووɛ!",
+                err_wrong: "❌ کلیلەکە هەڵەیە یان بەسەرچووە!",
                 err_net: "⚠️ هێڵی ئینتەرنێت پێویستە بۆ پشکنینی کلیل!",
                 succ_msg: "✅ سەرکەوتوو بوو، تکایە چاوەڕێ بە...",
                 auto_login: "چوونەژوورەوەی خۆکار...",
-                copyright: "مافی ئەم بەرهەمە پارێزراوە تایبەتە بە:<br>دروستکەر و پەرەپێدەری یاسا و نەخشەی گەن بەشێوازێکی سەردەمیانە<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX</strong>"
+                copyright: "مافی ئەم بەرهەمە پارێزراوە تایبەتە بە:<br>دروستکەر و پەرەپێدەری یاسا و نەخشەی گەن بەشێوازێکی سەردەمیانە<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX __ </strong>"
             },
             ar: {
                 title: "Master Suite Pro",
@@ -106,7 +485,7 @@
                 err_net: "⚠️ الاتصال بالإنترنت مطلوب للتحقق من المفتاح!",
                 succ_msg: "✅ تم التفعيل بنجاح، يرجى الانتظار...",
                 auto_login: "تسجيل الدخول التلقائي...",
-                copyright: "جميع حقوق هذا المنتج محفوظة وخاصة بـ:<br>صانع ومطور قوانين وخريطة جان بطريقة عصرية<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX</strong>"
+                copyright: "جميع حقوق هذا المنتج محفوظة وخاصة بـ:<br>صانع ومطور قوانين وخريطة جان بطريقة عصرية<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX __ </strong>"
             },
             en: {
                 title: "Master Suite Pro",
@@ -124,7 +503,7 @@
                 err_net: "⚠️ Network connection required for validation!",
                 succ_msg: "✅ Success, please wait...",
                 auto_login: "Auto-login in progress...",
-                copyright: "All rights for this product are reserved & belong to:<br>Creator & Developer of Gann Rules and Map in a Modern Way<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX</strong>"
+                copyright: "All rights for this product are reserved & belong to:<br>Creator & Developer of Gann Rules and Map in a Modern Way<br><strong style='color: var(--neon-gold); font-size: 16px; display: block; margin-top: 8px; direction: ltr; letter-spacing: 1px;'>@San_FX __ </strong>"
             }
         };
 
@@ -133,8 +512,7 @@
         function setLanguage(selectedLang) {
             lang = selectedLang;
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById('btn-lang-' + lang);
-            if(activeBtn) activeBtn.classList.add('active');
+            document.getElementById('btn-lang-' + lang).classList.add('active');
             
             document.documentElement.dir = (lang === 'en') ? 'ltr' : 'rtl';
             
@@ -147,8 +525,12 @@
             
             document.getElementById('txt-hub-title').innerText = dict.hub_title;
             document.getElementById('h-n1').innerText = dict.h_n1; document.getElementById('h-d1').innerText = dict.h_d1;
+            document.getElementById('h-n2').innerText = dict.h_n2; document.getElementById('h-d2').innerText = dict.h_d2;
+            document.getElementById('h-n3').innerText = dict.h_n3; document.getElementById('h-d3').innerText = dict.h_d3;
             document.getElementById('h-n4').innerText = dict.h_n4; document.getElementById('h-d4').innerText = dict.h_d4;
+            document.getElementById('h-n5').innerText = dict.h_n5; document.getElementById('h-d5').innerText = dict.h_d5;
 
+            // جێگیرکردنی دەقی مافی پارێزراو
             document.getElementById('txt-dev-credit-lock').innerHTML = dict.copyright;
             document.getElementById('welcome-copyright').innerHTML = dict.copyright;
 
@@ -170,7 +552,6 @@
         })();
         document.getElementById('device-id-display').innerText = deviceID;
 
-        // Optimization: Fast Async validation checks local timestamp fast
         async function validateLicense() {
             let key = document.getElementById('license-input').value.trim().toUpperCase();
             let msg = document.getElementById('lock-msg');
@@ -180,13 +561,16 @@
                 let response = await fetch(`https://rebarfx-astro-default-rtdb.firebaseio.com/licenses/${key}.json`);
                 let data = await response.json();
                 
-                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && Date.now() <= new Date(data.expiry).getTime()) {
+                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && new Date() <= new Date(data.expiry)) {
                     localStorage.setItem('rfx_license_saved', key);
                     msg.style.color = "#00ffcc";
                     msg.innerText = lexicon[lang].succ_msg;
                     
-                    // Reduced delay on manual click to 400ms for responsiveness
-                    setTimeout(() => { triggerWelcomeSequence(); }, 400);
+                    // دوای دۆزینەوەی کلیلەکە بۆ ٢ چرکە دەوەستێت ئینجا دەچێتە سەر لۆگۆ
+                    setTimeout(() => {
+                        triggerWelcomeSequence();
+                    }, 2000);
+                    
                 } else {
                     msg.style.color = "#ff3333";
                     msg.innerText = lexicon[lang].err_wrong;
@@ -197,13 +581,12 @@
             }
         }
 
-        // Optimization: Reduced welcome screen animation from 5000ms down to a snappy 800ms
         function triggerWelcomeSequence() {
             document.getElementById('gateway-main').style.display = 'none';
             let transitionScreen = document.getElementById('welcome-transition');
             transitionScreen.style.display = 'flex';
-            transitionScreen.style.opacity = '1';
             
+            // کاتی دەرکەوتنی لۆگۆکە کەم کرایەوە بۆ ٥ چرکە
             setTimeout(() => {
                 transitionScreen.style.opacity = '0';
                 setTimeout(() => {
@@ -212,30 +595,33 @@
                     document.getElementById('lock-section').style.display = 'none';
                     document.getElementById('lang-menu').style.display = 'none';
                     document.getElementById('hub-section').style.display = 'flex';
-                }, 150); 
-            }, 800); 
-        }
-
-        function routeDirectToHub() {
-            document.getElementById('lock-section').style.display = 'none';
-            document.getElementById('lang-menu').style.display = 'none';
-            document.getElementById('hub-section').style.display = 'flex';
+                }, 500); 
+            }, 5000); 
         }
 
         window.onload = () => {
             let savedLang = localStorage.getItem('rfx_lang') || 'ku';
             setLanguage(savedLang);
 
+            // ئەگەر لە نەخشە گەڕایەوە یەکسەر هەڵبژاردنەکان دەکاتەوە
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('showHub') === 'true' && localStorage.getItem('rfx_license_saved')) {
-                routeDirectToHub();
+                document.getElementById('lock-section').style.display = 'none';
+                document.getElementById('lang-menu').style.display = 'none';
+                document.getElementById('hub-section').style.display = 'flex';
                 return;
             }
 
+            // ئەگەر پێشتر کلیلەکە هەبوو، بۆ ٣ چرکە چاوەڕێ دەکات بۆ ئەوەی مەجالی گۆڕینی زمانت هەبێت
             let savedKey = localStorage.getItem('rfx_license_saved');
             if(savedKey) {
-                // Optimization: Instantly verify without waiting 3 seconds on load
-                verifySavedKey(savedKey);
+                let msg = document.getElementById('lock-msg');
+                msg.style.color = "#00ffcc";
+                msg.innerText = lexicon[lang].auto_login || "چوونەژوورەوەی خۆکار...";
+                
+                setTimeout(() => {
+                    verifySavedKey(savedKey);
+                }, 3000);
             }
         };
 
@@ -243,12 +629,11 @@
             try {
                 let response = await fetch(`https://rebarfx-astro-default-rtdb.firebaseio.com/licenses/${k}.json`);
                 let data = await response.json();
-                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && Date.now() <= new Date(data.expiry).getTime()) {
-                    routeDirectToHub(); // Instant bypass to content if verified
+                if(data && (data.deviceId === deviceID || data.deviceId === "ALL") && new Date() <= new Date(data.expiry)) {
+                    triggerWelcomeSequence(); 
                 }
             } catch(e){}
         }
     </script>
 </body>
 </html>
-

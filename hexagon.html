@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>San FX - Hexagon</title>
+    <style>
+        :root { --neon-cyan: #00ffcc; --neon-gold: #d4af37; --neon-pink: #ff3399; --neon-purple: #b366ff; --bg-dark: #000; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; direction: ltr; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        
+        /* Header */
+        .header { position: fixed; top: 0; width: 100%; background: rgba(12, 12, 12, 0.95); padding: 12px 15px; border-bottom: 1px solid var(--neon-cyan); z-index: 9999; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; backdrop-filter: blur(5px); direction: ltr;}
+        .menu-toggle { background: var(--neon-cyan); border: none; color: #000; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); order: 1; }
+        .center-brand-text { color: var(--neon-gold); font-weight: bold; font-size: 9px; font-family: monospace; order: 2; flex: 1; text-align: center; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        .back-arrow-btn { background: transparent; border: none; color: var(--neon-cyan); font-size: 24px; cursor: pointer; transition: 0.3s; padding: 0 5px; display: flex; align-items: center; order: 3; text-decoration: none;}
+        .back-arrow-btn:active { transform: scale(0.9); color: #fff; }
+        
+        /* Sidebar (Smart Direction based on Language) */
+        .sidebar { position: fixed; top: 0; width: 310px; height: 100%; background: #0a0a0f; z-index: 9999999; transition: 0.3s; padding: 85px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
+        
+        html[dir="rtl"] .sidebar { right: -320px; border-left: 1px solid var(--neon-cyan); direction: rtl; }
+        html[dir="rtl"] .sidebar.active { right: 0; }
+        html[dir="rtl"] .close-menu { left: 15px; right: auto; }
+        
+        html[dir="ltr"] .sidebar { left: -320px; border-right: 1px solid var(--neon-cyan); direction: ltr; }
+        html[dir="ltr"] .sidebar.active { left: 0; }
+        html[dir="ltr"] .close-menu { right: 15px; left: auto; }
+
+        .close-menu { position: absolute; top: 15px; background: none; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        
+        /* Form Inputs */
+        .menu-item { margin-top: 15px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        .menu-item label { display: block; color: var(--neon-cyan); font-size: 12px; margin-bottom: 6px; font-weight: bold; text-align: center; }
+        input, select { background: #0a0a0a; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; text-align: center; font-weight: bold; font-family: monospace;}
+        input:focus, select:focus { border-color: var(--neon-cyan); }
+        .target-input-hex { border-color: #ff3333 !important; color: #ff3333; }
+        
+        /* Map Area */
+        #viewport-maps { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: block; z-index: 10; background: radial-gradient(circle at center, #111 0%, #000 80%);}
+        .map-area { position: absolute; width: 3800px; height: 3800px; display: flex; align-items: center; justify-content: center; cursor: grab; left: 50%; top: 50%; transform: translate(-50%, -50%);}
+        .map-area:active { cursor: grabbing; }
+        #zoom-layer { position: relative; transform-origin: center; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;}
+        canvas { background: transparent; display: block;}
+        
+        #container-hexagon { position: relative; width: 3800px; height: 3800px; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="header">
+        <button class="menu-toggle" id="btn-menu" data-i18n="btn_menu">☰ ڕێکخستن</button>
+        <div class="center-brand-text">__w.d.gann__@San_FX</div>
+        <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-menu" id="btn-close-menu">✕</button>
+        
+        <h3 style="color: var(--neon-cyan); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; margin-top: 0;" data-i18n="opt_hex">⬡ نەخشەی شەش‌گۆشە</h3>
+
+        <div id="controls-hexagon">
+            <div class="menu-item">
+                <label style="color: #00ffcc;" data-i18n="lbl_hex_type">١. جۆری داتا</label>
+                <select id="hexDataType" style="color: #00ffcc; border-color: #00ffcc;">
+                    <option value="price" data-i18n="hex_opt1">📊 شیکاری نرخ</option>
+                    <option value="hour" data-i18n="hex_opt2">⏱️ شیکاری کاتژمێر</option>
+                    <option value="date" data-i18n="hex_opt3">📅 شیکاری بەروار</option>
+                </select>
+            </div>
+            <div class="menu-item"><label style="color: #00ffcc;" data-i18n="lbl_hex_center">٢. سەنتەری دەستپێک</label><input type="number" id="hexBaseInput" value="2304"></div>
+            <div class="menu-item" style="background: rgba(255, 51, 51, 0.05); padding: 10px; border-radius: 5px; border: 1px dashed #ff3333;">
+                <label style="color: #ff3333;" data-i18n="lbl_hex_target">🎯 گەڕان بەدوای ئامانج</label>
+                <input type="number" id="hexTargetInput" class="target-input-hex" style="background:#0a0a0a;">
+            </div>
+            <div class="menu-item"><label style="color: #00ffcc;" data-i18n="lbl_hex_dir">ئاراستەی ترێند</label>
+                <select id="hexTrendDir">
+                    <option value="up" data-i18n="opt_up">📈 پێشەوە (+)</option>
+                    <option value="down" data-i18n="opt_down">📉 دواوە (-)</option>
+                </select>
+            </div>
+            <div class="menu-item"><label style="color: #00ffcc;" data-i18n="lbl_hex_step">بڕی هەنگاو (Step)</label><input type="number" id="hexStepValue" value="1" step="0.5"></div>
+            <div class="menu-item" style="border-bottom: none;"><label style="color: #00ffcc;" data-i18n="lbl_hex_layers">ژمارەی چینەکان</label><input type="number" id="hexGridLayers" value="12" min="3"></div>
+        </div>
+    </div>
+
+    <div id="viewport-maps">
+        <div class="map-area" id="map">
+            <div id="zoom-layer">
+                <div id="container-hexagon">
+                    <canvas id="hexCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // فەرهەنگی زمانەکان بۆ مینووی شەش‌گۆشە
+        const lexicon = {
+            ku: {
+                btn_menu: "☰ ڕێکخستن", opt_hex: "⬡ نەخشەی شەش‌گۆشە",
+                lbl_hex_type: "١. جۆری داتا", hex_opt1: "📊 شیکاری نرخ", hex_opt2: "⏱️ شیکاری کاتژمێر", hex_opt3: "📅 شیکاری بەروار",
+                lbl_hex_center: "٢. سەنتەری دەستپێک", lbl_hex_target: "🎯 گەڕان بەدوای ئامانج",
+                lbl_hex_dir: "ئاراستەی ترێند", opt_up: "📈 پێشەوە (+)", opt_down: "📉 دواوە (-)",
+                lbl_hex_step: "بڕی هەنگاو (Step)", lbl_hex_layers: "ژمارەی چینەکان"
+            },
+            ar: {
+                btn_menu: "☰ إعدادات", opt_hex: "⬡ السداسي (Hexagon)",
+                lbl_hex_type: "١. نوع البيانات", hex_opt1: "📊 تحليل السعر", hex_opt2: "⏱️ تحليل الساعة", hex_opt3: "📅 تحليل التاريخ",
+                lbl_hex_center: "٢. مركز البداية", lbl_hex_target: "🎯 البحث عن الهدف",
+                lbl_hex_dir: "اتجاه الترند", opt_up: "📈 صعود (+)", opt_down: "📉 هبوط (-)",
+                lbl_hex_step: "قيمة الخطوة (Step)", lbl_hex_layers: "عدد الطبقات"
+            },
+            en: {
+                btn_menu: "☰ Settings", opt_hex: "⬡ Gann Hexagon",
+                lbl_hex_type: "1. Data Type", hex_opt1: "📊 Price Analysis", hex_opt2: "⏱️ Hour Analysis", hex_opt3: "📅 Date Analysis",
+                lbl_hex_center: "2. Starting Center", lbl_hex_target: "🎯 Search Target",
+                lbl_hex_dir: "Trend Direction", opt_up: "📈 UP Trend (+)", opt_down: "📉 DOWN Trend (-)",
+                lbl_hex_step: "Step Value", lbl_hex_layers: "Grid Layers"
+            }
+        };
+
+        let currentLang = 'ku';
+
+        function applyLanguage() {
+            try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
+            document.documentElement.dir = currentLang === 'en' ? 'ltr' : 'rtl';
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.innerHTML = lexicon[currentLang][key];
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.placeholder = lexicon[currentLang][key];
+            });
+        }
+
+        // کۆنترۆڵکردنی مینوو و دەستپێک
+        document.addEventListener('DOMContentLoaded', function() {
+            var btnMenu = document.getElementById('btn-menu');
+            var btnCloseMenu = document.getElementById('btn-close-menu');
+            var sidebar = document.getElementById('sidebar');
+
+            if(btnMenu) {
+                btnMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                });
+            }
+            if(btnCloseMenu) {
+                btnCloseMenu.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                });
+            }
+            
+            applyLanguage();
+            loadSet();
+            px = 0; 
+            py = 0;
+            upT();
+            dHx();
+        });
+
+        const savedIds = ['hexDataType', 'hexBaseInput', 'hexTargetInput', 'hexTrendDir', 'hexStepValue', 'hexGridLayers'];
+
+        function loadSet() {
+            try {
+                savedIds.forEach(id => { 
+                    let v = localStorage.getItem('rfx_hx_' + id); 
+                    let el = document.getElementById(id); 
+                    if(v !== null && el) el.value = v; 
+                });
+            } catch(e) {}
+            handleInputType();
+        }
+
+        function saveSet() {
+            try {
+                savedIds.forEach(id => { 
+                    let el = document.getElementById(id); 
+                    if(el) localStorage.setItem('rfx_hx_' + id, el.value); 
+                });
+            } catch(e) {}
+        }
+
+        function handleInputType() {
+            let m = document.getElementById('hexDataType').value;
+            let b = document.getElementById('hexBaseInput');
+            let t = document.getElementById('hexTargetInput');
+
+            if(m === 'price') { 
+                b.type = 'number'; t.type = 'number'; 
+            } else if(m === 'hour') { 
+                b.type = 'time'; t.type = 'time'; 
+                if(!b.value || !b.value.includes(':')) b.value = '09:00';
+            } else if(m === 'date') { 
+                b.type = 'date'; t.type = 'date'; 
+                if(!b.value || !b.value.includes('-')) b.value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        document.getElementById('hexDataType').addEventListener('change', () => {
+            handleInputType();
+            saveSet();
+            dHx();
+        });
+
+        savedIds.forEach(id => {
+            let el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('change', () => { saveSet(); dHx(); });
+                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); dHx(); });
+            }
+        });
+
+        function dHx() {
+            const cv = document.getElementById('hexCanvas');
+            const ct = cv.getContext('2d');
+            const SZ = 3800, cx = 1900, cy = 1900;
+            cv.width = SZ; cv.height = SZ;
+            ct.clearRect(0, 0, SZ, SZ);
+
+            let md = document.getElementById('hexDataType').value;
+            let bvR = document.getElementById('hexBaseInput').value;
+            let tvR = document.getElementById('hexTargetInput').value;
+            const ly = parseInt(document.getElementById('hexGridLayers').value) || 12;
+            const sm = parseFloat(document.getElementById('hexStepValue').value) || 1;
+            const tr = document.getElementById('hexTrendDir').value === 'up' ? 1 : -1;
+            
+            const rR = 1250, aR = 1400, cR = 1530, hR = 1680;
+
+            ct.save(); 
+            ct.translate(cx, cy); 
+            ct.rotate(-Math.PI / 6);
+            ct.fillStyle = "rgba(0, 255, 204, 0.03)"; 
+            ct.font = "bold 400px Arial"; 
+            ct.textAlign = "center"; 
+            ct.textBaseline = "middle"; 
+            ct.fillText("San FX", 0, -220);
+            ct.font = "bold 160px Arial"; 
+            ct.fillStyle = "rgba(179, 102, 255, 0.03)"; 
+            ct.fillText("TIME & PRICE HEXAGON", 0, 150); 
+            ct.restore();
+
+            // هێڵەکانی زەرد و سەوز بۆ گۆشەکان
+            for(let a=0; a<360; a+=30) {
+                let rd = a * Math.PI / 180, isE = (a % 60 === 0);
+                ct.beginPath(); 
+                ct.moveTo(cx, cy); 
+                ct.lineTo(cx + hR * Math.cos(rd), cy + hR * Math.sin(rd));
+                if(isE) { 
+                    ct.strokeStyle = 'rgba(0,255,255,0.3)'; 
+                    ct.lineWidth = 2.5; 
+                    ct.setLineDash([]); 
+                } else { 
+                    ct.strokeStyle = 'rgba(255,170,0,0.3)'; 
+                    ct.lineWidth = 2; 
+                    ct.setLineDash([8, 8]); 
+                }
+                ct.stroke(); 
+                ct.setLineDash([]);
+            }
+
+            // بازنەکان
+            ct.lineWidth = 3;
+            ct.beginPath(); ct.arc(cx, cy, rR, 0, 2 * Math.PI); ct.strokeStyle = 'rgba(0,255,255,0.2)'; ct.stroke();
+            ct.beginPath(); ct.arc(cx, cy, aR, 0, 2 * Math.PI); ct.strokeStyle = 'rgba(179,102,255,0.3)'; ct.stroke();
+            ct.beginPath(); ct.arc(cx, cy, cR, 0, 2 * Math.PI); ct.strokeStyle = 'rgba(255,204,0,0.3)'; ct.stroke();
+            ct.beginPath(); ct.arc(cx, cy, hR, 0, 2 * Math.PI); ct.strokeStyle = 'rgba(51,204,255,0.4)'; ct.lineWidth = 4; ct.stroke();
+
+            const zs = [
+                {sym: "♈ ARIES", c: "#ff3333"}, {sym: "♉ TAURUS", c: "#00ffcc"}, {sym: "♊ GEMINI", c: "#ffff33"},
+                {sym: "♋ CANCER", c: "#33ccff"}, {sym: "♌ LEO", c: "#ff3333"}, {sym: "♍ VIRGO", c: "#00ffcc"},
+                {sym: "♎ LIBRA", c: "#ffff33"}, {sym: "♏ SCORPIO", c: "#33ccff"}, {sym: "♐ SAGITTARIUS", c: "#ff3333"},
+                {sym: "♑ CAPRICORN", c: "#00ffcc"}, {sym: "♒ AQUARIUS", c: "#ffff33"}, {sym: "♓ PISCES", c: "#33ccff"}
+            ];
+            const ms = [
+                "Mar 21 - Apr 20", "Apr 20 - May 21", "May 21 - Jun 21", "Jun 21 - Jul 23", 
+                "Jul 23 - Aug 23", "Aug 23 - Sep 23", "Sep 23 - Oct 23", "Oct 23 - Nov 22", 
+                "Nov 22 - Dec 22", "Dec 22 - Jan 20", "Jan 20 - Feb 19", "Feb 19 - Mar 21"
+            ];
+            
+            ct.textAlign = "center"; 
+            ct.textBaseline = "middle";
+
+            for(let a=0; a<360; a+=5) {
+                let rd = a * Math.PI / 180, isE = (a % 60 === 0), isT = (a % 30 === 0 && !isE);
+                ct.beginPath(); 
+                ct.moveTo(cx + (isE ? rR - 40 : (isT ? rR - 25 : rR - 10)) * Math.cos(rd), cy + (isE ? rR - 40 : (isT ? rR - 25 : rR - 10)) * Math.sin(rd)); 
+                ct.lineTo(cx + (rR + 15) * Math.cos(rd), cy + (rR + 15) * Math.sin(rd));
+                if(isE) { ct.strokeStyle = '#00ffff'; ct.lineWidth = 4; } 
+                else if(isT) { ct.strokeStyle = '#ffaa00'; ct.lineWidth = 3; } 
+                else { ct.strokeStyle = '#333'; ct.lineWidth = 1.5; }
+                ct.stroke();
+                
+                if(isE || isT) { 
+                    ct.fillStyle = isE ? '#00ffff' : '#ffaa00'; 
+                    ct.font = isE ? 'bold 34px Arial' : 'bold 24px Arial'; 
+                    ct.fillText(a + "°", cx + (rR + 50) * Math.cos(rd), cy + (rR + 50) * Math.sin(rd)); 
+                }
+                
+                if(a % 30 === 0) {
+                    let id = a / 30, mR = ((a + 15) * Math.PI) / 180;
+                    ct.save(); 
+                    ct.translate(cx + (aR - 65) * Math.cos(mR), cy + (aR - 65) * Math.sin(mR)); 
+                    ct.rotate(mR + Math.PI / 2); 
+                    ct.fillStyle = zs[id].c; 
+                    ct.font = "bold 34px Arial"; 
+                    ct.shadowBlur = 10; 
+                    ct.shadowColor = zs[id].c; 
+                    ct.fillText(zs[id].sym, 0, 0); 
+                    ct.restore();
+                    
+                    ct.save(); 
+                    ct.translate(cx + (cR - 55) * Math.cos(mR), cy + (cR - 55) * Math.sin(mR)); 
+                    ct.rotate(mR + Math.PI / 2); 
+                    ct.fillStyle = '#ffcc00'; 
+                    ct.font = "bold 26px Courier New"; 
+                    ct.shadowBlur = 5; 
+                    ct.shadowColor = '#ffcc00'; 
+                    ct.fillText(ms[id], 0, 0); 
+                    ct.restore();
+                }
+                
+                if(a % 15 === 0) {
+                    let h = a / 15; 
+                    if(h === 0) h = 24; 
+                    let ht = h.toString().padStart(2, '0') + ":00";
+                    ct.beginPath(); 
+                    ct.moveTo(cx + (hR - 15) * Math.cos(rd), cy + (hR - 15) * Math.sin(rd)); 
+                    ct.lineTo(cx + (hR + 15) * Math.cos(rd), cy + (hR + 15) * Math.sin(rd)); 
+                    ct.strokeStyle = '#33ccff'; 
+                    ct.lineWidth = 3; 
+                    ct.stroke();
+                    
+                    ct.save(); 
+                    ct.translate(cx + (hR + 55) * Math.cos(rd), cy + (hR + 55) * Math.sin(rd)); 
+                    ct.rotate(rd + Math.PI / 2); 
+                    ct.fillStyle = '#33ccff'; 
+                    ct.font = "bold 28px Courier New"; 
+                    ct.shadowBlur = 10; 
+                    ct.shadowColor = '#33ccff'; 
+                    ct.fillText(ht, 0, 0); 
+                    ct.restore();
+                }
+            }
+
+            // لۆجیکی ناوەوە (خانەکان)
+            let vO, sMs = 0;
+            if(md === 'price') {
+                vO = parseFloat(bvR) || 0;
+            } else if(md === 'hour') { 
+                let p = bvR.split(':'); 
+                let d = new Date(); 
+                d.setHours(p[0] || 0, p[1] || 0, 0, 0); 
+                vO = d.getTime(); 
+                sMs = 3600000 * sm * tr; 
+            } else if(md === 'date') { 
+                vO = new Date(bvR).getTime(); 
+                if(isNaN(vO)) vO = new Date().getTime(); 
+                sMs = 86400000 * sm * tr; 
+            }
+
+            let tF = "";
+            if(tvR) {
+                if(md === 'price') tF = parseFloat(tvR).toString();
+                else if(md === 'hour') { let p = tvR.split(':'); tF = p[0].padStart(2, '0') + ":" + (p[1] || "00").padStart(2, '0'); }
+                else if(md === 'date') { let d = new Date(tvR); tF = d.getDate() + "/" + (d.getMonth() + 1); }
+            }
+
+            let hS = (rR - 130) / (ly * 1.6); 
+            if(hS > 60) hS = 60;
+            let dr = [{q: 1, r: 0}, {q: 0, r: 1}, {q: -1, r: 1}, {q: -1, r: 0}, {q: 0, r: -1}, {q: 1, r: -1}];
+            let q = 0, rr = 0;
+
+            function dH(x, y, s, t, iC, tg, iE, iT) {
+                ct.beginPath(); 
+                for(let i=0; i<6; i++) { 
+                    let a = (Math.PI / 3) * i, hx = x + s * Math.cos(a), hy = y + s * Math.sin(a); 
+                    if(i === 0) ct.moveTo(hx, hy); 
+                    else ct.lineTo(hx, hy); 
+                } 
+                ct.closePath();
+                
+                if(tg) { ct.fillStyle = 'rgba(255,51,51,0.9)'; ct.strokeStyle = '#fff'; ct.lineWidth = 4; }
+                else if(iC) { ct.fillStyle = 'rgba(255,255,255,0.2)'; ct.strokeStyle = '#fff'; ct.lineWidth = 2; }
+                else if(iE) { ct.fillStyle = 'rgba(0,255,255,0.15)'; ct.strokeStyle = '#0ff'; ct.lineWidth = 2; }
+                else if(iT) { ct.fillStyle = 'rgba(255,170,0,0.15)'; ct.strokeStyle = '#fa0'; ct.lineWidth = 2; }
+                else { ct.fillStyle = '#060606'; ct.strokeStyle = '#222'; ct.lineWidth = 1.5; }
+                
+                ct.fill(); 
+                ct.stroke();
+                
+                if(tg || iC) ct.fillStyle = '#fff'; 
+                else if(iE) ct.fillStyle = '#cff'; 
+                else if(iT) ct.fillStyle = '#fe3'; 
+                else ct.fillStyle = '#888';
+                
+                let iS = (tg || iE || iT || iC); 
+                ct.font = iS ? `bold ${Math.max(11, s * 0.32) + 2}px Arial` : `${Math.max(10, s * 0.3)}px Arial`; 
+                ct.fillText(t, x, y);
+            }
+
+            function gDV() {
+                let d = "";
+                if(md === 'price') { 
+                    d = parseFloat(vO.toFixed(2)); 
+                    if(d < 0) d = 0; 
+                    vO += (sm * tr); 
+                } else if(md === 'hour') { 
+                    let dt = new Date(vO); 
+                    d = dt.getHours().toString().padStart(2, '0') + ":" + dt.getMinutes().toString().padStart(2, '0'); 
+                    vO += sMs; 
+                } else if(md === 'date') { 
+                    let dt = new Date(vO); 
+                    d = dt.getDate() + "/" + (dt.getMonth() + 1); 
+                    vO += sMs; 
+                }
+                return d.toString();
+            }
+
+            let fV = gDV(); 
+            dH(cx, cy, hS - 2, fV, !0, fV === tF, !1, !1);
+            
+            for(let r=1; r<ly; r++) {
+                q += dr[4].q; 
+                rr += dr[4].r;
+                for(let i=0; i<6; i++) {
+                    for(let j=0; j<r; j++) {
+                        let x = cx + hS * Math.sqrt(3) * (q + rr / 2);
+                        let y = cy + hS * 1.5 * rr;
+                        let dV = gDV();
+                        let iE = (j === 0);
+                        let iT = !1;
+                        if(r > 1) { 
+                            if(r % 2 === 0 && j === r / 2) iT = !0; 
+                            if(r % 2 !== 0 && (j === Math.floor(r / 2) || j === Math.ceil(r / 2))) iT = !0; 
+                        }
+                        dH(x, y, hS - 2.5, dV, !1, dV === tF, iE, iT);
+                        q += dr[i].q; 
+                        rr += dr[i].r;
+                    }
+                }
+            }
+        }
+
+        // کۆنترۆڵکردنی جووڵە و زووم بۆ شاشەی نەخشەکە
+        let sc = window.innerWidth < 600 ? 0.35 : 0.45;
+        let px = 0, py = 0, dg = false, sx, sy, iDist = 0;
+        const vM = document.getElementById('viewport-maps'), zL = document.getElementById('zoom-layer');
+        
+        function upT() { 
+            zL.style.transform = `translate(${px}px, ${py}px) scale(${sc})`; 
+        }
+        
+        function getEP(e) { 
+            return e.touches && e.touches.length > 0 ? {x: e.touches[0].clientX, y: e.touches[0].clientY} : {x: e.clientX, y: e.clientY}; 
+        }
+
+        vM.addEventListener('mousedown', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header')) return;
+            let p = getEP(e); 
+            dg = true; sx = p.x - px; sy = p.y - py; 
+            vM.style.cursor = 'grabbing';
+        });
+        
+        window.addEventListener('mousemove', e => {
+            if(dg) { 
+                let p = getEP(e); 
+                px = p.x - sx; py = p.y - sy; 
+                upT(); 
+            }
+        });
+        
+        window.addEventListener('mouseup', () => { 
+            dg = false; 
+            vM.style.cursor = 'grab'; 
+        });
+        
+        vM.addEventListener('wheel', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header')) return;
+            e.preventDefault(); 
+            sc += e.deltaY * -0.001; 
+            sc = Math.min(Math.max(0.1, sc), 5); 
+            upT();
+        }, {passive: false});
+        
+        vM.addEventListener('touchstart', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header')) return;
+            if(e.touches.length === 2) { 
+                dg = false; 
+                iDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); 
+            } else { 
+                let p = getEP(e); 
+                dg = true; 
+                sx = p.x - px; 
+                sy = p.y - py; 
+            }
+        }, {passive: false});
+        
+        vM.addEventListener('touchmove', e => {
+            if(e.target.closest('.sidebar') || e.target.closest('.header')) return;
+            if(e.touches.length === 2) {
+                e.preventDefault(); 
+                const d = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                sc = Math.min(Math.max(0.1, sc * (d / iDist)), 5); 
+                iDist = d; 
+                upT();
+            } else if(dg) { 
+                e.preventDefault(); 
+                let p = getEP(e); 
+                px = p.x - sx; 
+                py = p.y - sy; 
+                upT(); 
+            }
+        }, {passive: false});
+        
+        window.addEventListener('touchend', () => { dg = false; });
+
+    </script>
+</body>
+</html>

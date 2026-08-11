@@ -1,21 +1,107 @@
 <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
-    <link rel="stylesheet" href="matrix24.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>San FX - Matrix 24 & Bot</title>
+    <style>
+        :root { --neon-cyan: #00ffcc; --neon-gold: #d4af37; --neon-pink: #ff3399; --neon-purple: #b366ff; --bg-dark: #000; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; direction: ltr; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        
+        /* Header */
+        .header { position: fixed; top: 0; width: 100%; background: rgba(12, 12, 12, 0.95); padding: 12px 15px; border-bottom: 1px solid var(--neon-cyan); z-index: 9999; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; backdrop-filter: blur(5px); direction: ltr;}
+        .menu-toggle { background: var(--neon-cyan); border: none; color: #000; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); order: 1; }
+        .center-brand-text { color: var(--neon-gold); font-weight: bold; font-size: 9px; font-family: monospace; order: 2; flex: 1; text-align: center; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        .back-arrow-btn { background: transparent; border: none; color: var(--neon-cyan); font-size: 24px; cursor: pointer; transition: 0.3s; padding: 0 5px; display: flex; align-items: center; order: 3; text-decoration: none;}
+        .back-arrow-btn:active { transform: scale(0.9); color: #fff; }
+        
+        /* Sidebar */
+        .sidebar { position: fixed; top: 0; width: 310px; height: 100%; background: #0a0a0f; z-index: 9999999; transition: 0.3s; padding: 85px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
+        
+        html[dir="rtl"] .sidebar { right: -320px; border-left: 1px solid var(--neon-cyan); direction: rtl; }
+        html[dir="rtl"] .sidebar.active { right: 0; }
+        html[dir="rtl"] .close-menu { left: 15px; right: auto; }
+        
+        html[dir="ltr"] .sidebar { left: -320px; border-right: 1px solid var(--neon-cyan); direction: ltr; }
+        html[dir="ltr"] .sidebar.active { left: 0; }
+        html[dir="ltr"] .close-menu { right: 15px; left: auto; }
 
+        .close-menu { position: absolute; top: 15px; background: none; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        
+        /* Form Inputs */
+        .menu-item { margin-top: 15px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        .menu-item label { display: block; color: var(--neon-cyan); font-size: 12px; margin-bottom: 6px; font-weight: bold; text-align: center; }
+        input, select { background: #0a0a0a; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; text-align: center; font-weight: bold; font-family: monospace;}
+        input:focus, select:focus { border-color: var(--neon-cyan); }
+        .helper-text { font-size: 10px; color: #888; margin-top: 5px; text-align: center; }
+        .anchor-status { margin-top: 8px; padding: 8px; border: 1px dashed #333; border-radius: 5px; color: #bbb; font-size: 11px; line-height: 1.45; text-align: center; background: rgba(255,255,255,0.03); }
+        .anchor-status.ok { color: var(--neon-cyan); border-color: rgba(0,255,204,0.35); }
+        .anchor-status.error { color: #ff5555; border-color: rgba(255,85,85,0.55); }
+        .anchor-status.warn { color: var(--neon-gold); border-color: rgba(212,175,55,0.45); }
+        .mini-btn { margin-top: 8px; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 7px; border-radius: 5px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        /* Map Area */
+        #viewport-maps { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: block; z-index: 10; background: radial-gradient(circle at center, #111 0%, #000 80%);}
+        .map-area { position: absolute; width: 5600px; height: 5600px; display: flex; align-items: center; justify-content: center; cursor: grab; left: 50%; top: 50%; transform: translate(-50%, -50%);}
+        .map-area:active { cursor: grabbing; }
+        #zoom-layer { position: relative; transform-origin: center; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;}
+        canvas { background: transparent; display: block;}
+        
+        #container-talisman { position: relative; display: flex; align-items: center; justify-content: center;}
+
+        /* Bot Styling */
+        #San-bot-btn {
+            position: fixed; bottom: 30px; right: 20px; z-index: 100001;
+            background: linear-gradient(135deg, var(--neon-gold), #ff9900);
+            color: #000; padding: 12px 20px; border-radius: 30px;
+            font-weight: bold; font-size: 15px; cursor: grab;
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.5);
+            border: 2px solid #fff; display: flex; align-items: center; gap: 8px;
+            user-select: none; touch-action: none;
+        }
+        #San-bot-btn:active { cursor: grabbing; }
+        
+        #bot-modal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 15, 0.98); border: 2px solid var(--neon-gold);
+            padding: 25px; border-radius: 15px; z-index: 100002; width: 85%; max-width: 360px;
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.4); text-align: center;
+        }
+        html[dir="rtl"] #bot-modal { direction: rtl; }
+        html[dir="ltr"] #bot-modal { direction: ltr; }
+
+        #bot-modal h3 { color: var(--neon-gold); margin-top: 0; border-bottom: 1px dashed #444; padding-bottom: 10px; }
+        .bot-msg { font-size: 14px; color: #fff; margin-bottom: 15px; line-height: 1.5; font-weight: bold;}
+        .bot-input { font-size: 20px; padding: 12px; border: 2px solid var(--neon-cyan); border-radius: 8px; margin-bottom: 15px; color: #fff; background: #000; width: 90%; text-align: center; font-family: monospace;}
+        .bot-btn-submit { background: var(--neon-cyan); color: #000; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,255,204,0.3);}
+        .bot-btn-submit:active { transform: scale(0.98); }
+        
+        html[dir="rtl"] .close-bot { position: absolute; top: 15px; left: 15px; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+        html[dir="ltr"] .close-bot { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+        
+        #bot-results { display: none; margin-top: 15px; background: #050508; padding: 15px; border-radius: 8px; border: 1px solid #334; max-height: 350px; overflow-y: auto;}
+        html[dir="rtl"] #bot-results { text-align: right; }
+        html[dir="ltr"] #bot-results { text-align: left; }
+        
+        .signal-box { margin-top: 10px; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.8;}
+        html[dir="rtl"] .buy-signal { background: rgba(0, 255, 204, 0.08); border-right: 4px solid var(--neon-cyan); color: var(--neon-cyan); border-left: none;}
+        html[dir="ltr"] .buy-signal { background: rgba(0, 255, 204, 0.08); border-left: 4px solid var(--neon-cyan); color: var(--neon-cyan); border-right: none;}
+        
+        html[dir="rtl"] .sell-signal { background: rgba(255, 51, 153, 0.08); border-right: 4px solid var(--neon-pink); color: var(--neon-pink); margin-top: 10px; border-left: none;}
+        html[dir="ltr"] .sell-signal { background: rgba(255, 51, 153, 0.08); border-left: 4px solid var(--neon-pink); color: var(--neon-pink); margin-top: 10px; border-right: none;}
+        
+        .target-val { color: #fff; font-family: monospace; font-size: 15px; font-weight: bold; }
+    </style>
 </head>
 <body oncontextmenu="return false;">
 
     <div class="header">
         <button class="menu-toggle" id="btn-menu" data-i18n="btn_menu">☰ ڕێکخستن</button>
-        <div class="center-brand-text">@San_FX</div>
+        <div class="center-brand-text">__w.d.gann__@San_FX</div>
         <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
     </div>
 
-    <div id="rebar-bot-btn" data-i18n="btn_bot">🤖 بۆتی گەن</div>
+    <div id="San-bot-btn" data-i18n="btn_bot">🤖 بۆتی گەن</div>
 
     <div id="bot-modal">
         <button class="close-bot" onclick="window.closeBot()">✕</button>
@@ -39,7 +125,13 @@
         <div id="controls-talisman">
             <div class="menu-item">
                 <label style="color: #00ffcc;" data-i18n="lbl_tal_center">سەنتەر (Center Price)</label>
-                <input type="number" id="sq24BasePrice" value="4795">
+                <select id="sq24AnchorMode">
+                    <option value="auto" selected>Auto XAU/USD 1H Anchor</option>
+                    <option value="manual">Manual Override</option>
+                </select>
+                <input type="number" id="sq24BasePrice" placeholder="DATA ERROR">
+                <div id="sq24AnchorStatus" class="anchor-status">Loading XAU/USD 1H candles...</div>
+                <button type="button" class="mini-btn" onclick="window.refreshSq24Anchor()">Refresh Anchor</button>
             </div>
             <div class="menu-item">
                 <label style="color: #00ffcc;" data-i18n="lbl_tal_dir">ئاراستەی نەخشە (پێشاندان)</label>
@@ -83,7 +175,7 @@
                 bot_err: "تکایە نرخێکی دروست بنووسە!",
                 bot_greet: (h) => `سڵاو! ئۆردەر بۆ کاتژمێر ${h}:00 ئامادە دەکەم، نرخی ئێستام پێ بڵێ:`,
                 bot_res_title: (h) => `📊 <b>شیکاری بۆ کاتژمێر ${h}:00</b><br>لە نەخشەکەدا نرخەکەت دەکەوێتە نێوان:<br>`,
-                bot_buy_title: `<b>🟢 پلانی کڕین  (BUY):</b><br>`, bot_sell_title: `<b>🔴 پلانی فرۆشتن (SELL):</b><br>`,
+                bot_buy_title: `<b>🟢 پلانی کڕین  (BUY):</b><br>`, bot_sell_title: `<b>🔴 پلانی فرۆشتن  (SELL):</b><br>`,
                 bot_buy_entry: (v) => `چوونەژوورەوە: ئەگەر بەر <b>${v}</b> کەوت و گەڕایەوە<br>`, bot_sell_entry: (v) => `چوونەژوورەوە: ئەگەر بەر <b>${v}</b> کەوت و دابەزی<br>`,
                 bot_q1: "🎯 TP1 (چارەک): ", bot_q2: "🎯 TP2 (نیوە): ", bot_q3: "🎯 TP3 (سێ چارەک): ", bot_q4: "🎯 TP4 (سەقف): ", bot_q4s: "🎯 TP4 (بنکە): ", bot_sl: "🛑 ستۆپ لۆس: "
             },
@@ -118,6 +210,291 @@
         };
 
         let currentLang = 'ku';
+        const SQ24_TV_SYMBOL = 'OANDA:XAUUSD';
+        const SQ24_TRADEM_SCAN_URL = 'https://tradem-eight.vercel.app/api/market/scan?refresh=1';
+        const SQ24_TRADEM_PROXY_URL = 'https://r.jina.ai/http://r.jina.ai/http://https://tradem-eight.vercel.app/api/market/scan';
+        const SQ24_PIVOT_SIDE = 3;
+        const SQ24_MATRIX_SIZE = 24 * 24;
+        let sq24AnchorState = { status: 'idle', message: '', base: null, candleTime: null, currentPrice: null, reason: '' };
+
+        function setSq24AnchorStatus(message, type = '') {
+            sq24AnchorState.message = message;
+            const el = document.getElementById('sq24AnchorStatus');
+            if(!el) return;
+            el.className = 'anchor-status' + (type ? ' ' + type : '');
+            el.innerHTML = message;
+        }
+
+        function getStepDecimals(stepVal) {
+            const txt = String(stepVal);
+            return txt.includes('.') ? Math.min(txt.split('.')[1].length, 6) : 0;
+        }
+
+        function roundToStep(price, stepVal) {
+            const safeStep = stepVal > 0 ? stepVal : 1;
+            return parseFloat((Math.round(price / safeStep) * safeStep).toFixed(getStepDecimals(safeStep)));
+        }
+
+        function formatSq24Time(unixSeconds) {
+            const ms = unixSeconds > 100000000000 ? unixSeconds : unixSeconds * 1000;
+            return new Date(ms).toLocaleString('en-GB', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            });
+        }
+
+        function extractJsonFromText(text) {
+            const trimmed = (text || '').trim();
+            if(trimmed.startsWith('{')) return JSON.parse(trimmed);
+            const start = trimmed.indexOf('{');
+            const end = trimmed.lastIndexOf('}');
+            if(start < 0 || end <= start) throw new Error('Market API did not return JSON');
+            return JSON.parse(trimmed.slice(start, end + 1));
+        }
+
+        async function fetchJsonWithTextFallback(url) {
+            const res = await fetch(url, { cache: 'no-store' });
+            const text = await res.text();
+            if(!res.ok) throw new Error(`Market API returned HTTP ${res.status}`);
+            return extractJsonFromText(text);
+        }
+
+        async function fetchTradeMScan() {
+            try {
+                return await fetchJsonWithTextFallback(SQ24_TRADEM_SCAN_URL);
+            } catch(primaryErr) {
+                try {
+                    return await fetchJsonWithTextFallback(SQ24_TRADEM_PROXY_URL);
+                } catch(proxyErr) {
+                    throw new Error(`TradeM/Dukascopy data failed: ${primaryErr.message}; fallback failed: ${proxyErr.message}`);
+                }
+            }
+        }
+
+        function selectSq24AnchorFromTradeM(scan, trendDir, stepVal) {
+            if(!scan || !scan.setup || !scan.market) throw new Error(scan && scan.error ? scan.error : 'No TradeM setup data');
+            const pivot = scan.setup.anchorPivot;
+            const expectedKind = trendDir === 'down' ? 'high' : 'low';
+            const currentPrice = Number(scan.market.currentPrice || scan.setup.currentPrice);
+            if(!Number.isFinite(currentPrice)) throw new Error('TradeM scan has no current XAU/USD price');
+            let anchor = null;
+            if(pivot && pivot.kind === expectedKind) {
+                anchor = {
+                    price: Number(pivot.price),
+                    timestamp: pivot.timestamp,
+                    timeframe: pivot.timeframe || 'unknown',
+                    label: `${pivot.timeframe || 'unknown'} pivot ${pivot.kind}`,
+                    sourceNote: pivot.timeframe === '1H' ? 'confirmed 1H pivot' : `confirmed ${pivot.timeframe || 'unknown'} pivot`
+                };
+            } else {
+                const zones = trendDir === 'down'
+                    ? (scan.strategies && scan.strategies.unified && scan.strategies.unified.resistanceZones) || []
+                    : (scan.strategies && scan.strategies.unified && scan.strategies.unified.supportZones) || [];
+                const sortedZones = zones
+                    .filter(z => z && Number.isFinite(Number(z.level || z.high || z.low)) && z.createdAt)
+                    .filter(z => trendDir === 'down' ? Number(z.level || z.high) >= currentPrice : Number(z.level || z.low) <= currentPrice)
+                    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+                const zone = sortedZones[0];
+                if(zone) {
+                    anchor = {
+                        price: Number(zone.level || (trendDir === 'down' ? zone.high : zone.low)),
+                        timestamp: zone.createdAt,
+                        timeframe: zone.timeframe || 'unknown',
+                        label: `${zone.timeframe || 'unknown'} ${zone.kind || (trendDir === 'down' ? 'resistance' : 'support')} zone`,
+                        sourceNote: `confirmed ${zone.kind || (trendDir === 'down' ? 'resistance' : 'support')} zone from TradeM`
+                    };
+                }
+            }
+            if(!anchor) {
+                throw new Error(`TradeM scan did not return a confirmed ${expectedKind} anchor for ${trendDir.toUpperCase()} direction`);
+            }
+            const rawPrice = Number(anchor.price);
+            const candleMs = Date.parse(anchor.timestamp);
+            if(!Number.isFinite(currentPrice) || !Number.isFinite(rawPrice) || !Number.isFinite(candleMs)) {
+                throw new Error('TradeM scan has incomplete market data');
+            }
+            const base = roundToStep(rawPrice, stepVal);
+            const rangeMin = trendDir === 'down' ? base - ((SQ24_MATRIX_SIZE - 1) * stepVal) : base;
+            const rangeMax = trendDir === 'down' ? base : base + ((SQ24_MATRIX_SIZE - 1) * stepVal);
+            return {
+                base,
+                rawPrice,
+                currentPrice,
+                candleTime: candleMs,
+                rangeMin,
+                rangeMax,
+                provider: scan.provider || 'TradeM / Dukascopy Free Data Feed',
+                reason: trendDir === 'down'
+                    ? `DOWN direction: ${anchor.sourceNote} used as latest swing high anchor`
+                    : `UP direction: ${anchor.sourceNote} used as latest swing low anchor`,
+                inRange: currentPrice >= rangeMin && currentPrice <= rangeMax
+            };
+        }
+
+        function tvPacket(method, params) {
+            const payload = JSON.stringify({ m: method, p: params });
+            return `~m~${payload.length}~m~${payload}`;
+        }
+
+        function parseTvPackets(raw) {
+            const packets = [];
+            let i = 0;
+            while(i < raw.length) {
+                if(raw.startsWith('~h~', i)) {
+                    const next = raw.indexOf('~m~', i + 3);
+                    packets.push(raw.slice(i, next === -1 ? raw.length : next));
+                    i = next === -1 ? raw.length : next;
+                    continue;
+                }
+                const start = raw.indexOf('~m~', i);
+                if(start === -1) break;
+                const lenStart = start + 3;
+                const lenEnd = raw.indexOf('~m~', lenStart);
+                if(lenEnd === -1) break;
+                const len = parseInt(raw.slice(lenStart, lenEnd), 10);
+                const payloadStart = lenEnd + 3;
+                packets.push(raw.slice(payloadStart, payloadStart + len));
+                i = payloadStart + len;
+            }
+            return packets;
+        }
+
+        function fetchTradingViewXauUsdCandles(barCount = 500) {
+            return new Promise((resolve, reject) => {
+                const chartSession = 'cs_' + Math.random().toString(36).slice(2, 14);
+                const quoteSession = 'qs_' + Math.random().toString(36).slice(2, 14);
+                const ws = new WebSocket('wss://data.tradingview.com/socket.io/websocket');
+                let settled = false;
+                const timer = setTimeout(() => fail(new Error('TradingView candle request timed out')), 18000);
+
+                function done(candles) {
+                    if(settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    try { ws.close(); } catch(e) {}
+                    resolve(candles);
+                }
+
+                function fail(err) {
+                    if(settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    try { ws.close(); } catch(e) {}
+                    reject(err);
+                }
+
+                function send(method, params) {
+                    ws.send(tvPacket(method, params));
+                }
+
+                ws.onerror = () => fail(new Error('TradingView websocket error'));
+                ws.onopen = () => {
+                    send('set_auth_token', ['unauthorized_user_token']);
+                    send('chart_create_session', [chartSession, '']);
+                    send('quote_create_session', [quoteSession]);
+                    send('quote_set_fields', [quoteSession, 'lp', 'ch', 'chp', 'bid', 'ask', 'open_price', 'high_price', 'low_price', 'prev_close_price']);
+                    send('quote_add_symbols', [quoteSession, SQ24_TV_SYMBOL, { flags: ['force_permission'] }]);
+                    send('resolve_symbol', [chartSession, 'symbol_1', JSON.stringify({ symbol: SQ24_TV_SYMBOL, adjustment: 'splits', session: 'regular' })]);
+                    send('create_series', [chartSession, 's1', 's1', 'symbol_1', '60', barCount]);
+                };
+
+                ws.onmessage = (event) => {
+                    parseTvPackets(event.data).forEach(packet => {
+                        if(packet.startsWith('~h~')) {
+                            try { ws.send(packet); } catch(e) {}
+                            return;
+                        }
+                        let msg;
+                        try { msg = JSON.parse(packet); } catch(e) { return; }
+                        if(msg.m === 'timescale_update' && msg.p && msg.p[1] && msg.p[1].s1 && Array.isArray(msg.p[1].s1.s)) {
+                            const candles = msg.p[1].s1.s.map(item => {
+                                const v = item.v || [];
+                                return { time: v[0], open: v[1], high: v[2], low: v[3], close: v[4] };
+                            }).filter(c => Number.isFinite(c.time) && Number.isFinite(c.open) && Number.isFinite(c.high) && Number.isFinite(c.low) && Number.isFinite(c.close))
+                              .sort((a, b) => a.time - b.time);
+                            if(candles.length >= 30) done(candles);
+                        }
+                        if(msg.m === 'critical_error' || msg.m === 'symbol_error') fail(new Error('TradingView returned ' + msg.m));
+                    });
+                };
+            });
+        }
+
+        function isConfirmedPivot(candles, index, field, direction) {
+            const value = candles[index][field];
+            for(let j = index - SQ24_PIVOT_SIDE; j <= index + SQ24_PIVOT_SIDE; j++) {
+                if(j === index) continue;
+                if(direction === 'high' && candles[j].high >= value) return false;
+                if(direction === 'low' && candles[j].low <= value) return false;
+            }
+            return true;
+        }
+
+        function selectSq24Anchor(candles, trendDir, stepVal) {
+            const pivotType = trendDir === 'down' ? 'high' : 'low';
+            for(let i = candles.length - 1 - SQ24_PIVOT_SIDE; i >= SQ24_PIVOT_SIDE; i--) {
+                if(isConfirmedPivot(candles, i, pivotType, pivotType)) {
+                    const rawPrice = candles[i][pivotType];
+                    const base = roundToStep(rawPrice, stepVal);
+                    const currentPrice = candles[candles.length - 1].close;
+                    const rangeMin = trendDir === 'down' ? base - ((SQ24_MATRIX_SIZE - 1) * stepVal) : base;
+                    const rangeMax = trendDir === 'down' ? base : base + ((SQ24_MATRIX_SIZE - 1) * stepVal);
+                    return {
+                        base,
+                        rawPrice,
+                        currentPrice,
+                        candleTime: candles[i].time,
+                        rangeMin,
+                        rangeMax,
+                        reason: trendDir === 'down'
+                            ? 'DOWN direction: latest confirmed major swing high, 3 candles on each side'
+                            : 'UP direction: latest confirmed major swing low, 3 candles on each side',
+                        inRange: currentPrice >= rangeMin && currentPrice <= rangeMax
+                    };
+                }
+            }
+            return null;
+        }
+
+        async function applyAutoSq24Anchor() {
+            const mode = document.getElementById('sq24AnchorMode').value;
+            const baseInput = document.getElementById('sq24BasePrice');
+            if(mode !== 'auto') {
+                if(baseInput) baseInput.disabled = false;
+                sq24AnchorState.status = 'manual';
+                setSq24AnchorStatus('Manual override is active. Automation is not changing the center price.', 'warn');
+                return;
+            }
+            if(baseInput) baseInput.disabled = true;
+            sq24AnchorState.status = 'loading';
+            setSq24AnchorStatus('Loading XAU/USD 1H candles...', '');
+            try {
+                const stepVal = parseFloat(document.getElementById('sq24StepValue').value) || 1;
+                const trendDir = document.getElementById('sq24TrendDir').value;
+                const scan = await fetchTradeMScan();
+                const selected = selectSq24AnchorFromTradeM(scan, trendDir, stepVal);
+                if(!selected) throw new Error('No confirmed pivot found');
+                if(!selected.inRange) {
+                    sq24AnchorState = { status: 'range-error', message: '', base: selected.base, candleTime: selected.candleTime, currentPrice: selected.currentPrice, reason: selected.reason };
+                    setSq24AnchorStatus(`RANGE ERROR<br>Anchor ${selected.base} from ${formatSq24Time(selected.candleTime)}.<br>Current price ${selected.currentPrice.toFixed(2)} is outside ${selected.rangeMin.toFixed(2)} - ${selected.rangeMax.toFixed(2)}.`, 'error');
+                    drawSq24();
+                    return;
+                }
+                baseInput.value = selected.base;
+                saveSet();
+                sq24AnchorState = { status: 'ok', message: '', base: selected.base, candleTime: selected.candleTime, currentPrice: selected.currentPrice, reason: selected.reason };
+                setSq24AnchorStatus(`Anchor: <b>${selected.base}</b><br>Candle: ${formatSq24Time(selected.candleTime)}<br>Reason: ${selected.reason}<br>Current XAU/USD: ${selected.currentPrice.toFixed(2)}<br>Source: ${selected.provider}`, 'ok');
+                drawSq24();
+            } catch(e) {
+                sq24AnchorState = { status: 'data-error', message: 'DATA ERROR', base: null, candleTime: null, currentPrice: null, reason: e.message || 'Market data failed' };
+                setSq24AnchorStatus(`DATA ERROR<br>${e.message || 'Market data failed'}`, 'error');
+                drawSq24();
+            }
+        }
+
+        window.refreshSq24Anchor = function() {
+            applyAutoSq24Anchor();
+        };
 
         function applyLanguage() {
             try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
@@ -158,12 +535,13 @@
             px = 0; py = 0;
             upT();
             drawSq24();
+            applyAutoSq24Anchor();
             
             // ئەپدەیتکردنەوەی نەخشە هەموو خولەکێک
             setInterval(() => { drawSq24(); }, 60000);
         });
 
-        const savedIds = ['sq24BasePrice', 'sq24TrendDir', 'sq24ManualTime', 'sq24StepValue'];
+        const savedIds = ['sq24BasePrice', 'sq24TrendDir', 'sq24ManualTime', 'sq24StepValue', 'sq24AnchorMode'];
 
         function loadSet() {
             try {
@@ -187,7 +565,12 @@
         savedIds.forEach(id => {
             let el = document.getElementById(id);
             if(el) {
-                el.addEventListener('change', () => { saveSet(); drawSq24(); window.updateBotTime(); });
+                el.addEventListener('change', () => {
+                    saveSet();
+                    if(['sq24TrendDir', 'sq24StepValue', 'sq24AnchorMode'].includes(id)) applyAutoSq24Anchor();
+                    else drawSq24();
+                    window.updateBotTime();
+                });
                 if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); drawSq24(); window.updateBotTime(); });
             }
         });
@@ -216,6 +599,23 @@
             const manualTimeInput = document.getElementById('sq24ManualTime').value;
             const size = 24, rGrid = 1900, rClock = 1980; 
             const goldenHours = [10, 11, 15, 16, 18]; 
+            const anchorMode = document.getElementById('sq24AnchorMode').value;
+
+            if(anchorMode === 'auto' && (sq24AnchorState.status !== 'ok' || !base)) {
+                ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+                ctx.fillStyle = "#05050a";
+                ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+                const isLoading = sq24AnchorState.status === 'idle' || sq24AnchorState.status === 'loading';
+                ctx.fillStyle = isLoading ? "#00ffcc" : "#ff5555";
+                ctx.font = "bold 120px monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(isLoading ? "LOADING DATA" : (sq24AnchorState.status === 'range-error' ? "RANGE ERROR" : "DATA ERROR"), cx, cy - 60);
+                ctx.fillStyle = "#bbb";
+                ctx.font = "bold 42px monospace";
+                ctx.fillText("XAU/USD 1H anchor unavailable", cx, cy + 60);
+                return;
+            }
 
             let now = new Date(); let h = now.getHours(), m = now.getMinutes();
             let isManual = false; 
@@ -337,7 +737,7 @@
 
         // --- Bot Drag Logic ---
         let isDraggingBot = false, botStartX, botStartY, initialBotX, initialBotY;
-        const botBtn = document.getElementById('rebar-bot-btn');
+        const botBtn = document.getElementById('San-bot-btn');
         
         function initBotDrag() {
             if(!botBtn) return;
@@ -386,6 +786,10 @@
             let t = lexicon[currentLang] || lexicon['ku'];
             
             if(!p || p <= 0) { alert(t.bot_err); return; }
+            if(document.getElementById('sq24AnchorMode').value === 'auto' && sq24AnchorState.status !== 'ok') {
+                alert('DATA ERROR: XAU/USD 1H anchor is not available.');
+                return;
+            }
 
             let base = parseFloat(document.getElementById('sq24BasePrice').value) || 0;
             let stepVal = parseFloat(document.getElementById('sq24StepValue').value) || 1;
@@ -435,37 +839,9 @@
                 <span style="color:var(--neon-gold); font-size:18px; display:inline-block; margin-top:5px;">[ ${gridBelow} ] — [ ${gridAbove} ]</span>
             `;
 
-            
-
-            // --- DETECT POTENTIAL MANIPULATION WINDOWS ---
-            let buyFakeoutRange = parseFloat((gridBelow - (stepVal * 0.5)).toFixed(2));
-            let sellFakeoutRange = parseFloat((gridAbove + (stepVal * 0.5)).toFixed(2));
-
-            // تێستی زمان بۆ نیشاندانی ئاگادارکەرەوەی فێڵەکان بەپێی زمانی لایڤ
-            let fakeoutBuyMsg = currentLang === 'ku' ? `ئەگەر نرخ دابەزی بۆ <b>${buyFakeoutRange}</b> و خێرا گەڕایەوە سەرێ، فێڵە (Trap). ڕاستەوخۆ بکڕە.` : 
-                               (currentLang === 'ar' ? `إذا هبط السعر إلى <b>${buyFakeoutRange}</b> وارتد فوراً للأعلى، فهذه مصيدة سيولة. ادخل شراء فوراً.` : 
-                               `If price spikes down to <b>${buyFakeoutRange}</b> and snaps back above, it is a Liquidity Trap. Enter BUY immediately.`);
-            
-            let fakeoutSellMsg = currentLang === 'ku' ? `ئەگەر نرخ بەرزبووەوە بۆ <b>${sellFakeoutRange}</b> و خێرا دابەزییەوە خوارێ، فێڵە (Trap). ڕاستەوخۆ بفرۆشە.` : 
-                                (currentLang === 'ar' ? `إذا ارتفع السعر إلى <b>${sellFakeoutRange}</b> وهبط فوراً للأسفل، فهذه مصيدة ستوبات. ادخل بيع فوراً.` : 
-                                `If price spikes up to <b>${sellFakeoutRange}</b> and snaps back below, it is a Stop Hunt Trap. Enter SELL immediately.`);
-
-            let zoneBuyLabel = currentLang === 'ku' ? `چوونەژوورەوە ئەگەر بەریکەوت و بەرز بوویەوە` : (currentLang === 'ar' ? `الدخول: إذا لامس وارتد للأعلى` : `Wait for a rebound here before entry!`);
-            let zoneSellLabel = currentLang === 'ku' ? `چوونەژوورەوە ئەگەر بەریکەوت و دابەزی` : (currentLang === 'ar' ? `الدخول: إذا لامس وهبط للأسفل` : `Wait for a reversal here before entry!`);
-
-            // BUY BOX WITH CONFIRMATION & FAKEOUT SCANNER
             document.getElementById('buyBox').innerHTML = `
                 ${t.bot_buy_title}
-                <div style="background: rgba(0,255,204,0.08); border: 1px dashed #00ffcc; padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 12px; text-align: center; line-height: 1.4;">
-                    ⚠️ <b>ZONE CONFIRMATION:</b> ${gridBelow} – ${parseFloat((gridBelow + stepVal).toFixed(2))}<br>
-                    <span style="color: #bbb;">${zoneBuyLabel}</span>
-                </div>
-                
-                <div style="background: rgba(255,165,0,0.1); border: 1px solid #ffa500; padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 11px; text-align: center; color: #ffa500; line-height: 1.4;">
-                    🔍 <b>ANTI-MANIPULATION WATCH:</b><br>
-                    ${fakeoutBuyMsg}
-                </div>
-
+                ${t.bot_buy_entry(gridBelow)}
                 ${t.bot_q1} <span class="target-val">${b1}</span><br>
                 ${t.bot_q2} <span class="target-val">${b2}</span><br>
                 ${t.bot_q3} <span class="target-val">${b3}</span><br>
@@ -473,27 +849,15 @@
                 ${t.bot_sl} <span style="color:#ff3333; font-weight:bold; font-family:monospace;">${buySL}</span>
             `;
 
-            // SELL BOX WITH CONFIRMATION & FAKEOUT SCANNER
             document.getElementById('sellBox').innerHTML = `
                 ${t.bot_sell_title}
-                <div style="background: rgba(255,51,153,0.08); border: 1px dashed var(--neon-pink); padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 12px; text-align: center; line-height: 1.4;">
-                    ⚠️ <b>ZONE CONFIRMATION:</b> ${parseFloat((gridAbove - stepVal).toFixed(2))} – ${gridAbove}<br>
-                    <span style="color: #bbb;">${zoneSellLabel}</span>
-                </div>
-
-                <div style="background: rgba(255,165,0,0.1); border: 1px solid #ffa500; padding: 6px; margin-bottom: 10px; border-radius: 4px; font-size: 11px; text-align: center; color: #ffa500; line-height: 1.4;">
-                    🔍 <b>ANTI-MANIPULATION WATCH:</b><br>
-                    ${fakeoutSellMsg}
-                </div>
-
+                ${t.bot_sell_entry(gridAbove)}
                 ${t.bot_q1} <span class="target-val">${s1}</span><br>
                 ${t.bot_q2} <span class="target-val">${s2}</span><br>
                 ${t.bot_q3} <span class="target-val">${s3}</span><br>
                 ${t.bot_q4s} <span class="target-val">${s4}</span><br>
                 ${t.bot_sl} <span style="color:#ff3333; font-weight:bold; font-family:monospace;">${sellSL}</span>
             `;
-          
-
 
             document.getElementById('bot-results').style.display = 'block';
         }
@@ -507,7 +871,7 @@
         function getEP(e) { return e.touches && e.touches.length > 0 ? {x: e.touches[0].clientX, y: e.touches[0].clientY} : {x: e.clientX, y: e.clientY}; }
 
         vM.addEventListener('mousedown', e => {
-            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#rebar-bot-btn') || e.target.closest('#bot-modal')) return;
+            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#San-bot-btn') || e.target.closest('#bot-modal')) return;
             let p = getEP(e); dg = true; sx = p.x - px; sy = p.y - py; vM.style.cursor = 'grabbing';
         });
         
@@ -523,13 +887,13 @@
         }, {passive: false});
         
         vM.addEventListener('touchstart', e => {
-            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#rebar-bot-btn') || e.target.closest('#bot-modal')) return;
+            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#San-bot-btn') || e.target.closest('#bot-modal')) return;
             if(e.touches.length === 2) { dg = false; iDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
             else { let p = getEP(e); dg = true; sx = p.x - px; sy = p.y - py; }
         }, {passive: false});
         
         vM.addEventListener('touchmove', e => {
-            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#rebar-bot-btn') || e.target.closest('#bot-modal')) return;
+            if(e.target.closest('.sidebar') || e.target.closest('.header') || e.target.closest('#San-bot-btn') || e.target.closest('#bot-modal')) return;
             if(e.touches.length === 2) {
                 e.preventDefault(); const d = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 sc = Math.min(Math.max(0.05, sc * (d / iDist)), 5); iDist = d; upT();

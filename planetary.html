@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>San FX - Gann Wheel</title>
+    <style>
+        :root { --neon-cyan: #00ffcc; --neon-gold: #d4af37; --neon-pink: #ff3399; --neon-purple: #b366ff; --bg-dark: #000; }
+        body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; direction: ltr; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        
+        /* Header & Sidebar */
+        .header { position: fixed; top: 0; width: 100%; background: rgba(12, 12, 12, 0.95); padding: 12px 15px; border-bottom: 1px solid var(--neon-cyan); z-index: 9999; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; backdrop-filter: blur(5px); direction: ltr;}
+        .menu-toggle { background: var(--neon-cyan); border: none; color: #000; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); order: 1; }
+        
+        .center-brand-text { color: var(--neon-gold); font-weight: bold; font-size: 9px; font-family: monospace; order: 2; flex: 1; text-align: center; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        
+        .back-arrow-btn { background: transparent; border: none; color: var(--neon-cyan); font-size: 24px; cursor: pointer; transition: 0.3s; padding: 0 5px; display: flex; align-items: center; order: 3; text-decoration: none;}
+        .back-arrow-btn:active { transform: scale(0.9); color: #fff; }
+        
+        /* سیستەمی زیرەک بۆ مینوو بەپێی زمان */
+        .sidebar { position: fixed; top: 0; width: 310px; height: 100%; background: #0a0a0f; z-index: 9999999; transition: 0.3s; padding: 85px 20px 20px 20px; box-sizing: border-box; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
+        
+        html[dir="rtl"] .sidebar { right: -320px; border-left: 1px solid var(--neon-cyan); direction: rtl; }
+        html[dir="rtl"] .sidebar.active { right: 0; }
+        html[dir="rtl"] .close-menu { left: 15px; right: auto; }
+        
+        html[dir="ltr"] .sidebar { left: -320px; border-right: 1px solid var(--neon-cyan); direction: ltr; }
+        html[dir="ltr"] .sidebar.active { left: 0; }
+        html[dir="ltr"] .close-menu { right: 15px; left: auto; }
+
+        .close-menu { position: absolute; top: 15px; background: none; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 2px 8px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        
+        /* Form Inputs */
+        .menu-item { margin-top: 15px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        .menu-item label { display: block; color: var(--neon-cyan); font-size: 12px; margin-bottom: 6px; font-weight: bold; text-align: center; }
+        input, select { background: #0a0a0a; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 5px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; text-align: center; font-weight: bold; font-family: monospace;}
+        input:focus, select:focus { border-color: var(--neon-cyan); }
+        .toggle-group { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--neon-gold); font-size: 13px; font-weight: bold; margin-top: 10px; }
+        .toggle-group input { width: auto; transform: scale(1.2); accent-color: var(--neon-gold); }
+        
+        /* Calculator Box */
+        .calculator-box { background: rgba(0, 255, 204, 0.05); padding: 12px; border-radius: 6px; border: 1px dashed #00ffcc; margin-bottom: 15px; margin-top: 15px; text-align: center; }
+        .calculator-box label { color: #00ffcc; font-size: 13px; margin-bottom: 8px; display: block; font-weight: bold; }
+        .calc-result { color: #fff; font-weight: bold; margin-top: 10px; font-size: 15px; background: #000; padding: 5px; border-radius: 4px; border: 1px solid #333;}
+        
+        /* Map Area */
+        #viewport-maps { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; display: block; z-index: 10; background: radial-gradient(circle at center, #111 0%, #000 80%);}
+        .map-area { position: absolute; width: 6000px; height: 6000px; display: flex; align-items: center; justify-content: center; cursor: grab; }
+        .map-area:active { cursor: grabbing; }
+        #zoom-layer { position: relative; transform-origin: center; display: flex; align-items: center; justify-content: center;}
+        
+        /* Planetary Styles */
+        .master-wheel { position: relative; width: 1000px; height: 1000px; display: block; }
+        .ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; }
+        .price-ring { width: 480px; height: 480px; border: 2px dashed rgba(212, 175, 55, 0.4); box-shadow: 0 0 25px rgba(212, 175, 55, 0.15), inset 0 0 15px rgba(212, 175, 55, 0.1); }
+        .angle-ring { width: 620px; height: 620px; border: 2px solid rgba(0, 255, 204, 0.3); box-shadow: 0 0 35px rgba(0, 255, 204, 0.15), inset 0 0 20px rgba(0, 255, 204, 0.1); }
+        .time-ring { width: 820px; height: 820px; border: 2px dotted rgba(255, 51, 153, 0.5); box-shadow: 0 0 40px rgba(255, 51, 153, 0.1), inset 0 0 20px rgba(255, 51, 153, 0.05); }
+        .center-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 75px; height: 75px; background: #050505; border: 3px solid #d4af37; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 15px; z-index: 100; box-shadow: 0 0 25px rgba(212, 175, 55, 0.5); text-shadow: 0 0 5px #d4af37;}
+        .node { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font-weight: bold; pointer-events: none; }
+        .price-node { color: #fff; font-size: 9px; background: rgba(0,0,0,0.85); padding: 3px 5px; border: 1px solid #444; border-radius: 4px; z-index: 80; }
+        .angle-node { font-size: 11px; z-index: 70; font-weight: bold; text-shadow: 0 0 5px #000; }
+        .time-node { color: #00ffcc; font-size: 12px; z-index: 60; opacity: 0.9; }
+        .time-marker { width: 16px; height: 16px; background: #ff3333; border-radius: 50%; position: absolute; transform: translate(-50%, -50%); box-shadow: 0 0 20px #ff3333, 0 0 8px #fff; z-index: 500; border: 2px solid #fff; }
+        .time-label { color: #fff; background: #ff3333; padding: 3px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; position: absolute; transform: translate(-50%, -50%); z-index: 501; }
+        svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 450; }
+        #smart-ruler-box { position: absolute; background: rgba(10, 15, 25, 0.95); border: 1px solid #00ffcc; padding: 10px 15px; border-radius: 8px; color: #fff; font-size: 14px; font-weight: bold; pointer-events: none; display: none; z-index: 1000; box-shadow: 0 0 25px rgba(0, 255, 204, 0.4); text-align: left; transform: translate(-50%, -50%); }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="header">
+        <button class="menu-toggle" id="btn-menu" data-i18n="btn_menu">☰ ڕێکخستن</button>
+        <div class="center-brand-text">__w.d.gann__@San_FX</div>
+        <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="close-menu" id="btn-close-menu">✕</button>
+        
+        <h3 style="color: var(--neon-gold); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; margin-top: 0;" data-i18n="opt_plan">🎡 نەخشەی گەن (Wheel)</h3>
+
+        <div id="controls-planetary">
+            <div class="calculator-box">
+                <label data-i18n="lbl_calc">🧮 حیساباتی پلەی بازاڕ</label>
+                <input type="number" id="calcBase" data-i18n-ph="calc_ph1" placeholder="نرخی سەنتەر (دەستپێک)" oninput="window.calcGannAngle()" style="margin-bottom: 6px;">
+                <input type="number" id="calcRetrace" data-i18n-ph="calc_ph2" placeholder="یەکەم گەڕانەوە (لوتکە/بنکە)" oninput="window.calcGannAngle()">
+                <div class="calc-result" id="calcResult" data-i18n="calc_res_empty">پلەی بازاڕ: --°</div>
+            </div>
+            
+            <div class="menu-item"><label data-i18n="lbl_plan_center">سەنتەری نەخشەی گەن</label><input type="number" id="planPrice" value="2304"></div>
+            
+            <div class="menu-item"><label data-i18n="lbl_plan_dir">ئاڕاستە و شێوە و سووڕ</label>
+                <select id="planTrend" style="margin-bottom: 5px;">
+                    <option value="up" data-i18n="opt_up">UP (+)</option>
+                    <option value="down" data-i18n="opt_down">DOWN (-)</option>
+                </select>
+                <select id="planShape" style="margin-bottom: 5px;">
+                    <option value="120" data-i18n="shp_3">٣ گۆشە (120°)</option><option value="90" data-i18n="shp_4">٤ گۆشە (90°)</option><option value="72" data-i18n="shp_5">٥ گۆشە (72°)</option>
+                    <option value="60" data-i18n="shp_6">٦ گۆشە (60°)</option><option value="51.4285" data-i18n="shp_7">٧ گۆشە (51.4°)</option><option value="45" selected data-i18n="shp_8">٨ گۆشە (45°)</option>
+                    <option value="40" data-i18n="shp_9">٩ گۆشە (40°)</option><option value="36" data-i18n="shp_10">١٠ گۆشە (36°)</option><option value="32.7272" data-i18n="shp_11">١١ گۆشە (32.7°)</option>
+                    <option value="30" data-i18n="shp_12">١٢ گۆشە (30°)</option><option value="27.6923" data-i18n="shp_13">١٣ گۆشە (27.6°)</option><option value="25.7142" data-i18n="shp_14">١٤ گۆشە (25.7°)</option>
+                    <option value="24" data-i18n="shp_15">١٥ گۆشە (24°)</option><option value="22.5" data-i18n="shp_16">١٦ گۆشە (22.5°)</option><option value="21.1764" data-i18n="shp_17">١٧ گۆشە (21.1°)</option>
+                    <option value="20" data-i18n="shp_18">١٨ گۆشە (20°)</option><option value="18.9473" data-i18n="shp_19">١٩ گۆشە (18.9°)</option><option value="18" data-i18n="shp_20">٢٠ گۆشە (18°)</option>
+                    <option value="17.1428" data-i18n="shp_21">٢١ گۆشە (17.1°)</option><option value="16.3636" data-i18n="shp_22">٢٢ گۆشە (16.3°)</option><option value="15.6521" data-i18n="shp_23">٢٣ گۆشە (15.6°)</option>
+                    <option value="15" data-i18n="shp_24">٢٤ گۆشە (15°)</option>
+                </select>
+                <select id="planCycles" style="background: #1a1a1a; color: #00ffcc; border-color: #00ffcc;">
+                    <option value="1" selected data-i18n="cyc_1">١ سووڕ (360°)</option><option value="2" data-i18n="cyc_2">٢ سووڕ (720°)</option>
+                    <option value="3" data-i18n="cyc_3">٣ سووڕ (1080°)</option><option value="4" data-i18n="cyc_4">٤ سووڕ (1440°)</option>
+                </select>
+            </div>
+            
+            <div class="menu-item" style="border-bottom: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
+                <div class="toggle-group"><input type="checkbox" id="planShowFan"><span data-i18n="toggle_fan">هێڵی باوەشێن</span></div>
+                <div class="toggle-group"><input type="checkbox" id="planShowShape" checked><span data-i18n="toggle_shape">شێوەی ئەندازەیی</span></div>
+                <div class="toggle-group"><input type="checkbox" id="planShowRuler"><span data-i18n="toggle_ruler">پێوانە (Ruler)</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewport-maps">
+        <div class="map-area" id="map">
+            <div id="zoom-layer">
+                <div class="master-wheel" id="container-planetary">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 150px; font-weight: bold; color: rgba(212, 175, 55, 0.05); pointer-events: none; text-align: center; white-space: nowrap; z-index: 0;">San FX</div>
+                    <div class="ring price-ring"></div><div class="ring angle-ring"></div><div class="ring time-ring"></div>
+                    <div class="center-box" id="displayCenter">2304</div>
+                    <svg id="svg-layer-plan"></svg>
+                    <div id="smart-ruler-box"><div style="color:#d4af37;border-bottom:1px dashed #444;padding-bottom:4px;margin-bottom:4px;" data-i18n="ruler_target">🎯 نیشانە</div><div><span style="color:#888;font-size:12px;width:40px;display:inline-block;" data-i18n="ruler_ang">گۆشە:</span> <b id="ruler-ang-val" style="color:#00ffcc;">0°</b></div><div><span style="color:#888;font-size:12px;width:40px;display:inline-block;" data-i18n="ruler_prc">نرخ:</span> <b id="ruler-prc-val" style="color:#ff3399;">0.00</b></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بەشی زمان و فەرهەنگ
+        const lexicon = {
+            ku: {
+                btn_menu: "☰ ڕێکخستن", opt_plan: "🎡 نەخشەی گەن (Wheel)",
+                lbl_calc: "🧮 حیساباتی پلەی بازاڕ", calc_ph1: "نرخی سەنتەر (دەستپێک)", calc_ph2: "یەکەم گەڕانەوە (لوتکە/بنکە)", calc_res: "پلەی بازاڕ: ", calc_res_empty: "پلەی بازاڕ: --°",
+                lbl_plan_center: "سەنتەری نەخشەی گەن", lbl_plan_dir: "ئاڕاستە و شێوە و سووڕ",
+                opt_up: "📈 بەرزبوونەوە (+)", opt_down: "📉 دابەزین (-)",
+                shp_3: "٣ گۆشە (120°)", shp_4: "٤ گۆشە (90°)", shp_5: "٥ گۆشە (72°)", shp_6: "٦ گۆشە (60°)", shp_7: "٧ گۆشە (51.4°)", shp_8: "٨ گۆشە (45°)", shp_9: "٩ گۆشە (40°)", shp_10: "١٠ گۆشە (36°)", shp_11: "١١ گۆشە (32.7°)", shp_12: "١٢ گۆشە (30°)", shp_13: "١٣ گۆشە (27.6°)", shp_14: "١٤ گۆشە (25.7°)", shp_15: "١٥ گۆشە (24°)", shp_16: "١٦ گۆشە (22.5°)", shp_17: "١٧ گۆشە (21.1°)", shp_18: "١٨ گۆشە (20°)", shp_19: "١٩ گۆشە (18.9°)", shp_20: "٢٠ گۆشە (18°)", shp_21: "٢١ گۆشە (17.1°)", shp_22: "٢٢ گۆشە (16.3°)", shp_23: "٢٣ گۆشە (15.6°)", shp_24: "٢٤ گۆشە (15°)",
+                cyc_1: "١ سووڕ (360°)", cyc_2: "٢ سووڕ (720°)", cyc_3: "٣ سووڕ (1080°)", cyc_4: "٤ سووڕ (1440°)",
+                toggle_fan: " هێڵی باوەشێن", toggle_shape: " شێوەی ئەندازەیی", toggle_ruler: " پێوانە (Ruler)",
+                ruler_target: "🎯 نیشانە", ruler_ang: "گۆشە:", ruler_prc: "نرخ:"
+            },
+            ar: {
+                btn_menu: "☰ إعدادات", opt_plan: "🎡 عجلة جان (Wheel)",
+                lbl_calc: "🧮 حسابات درجة السوق", calc_ph1: "المركز (البداية)", calc_ph2: "الارتداد (قمة/قاع)", calc_res: "درجة السوق: ", calc_res_empty: "درجة السوق: --°",
+                lbl_plan_center: "مركز عجلة جان", lbl_plan_dir: "الاتجاه والشكل والدورة",
+                opt_up: "📈 صعود (+)", opt_down: "📉 هبوط (-)",
+                shp_3: "٣ زوايا (120°)", shp_4: "٤ زوايا (90°)", shp_5: "٥ زوايا (72°)", shp_6: "٦ زوايا (60°)", shp_7: "٧ زوايا (51.4°)", shp_8: "٨ زوايا (45°)", shp_9: "٩ زوايا (40°)", shp_10: "١٠ زوايا (36°)", shp_11: "١١ زاوية (32.7°)", shp_12: "١٢ زاوية (30°)", shp_13: "١٣ زاوية (27.6°)", shp_14: "١٤ زاوية (25.7°)", shp_15: "١٥ زاوية (24°)", shp_16: "١٦ زاوية (22.5°)", shp_17: "١٧ زاوية (21.1°)", shp_18: "١٨ زاوية (20°)", shp_19: "١٩ زاوية (18.9°)", shp_20: "٢٠ زاوية (18°)", shp_21: "٢١ زاوية (17.1°)", shp_22: "٢٢ زاوية (16.3°)", shp_23: "٢٣ زاوية (15.6°)", shp_24: "٢٤ زاوية (15°)",
+                cyc_1: "دورة ١ (360°)", cyc_2: "دورتين (720°)", cyc_3: "٣ دورات (1080°)", cyc_4: "٤ دورات (1440°)",
+                toggle_fan: " خطوط المروحة", toggle_shape: " الشكل الهندسي", toggle_ruler: " المسطرة (Ruler)",
+                ruler_target: "🎯 الهدف", ruler_ang: "الزاوية:", ruler_prc: "السعر:"
+            },
+            en: {
+                btn_menu: "☰ Settings", opt_plan: "🎡 Gann Wheel",
+                lbl_calc: "🧮 Market Degree Calc", calc_ph1: "Center Price (Start)", calc_ph2: "1st Retracement", calc_res: "Degree: ", calc_res_empty: "Degree: --°",
+                lbl_plan_center: "Gann Wheel Center", lbl_plan_dir: "Direction, Shape & Cycles",
+                opt_up: "📈 UP Trend (+)", opt_down: "📉 DOWN Trend (-)",
+                shp_3: "Triangle (120°)", shp_4: "Square (90°)", shp_5: "Pentagon (72°)", shp_6: "Hexagon (60°)", shp_7: "Heptagon (51.4°)", shp_8: "Octagon (45°)", shp_9: "Nonagon (40°)", shp_10: "Decagon (36°)", shp_11: "Hendecagon (32.7°)", shp_12: "Dodecagon (30°)", shp_13: "13-gon (27.6°)", shp_14: "14-gon (25.7°)", shp_15: "15-gon (24°)", shp_16: "16-gon (22.5°)", shp_17: "17-gon (21.1°)", shp_18: "18-gon (20°)", shp_19: "19-gon (18.9°)", shp_20: "20-gon (18°)", shp_21: "21-gon (17.1°)", shp_22: "22-gon (16.3°)", shp_23: "23-gon (15.6°)", shp_24: "24-gon (15°)",
+                cyc_1: "1 Cycle (360°)", cyc_2: "2 Cycles (720°)", cyc_3: "3 Cycles (1080°)", cyc_4: "4 Cycles (1440°)",
+                toggle_fan: " Fan Lines", toggle_shape: " Geometry", toggle_ruler: " Smart Ruler",
+                ruler_target: "🎯 Target", ruler_ang: "Ang:", ruler_prc: "Prc:"
+            }
+        };
+
+        let currentLang = 'ku';
+
+        function applyLanguage() {
+            try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
+            document.documentElement.dir = currentLang === 'en' ? 'ltr' : 'rtl';
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.innerHTML = lexicon[currentLang][key];
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.placeholder = lexicon[currentLang][key];
+            });
+
+            // گۆڕینی ئاراستەی بۆکسەکان (Ruler Box)
+            document.getElementById('smart-ruler-box').style.direction = currentLang === 'en' ? 'ltr' : 'rtl';
+        }
+
+        // کۆدی مینوو
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('btn-menu').addEventListener('click', function(e) {
+                e.stopPropagation(); document.getElementById('sidebar').classList.toggle('active');
+            });
+            document.getElementById('btn-close-menu').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.remove('active');
+            });
+
+            applyLanguage();
+            loadSet();
+            px = (window.innerWidth - 6000) / 2;
+            py = (window.innerHeight - 6000) / 2;
+            upT();
+            dPl();
+        });
+
+        // پاشەکەوت و هێنانەوەی داتا
+        const savedIds = ['calcBase', 'calcRetrace', 'planPrice', 'planTrend', 'planShape', 'planCycles'];
+        const savedChecks = ['planShowFan', 'planShowShape', 'planShowRuler'];
+
+        function loadSet() {
+            try {
+                savedIds.forEach(id => { let v = localStorage.getItem('rfx_pl_' + id); let el = document.getElementById(id); if(v !== null && el) el.value = v; });
+                savedChecks.forEach(id => { let v = localStorage.getItem('rfx_pl_' + id); let el = document.getElementById(id); if(v !== null && el) el.checked = (v === 'true'); });
+            } catch(e) {}
+        }
+
+        function saveSet() {
+            try {
+                savedIds.forEach(id => { let el = document.getElementById(id); if(el) localStorage.setItem('rfx_pl_' + id, el.value); });
+                savedChecks.forEach(id => { let el = document.getElementById(id); if(el) localStorage.setItem('rfx_pl_' + id, el.checked); });
+            } catch(e) {}
+        }
+
+        window.calcGannAngle = function() {
+            let b = parseFloat(document.getElementById('calcBase').value), r = parseFloat(document.getElementById('calcRetrace').value);
+            let lbl = lexicon[currentLang].calc_res;
+            let emp = lexicon[currentLang].calc_res_empty;
+            if(b>0 && r>0) { document.getElementById('calcResult').innerText = `${lbl}${Math.round(Math.abs(Math.sqrt(r)-Math.sqrt(b))*180)}°`; } 
+            else { document.getElementById('calcResult').innerText = emp; }
+            saveSet();
+        };
+
+        ['planPrice','planTrend','planShape','planShowFan','planShowShape','planCycles'].forEach(id => {
+            let el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('change', () => { saveSet(); dPl(); });
+                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); dPl(); });
+            }
+        });
+
+        document.getElementById('planShowRuler').addEventListener('change', () => {
+            saveSet();
+            if(!document.getElementById('planShowRuler').checked) {
+                document.getElementById('smart-ruler-box').style.display='none';
+                let r = document.getElementById('ruler-line');
+                if(r) { r.setAttribute('x2',500); r.setAttribute('y2',500); }
+            }
+        });
+
+        function cL(x1,y1,x2,y2,c,d) { let l=document.createElementNS("http://www.w3.org/2000/svg","line"); l.setAttribute("x1",x1); l.setAttribute("y1",y1); l.setAttribute("x2",x2); l.setAttribute("y2",y2); l.setAttribute("stroke",c); l.setAttribute("stroke-dasharray",d); return l; }
+        function aN(p,cls,x,y,t,c=null,sTxt=null) { let n=document.createElement('div'); n.className='node '+cls; n.style.left=x+'px'; n.style.top=y+'px'; n.innerText=t; if(c) n.style.color=c; if(sTxt) n.style.cssText+=sTxt; p.appendChild(n); }
+
+        function dPl() {
+            const p=parseFloat(document.getElementById('planPrice').value)||0, st=parseFloat(document.getElementById('planShape').value), tr=document.getElementById('planTrend').value, dir=(tr==="up")?1:-1;
+            const cycles = parseInt(document.getElementById('planCycles').value) || 1;
+            document.getElementById('displayCenter').innerText=p;
+            const w=document.getElementById('container-planetary'), sg=document.getElementById('svg-layer-plan');
+            w.querySelectorAll('.node, .time-marker, .time-label').forEach(e=>e.remove());
+            let rL=document.getElementById('ruler-line'), rx2=rL?rL.getAttribute('x2'):500, ry2=rL?rL.getAttribute('y2'):500;
+            sg.innerHTML='';
+            
+            const c=500, rt=Math.sqrt(p);
+            const rP_base = 240, gapPerCycle = 85;
+            const rA = rP_base + ((cycles > 1 ? cycles - 1 : 0) * gapPerCycle) + 70;
+            const rT = rA + 100;
+
+            let pRing = document.querySelector('.price-ring'); if(pRing) { pRing.style.width = (rP_base*2)+'px'; pRing.style.height = (rP_base*2)+'px'; }
+            let aRing = document.querySelector('.angle-ring'); if(aRing) { aRing.style.width = (rA*2)+'px'; aRing.style.height = (rA*2)+'px'; }
+            let tRing = document.querySelector('.time-ring'); if(tRing) { tRing.style.width = (rT*2)+'px'; tRing.style.height = (rT*2)+'px'; }
+
+            const cycleColors = ["#d4af37", "#00ffcc", "#ff3399", "#ffcc00"];
+            for(let cLoop=1; cLoop<cycles; cLoop++){
+                let currentRp = rP_base + (cLoop * gapPerCycle);
+                let crc = document.createElementNS("http://www.w3.org/2000/svg","circle");
+                crc.setAttribute("cx", c); crc.setAttribute("cy", c); crc.setAttribute("r", currentRp);
+                crc.setAttribute("fill", "none"); crc.setAttribute("stroke", cycleColors[cLoop]); 
+                crc.setAttribute("stroke-dasharray", "4,4"); crc.setAttribute("stroke-width", "1.5");
+                crc.setAttribute("opacity", "0.4");
+                sg.appendChild(crc);
+            }
+
+            let nw = new Date();
+            const cR=((((nw.getHours()+(nw.getMinutes()/60)-1)*15)*dir)-90)*(Math.PI/180);
+            for(let a=0;a<=360;a+=0.5){
+                const r=((a*dir)-90)*(Math.PI/180), clr=`hsl(${a},100%,50%)`;
+                if(a%3.75===0){
+                    aN(w,'price-node',c+rP_base*Math.cos(r),c+rP_base*Math.sin(r),(tr==="up")?Math.pow((rt+(a/180)),2).toFixed(2):Math.pow(Math.max(0,rt-(a/180)),2).toFixed(2));
+                    aN(w,'angle-node',c+rA*Math.cos(r),c+rA*Math.sin(r),Math.round(a)+'°',clr);
+                }
+                if(a%15===0&&a<360) aN(w,'time-node',c+rT*Math.cos(r),c+rT*Math.sin(r),((Math.floor(a/15)+1)%24)+':00',clr);
+            }
+            
+            aN(w,'time-marker',c+rT*Math.cos(cR),c+rT*Math.sin(cR),"");
+            aN(w,'time-label',c+(rT+30)*Math.cos(cR),c+(rT+30)*Math.sin(cR),nw.getHours().toString().padStart(2,'0')+":"+nw.getMinutes().toString().padStart(2,'0'));
+            
+            if(document.getElementById('planShowFan').checked) {
+                [0,45,90,135,180,225,270,315].forEach(a=>{ 
+                    let outerRp = rP_base + ((cycles-1) * gapPerCycle);
+                    sg.appendChild(cL(c,c,c+outerRp*Math.cos(((a*dir)-90)*(Math.PI/180)),c+outerRp*Math.sin(((a*dir)-90)*(Math.PI/180)),`hsla(${a},100%,65%,0.3)`,"8,8")); 
+                });
+            }
+
+            for(let cLoop=0; cLoop<cycles; cLoop++){
+                let cycleOffset = cLoop * 360, currentRp = rP_base + (cLoop * gapPerCycle), cyclePoints = [], mnP = [];
+                let cyColor = cycleColors[cLoop % cycleColors.length];
+                let specialStyle = cLoop === 0 ? `border: 1px solid ${cyColor}; color: #fff; z-index: 90; box-shadow: 0 0 5px ${cyColor};` : `border: 2px solid ${cyColor}; color: ${cyColor}; background: rgba(0,0,0,0.9); z-index: ${90-cLoop}; box-shadow: 0 0 15px ${cyColor}; border-radius: 12px; font-weight: 900; padding: 4px 8px; font-size: 10px;`;
+                let midStyle = cLoop === 0 ? `border: 1px dashed ${cyColor}; color: #ccc; z-index: 85; box-shadow: none; font-size: 8px; background: rgba(0,0,0,0.7); opacity: 0.8; padding: 2px 4px;` : `border: 1px dashed ${cyColor}; color: ${cyColor}; background: rgba(0,0,0,0.8); z-index: ${85-cLoop}; border-radius: 8px; padding: 2px 5px; font-size: 8px; opacity: 0.7;`;
+                
+                for(let a=0;a<359.9;a+=st){
+                    const r=((a*dir)-90)*(Math.PI/180), px=c+currentRp*Math.cos(r), py=c+currentRp*Math.sin(r);
+                    cyclePoints.push({x:px, y:py, c:`hsl(${a},100%,60%)`});
+                    let totalAngle = a + cycleOffset, calcPrice = (tr==="up")?Math.pow((rt+(totalAngle/180)),2).toFixed(2):Math.pow(Math.max(0,rt-(totalAngle/180)),2).toFixed(2);
+                    aN(w,'price-node',px,py,calcPrice, null, specialStyle);
+                    
+                    let aM=(a+(st/2))%360, rM=((aM*dir)-90)*(Math.PI/180), mnX = c+currentRp*Math.cos(rM), mnY = c+currentRp*Math.sin(rM);
+                    mnP.push({x:mnX, y:mnY, c:`hsla(${aM},100%,60%,0.6)`});
+                    let totalAngleMid = (a + (st/2)) + cycleOffset, calcPriceMid = (tr==="up")?Math.pow((rt+(totalAngleMid/180)),2).toFixed(2):Math.pow(Math.max(0,rt-(totalAngleMid/180)),2).toFixed(2);
+                    
+                    if(document.getElementById('planShowShape').checked) aN(w,'price-node',mnX,mnY,calcPriceMid, null, midStyle);
+                }
+                
+                if(document.getElementById('planShowShape').checked && cyclePoints.length>2) {
+                    for(let i=0;i<cyclePoints.length;i++){
+                        let nP=(i+1===cyclePoints.length)?cyclePoints[0]:cyclePoints[i+1];
+                        let ln=cL(cyclePoints[i].x,cyclePoints[i].y,nP.x,nP.y,cyclePoints[i].c, cLoop===0 ? "0" : "6,6"); 
+                        ln.setAttribute("stroke-width", cLoop===0 ? "3" : "1.5"); ln.setAttribute("stroke-linecap","round"); sg.appendChild(ln);
+                        if(cLoop === cycles - 1) { 
+                            let sp=cL(c,c,cyclePoints[i].x,cyclePoints[i].y,`hsla(${i*(360/cyclePoints.length)},100%,60%,0.5)`,"0"); 
+                            sp.setAttribute("stroke-width","2"); sg.appendChild(sp);
+                        }
+                    }
+                    for(let i=0; i<mnP.length; i++){
+                        let nP=(i+1===mnP.length)?mnP[0]:mnP[i+1];
+                        let ln=cL(mnP[i].x,mnP[i].y,nP.x,nP.y,mnP[i].c,"8,8"); ln.setAttribute("stroke-width", cLoop===0 ? "2" : "1"); sg.appendChild(ln);
+                        if(cLoop === cycles - 1){
+                            let sp=cL(c,c,mnP[i].x,mnP[i].y,mnP[i].c,"5,5"); sp.setAttribute("stroke-width","1.5"); sg.appendChild(sp);
+                        }
+                    }
+                }
+            }
+            const rl=cL(c,c,rx2,ry2,"#00ffcc","6,6"); rl.setAttribute("stroke-width","2"); rl.id="ruler-line"; sg.appendChild(rl);
+        }
+
+        let sc=window.innerWidth<600?0.2:0.3, px=0, py=0, dg=false, rdg=false, sx, sy, iDist=0;
+        const vM=document.getElementById('viewport-maps'), zL=document.getElementById('zoom-layer'), gw=document.getElementById('container-planetary');
+        
+        function upT(){ zL.style.transform=`translate(${px}px, ${py}px) scale(${sc})`; }
+        function getEP(e){ return e.touches&&e.touches.length>0?{x:e.touches[0].clientX,y:e.touches[0].clientY}:{x:e.clientX,y:e.clientY}; }
+        function chkC(x,y){
+            if(!document.getElementById('planShowRuler').checked) return false;
+            let r=gw.getBoundingClientRect(); return Math.hypot(x-(r.left+r.width/2), y-(r.top+r.height/2))<150;
+        }
+        function upR(x,y){
+            let r=gw.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, rad=Math.atan2(y-cy,x-cx), deg=rad*180/Math.PI;
+            const tr=document.getElementById('planTrend').value, dir=(tr==="up")?1:-1, base=parseFloat(document.getElementById('planPrice').value)||0, root=Math.sqrt(base);
+            let a=deg+90; if(a<0)a+=360; if(dir===-1)a=360-a;
+            let lx=500+470*Math.cos(rad), ly=500+470*Math.sin(rad), rl=document.getElementById('ruler-line');
+            if(rl){ rl.setAttribute("x2",lx); rl.setAttribute("y2",ly); }
+            let cp=(tr==="up")?Math.pow((root+(a/180)),2):Math.pow(Math.max(0,root-(a/180)),2);
+            document.getElementById('ruler-ang-val').innerText=a.toFixed(1)+"°"; document.getElementById('ruler-prc-val').innerText=cp.toFixed(2);
+            let rb=document.getElementById('smart-ruler-box'); rb.style.display="block"; rb.style.left=lx+"px"; rb.style.top=ly+"px";
+        }
+
+        vM.addEventListener('mousedown',e=>{
+            if(e.target.closest('.sidebar')||e.target.closest('.header')) return;
+            let p=getEP(e); if(chkC(p.x,p.y)){ rdg=true; upR(p.x,p.y); } else { dg=true; sx=p.x; sy=p.y; vM.style.cursor='grabbing'; }
+        });
+        window.addEventListener('mousemove',e=>{
+            if(rdg){ let p=getEP(e); upR(p.x,p.y); } else if(dg){ px+=(e.clientX-sx); py+=(e.clientY-sy); sx=e.clientX; sy=e.clientY; upT(); }
+        });
+        window.addEventListener('mouseup',()=>{ dg=false; rdg=false; vM.style.cursor='grab'; });
+        vM.addEventListener('wheel',e=>{
+            if(e.target.closest('.sidebar')||e.target.closest('.header')) return;
+            e.preventDefault(); sc+=e.deltaY*-0.001; sc=Math.min(Math.max(0.05,sc),5); upT();
+        }, {passive:false});
+        vM.addEventListener('touchstart',e=>{
+            if(e.target.closest('.sidebar')||e.target.closest('.header')) return;
+            if(e.touches.length===2){ dg=false; rdg=false; iDist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY); }
+            else { let p=getEP(e); if(chkC(p.x,p.y)){ rdg=true; upR(p.x,p.y); } else { dg=true; sx=p.x; sy=p.y; } }
+        }, {passive:false});
+        vM.addEventListener('touchmove',e=>{
+            if(e.target.closest('.sidebar')||e.target.closest('.header')) return;
+            if(e.touches.length===2){
+                e.preventDefault(); const d=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);
+                sc=Math.min(Math.max(0.05,sc*(d/iDist)),5); iDist=d; upT();
+            } else if(rdg){ e.preventDefault(); let p=getEP(e); upR(p.x,p.y); } else if(dg){ e.preventDefault(); px+=(e.touches[0].clientX-sx); py+=(e.touches[0].clientY-sy); sx=e.touches[0].clientX; sy=e.touches[0].clientY; upT(); }
+        }, {passive:false});
+        window.addEventListener('touchend',()=>{ dg=false; rdg=false; });
+    </script>
+</body>
+</html>
