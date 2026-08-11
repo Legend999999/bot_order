@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>San FX - Combined Experimental View</title>
+    <title>San FX - Simple Combined Analyzer</title>
     <style>
         :root {
             --bg: #050508;
-            --panel: #0c0f14;
-            --panel-2: #111722;
+            --panel: #0d1119;
+            --panel-2: #121927;
             --line: #263241;
             --text: #f5f7fb;
             --muted: #9aa6b2;
@@ -16,14 +16,14 @@
             --gold: #d4af37;
             --pink: #ff3399;
             --red: #ff4d4d;
-            --blue: #4aa3ff;
             --green: #58e07b;
-            --orange: #ff9900;
+            --blue: #4aa3ff;
         }
 
         * { box-sizing: border-box; }
         body {
             margin: 0;
+            min-height: 100vh;
             background: radial-gradient(circle at top, #111827 0%, #050508 55%, #000 100%);
             color: var(--text);
             font-family: "Segoe UI", Tahoma, Arial, sans-serif;
@@ -31,123 +31,143 @@
         }
 
         header {
-            position: sticky;
-            top: 0;
-            z-index: 20;
             display: flex;
-            align-items: center;
             justify-content: space-between;
             gap: 14px;
-            padding: 12px 16px;
-            background: rgba(5, 5, 8, 0.94);
+            align-items: center;
+            padding: 14px 18px;
             border-bottom: 1px solid var(--line);
-            backdrop-filter: blur(10px);
+            background: rgba(5, 5, 8, 0.94);
         }
 
-        .brand { font-weight: 800; letter-spacing: 0; color: var(--gold); }
-        .back { color: var(--cyan); text-decoration: none; font-weight: 700; }
-        main { max-width: 1440px; margin: 0 auto; padding: 16px; }
-        .notice {
-            border: 1px solid rgba(212, 175, 55, 0.45);
-            background: rgba(212, 175, 55, 0.08);
-            color: #f7e4a4;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 14px;
-            font-size: 14px;
+        h1, h2, h3, p { margin: 0; }
+        h1 { font-size: 20px; }
+        h2 { font-size: 15px; color: var(--cyan); margin-bottom: 10px; }
+        h3 { font-size: 13px; color: var(--gold); margin: 14px 0 7px; }
+        .brand { color: var(--gold); font-size: 12px; font-weight: 800; margin-top: 2px; }
+        .back { color: var(--cyan); text-decoration: none; font-weight: 800; white-space: nowrap; }
+
+        main {
+            width: min(980px, calc(100% - 24px));
+            margin: 0 auto;
+            padding: 18px 0 28px;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 360px minmax(0, 1fr);
-            gap: 14px;
-            align-items: start;
-        }
-
-        .panel {
-            background: linear-gradient(180deg, rgba(17, 23, 34, 0.96), rgba(9, 12, 18, 0.96));
+        .panel, details {
+            background: linear-gradient(180deg, rgba(18, 25, 39, 0.98), rgba(8, 11, 17, 0.98));
             border: 1px solid var(--line);
             border-radius: 8px;
             padding: 14px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
         }
 
-        .controls {
-            position: sticky;
-            top: 62px;
-            max-height: calc(100vh - 78px);
-            overflow: auto;
+        .input-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 160px;
+            gap: 10px;
+            align-items: end;
         }
 
-        h1, h2, h3 { margin: 0; letter-spacing: 0; }
-        h1 { font-size: 20px; }
-        h2 { font-size: 16px; color: var(--cyan); margin-bottom: 10px; }
-        h3 { font-size: 13px; color: var(--gold); margin: 12px 0 8px; }
-        label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
-        input, select {
+        label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+        input {
             width: 100%;
-            border: 1px solid #344151;
-            border-radius: 6px;
             background: #05080d;
+            border: 1px solid #344151;
+            border-radius: 7px;
             color: var(--text);
-            padding: 8px;
-            font: 700 13px Consolas, monospace;
+            padding: 12px;
+            font: 800 18px Consolas, monospace;
             outline: none;
         }
-        input:focus, select:focus { border-color: var(--cyan); }
+        input:focus { border-color: var(--cyan); }
         button {
-            width: 100%;
             border: 0;
-            border-radius: 6px;
-            padding: 10px 12px;
-            margin-top: 12px;
-            color: #00110d;
+            border-radius: 7px;
+            padding: 13px 16px;
             background: var(--cyan);
-            font-weight: 800;
+            color: #00110d;
+            font-weight: 900;
             cursor: pointer;
+            width: 100%;
         }
-        .mini { font-size: 11px; color: var(--muted); margin-top: 5px; }
-        .stack { display: grid; gap: 14px; }
-        .cards {
+
+        .note {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .result {
+            margin-top: 14px;
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid #314255;
+            background: rgba(0, 0, 0, 0.28);
+            min-height: 260px;
+        }
+
+        .result-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            border-bottom: 1px solid #253346;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+
+        .symbol { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+        .price { font: 900 26px Consolas, monospace; color: var(--text); }
+        .status {
+            text-align: right;
+            font: 900 28px Consolas, monospace;
+            color: var(--gold);
+        }
+        .status.buy { color: var(--green); }
+        .status.sell { color: var(--pink); }
+        .status.wait { color: var(--gold); }
+        .status.none { color: var(--red); }
+
+        .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
         }
-        .card {
-            background: rgba(0, 0, 0, 0.28);
+
+        .box {
             border: 1px solid #243244;
             border-radius: 8px;
             padding: 10px;
-            min-height: 76px;
+            background: rgba(255, 255, 255, 0.035);
         }
         .k { color: var(--muted); font-size: 11px; text-transform: uppercase; }
-        .v { font: 800 20px Consolas, monospace; margin-top: 4px; overflow-wrap: anywhere; }
-        .small-v { font: 700 13px Consolas, monospace; color: var(--text); }
-        .buy { color: var(--green); }
-        .sell { color: var(--pink); }
-        .warn { color: var(--gold); }
-        .bad { color: var(--red); }
-        .blue { color: var(--blue); }
-        .tag {
-            display: inline-flex;
-            align-items: center;
-            border: 1px solid #344151;
+        .v { font: 800 18px Consolas, monospace; margin-top: 4px; }
+        .small { color: var(--muted); font-size: 12px; margin-top: 5px; }
+        .targets { display: grid; gap: 4px; font: 800 14px Consolas, monospace; }
+        .checks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .check {
             border-radius: 999px;
-            padding: 3px 8px;
-            font-size: 11px;
-            font-weight: 800;
-            margin: 2px 4px 2px 0;
-            color: var(--text);
-            background: rgba(255,255,255,0.04);
+            padding: 4px 9px;
+            font-size: 12px;
+            font-weight: 900;
+            background: #17202d;
+            border: 1px solid #324357;
         }
-        .tag.strong { color: #00130f; background: var(--cyan); border-color: var(--cyan); }
-        .tag.medium { color: #161000; background: var(--gold); border-color: var(--gold); }
-        .tag.none { color: #fff; background: #3a2028; border-color: #70404d; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th, td { border-bottom: 1px solid #223042; padding: 7px 5px; text-align: left; vertical-align: top; }
-        th { color: var(--muted); font-weight: 700; }
-        .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-        .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .check.yes { color: #00130f; background: var(--cyan); border-color: var(--cyan); }
+        .check.no { color: #fff; background: #3a2028; border-color: #70404d; }
+        .reason {
+            margin-top: 12px;
+            border-top: 1px solid #253346;
+            padding-top: 12px;
+            color: #d6dde7;
+            font-size: 14px;
+        }
+
+        details { margin-top: 14px; }
+        summary { cursor: pointer; color: var(--cyan); font-weight: 900; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+        th, td { text-align: left; border-bottom: 1px solid #223042; padding: 7px 5px; vertical-align: top; }
+        th { color: var(--muted); }
         pre {
             white-space: pre-wrap;
             overflow-wrap: anywhere;
@@ -159,178 +179,77 @@
             font-size: 12px;
         }
 
-        @media (max-width: 980px) {
-            .grid, .two, .three { grid-template-columns: 1fr; }
-            .controls { position: static; max-height: none; }
-            .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (max-width: 560px) {
-            main { padding: 10px; }
-            .cards { grid-template-columns: 1fr; }
-            header { align-items: flex-start; flex-direction: column; }
+        @media (max-width: 700px) {
+            header, .result-head { flex-direction: column; }
+            .status { text-align: left; }
+            .input-row, .summary-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <header>
         <div>
-            <h1>Combined Experimental Analysis</h1>
-            <div class="brand">Matrix 24 = WHERE | Hexagon + Astro = WHEN | Gann + SQ9 = price confluence</div>
+            <h1>Simple Combined Analyzer</h1>
+            <div class="brand">Matrix = location | Hexagon + Astro = time | Gann + SQ9 = price confluence</div>
         </div>
         <a class="back" href="index.html?showHub=true">Back to Hub</a>
     </header>
 
     <main>
-        <div class="notice">
-            This page is experimental. It does not change the original strategies and does not create a new trading signal.
-            It only combines the current mathematical outputs from the existing pages.
-        </div>
+        <section class="panel">
+            <div class="input-row">
+                <div>
+                    <label for="currentPrice">Current XAU/USD Price</label>
+                    <input id="currentPrice" type="number" value="4335.20" step="0.01" inputmode="decimal">
+                </div>
+                <button id="analyzeBtn" type="button">ANALYZE</button>
+            </div>
+            <p class="note">This page uses only the existing project formulas. Hexagon and Astro are timing context only.</p>
+        </section>
 
-        <div class="grid">
-            <section class="panel controls">
-                <h2>Inputs</h2>
-                <h3>Matrix 24</h3>
-                <label>Current XAU/USD price</label>
-                <input id="currentPrice" type="number" value="4330" step="0.01">
-                <label>Matrix anchor/base</label>
-                <input id="matrixBase" type="number" value="4350" step="0.01">
-                <label>Trend direction</label>
-                <select id="matrixTrend">
-                    <option value="down" selected>DOWN - anchor is swing high</option>
-                    <option value="up">UP - anchor is swing low</option>
-                </select>
-                <label>Step</label>
-                <input id="matrixStep" type="number" value="1" step="0.5">
-                <label>Manual active time</label>
-                <input id="manualTime" type="time">
-                <div class="mini">Empty = use local time, same idea as Matrix 24.</div>
-                <button id="loadTradeM" type="button">Load TradeM Anchor</button>
-                <div id="anchorStatus" class="mini">Manual anchor is active until TradeM is loaded.</div>
+        <section class="result" id="resultCard">
+            <div class="result-head">
+                <div>
+                    <div class="symbol">XAU/USD</div>
+                    <div class="price" id="displayPrice">--</div>
+                </div>
+                <div>
+                    <div class="symbol">Result</div>
+                    <div class="status wait" id="mainStatus">Enter price</div>
+                </div>
+            </div>
+            <div id="simpleResult" class="summary-grid"></div>
+            <div class="reason" id="reasonText">Enter the current XAU/USD price and press ANALYZE.</div>
+        </section>
 
-                <h3>Hexagon</h3>
-                <label>Hexagon hour base</label>
-                <input id="hexHourBase" type="time" value="09:00">
-                <label>Hexagon date base</label>
-                <input id="hexDateBase" type="date">
-                <label>Hexagon step</label>
-                <input id="hexStep" type="number" value="1" step="0.5">
-                <label>Hexagon direction</label>
-                <select id="hexTrend">
-                    <option value="up" selected>UP / forward</option>
-                    <option value="down">DOWN / backward</option>
-                </select>
-                <label>Hexagon layers</label>
-                <input id="hexLayers" type="number" value="12" min="3">
-                <label>Time confluence tolerance, minutes</label>
-                <input id="timeTolerance" type="number" value="30" min="0">
-
-                <h3>Astro</h3>
-                <label>Astro date</label>
-                <input id="astroDate" type="date">
-                <label>Astro time</label>
-                <input id="astroTime" type="time">
-                <label>Price degree method</label>
-                <select id="priceDegreeMethod">
-                    <option value="sqrt" selected>Square root method</option>
-                    <option value="mod">Modulo 360</option>
-                </select>
-
-                <h3>Gann + SQ9</h3>
-                <label>Gann shape angle</label>
-                <select id="gannShape">
-                    <option value="120">Triangle 120</option>
-                    <option value="90">Square 90</option>
-                    <option value="72">Pentagon 72</option>
-                    <option value="60">Hexagon 60</option>
-                    <option value="45" selected>Octagon 45</option>
-                    <option value="30">12-gon 30</option>
-                    <option value="15">24-gon 15</option>
-                </select>
-                <label>Gann cycles</label>
-                <select id="gannCycles">
-                    <option value="1" selected>1 cycle</option>
-                    <option value="2">2 cycles</option>
-                    <option value="3">3 cycles</option>
-                    <option value="4">4 cycles</option>
-                </select>
-                <label>SQ9 grid cells</label>
-                <input id="sq9Cells" type="number" value="25" min="9" step="2">
-                <label>Price confluence tolerance</label>
-                <input id="priceTolerance" type="number" value="1.5" min="0" step="0.1">
-                <button id="runAnalysis" type="button">Run Combined Analysis</button>
-            </section>
-
-            <section class="stack">
-                <section class="panel">
-                    <h2>Potential Event Window</h2>
-                    <div id="eventStatus"></div>
-                </section>
-
-                <section class="panel">
-                    <h2>1. Matrix 24 - Entry Location</h2>
-                    <div class="cards" id="matrixCards"></div>
-                    <h3>Existing Matrix Trade Plan</h3>
-                    <div class="two">
-                        <div class="card" id="buyPlan"></div>
-                        <div class="card" id="sellPlan"></div>
-                    </div>
-                    <p class="mini">Matrix 24 currently provides possible reaction zones. It does not prove direction by itself.</p>
-                </section>
-
-                <section class="panel">
-                    <h2>2. Hexagon - Time Analysis</h2>
-                    <div id="hexSummary"></div>
-                    <h3>Upcoming Important Hexagon Times</h3>
-                    <table id="hexTable"></table>
-                </section>
-
-                <section class="panel">
-                    <h2>3. Astro - Timing Window</h2>
-                    <div id="astroSummary"></div>
-                    <h3>Active Planetary Aspects</h3>
-                    <table id="astroTable"></table>
-                </section>
-
-                <section class="panel">
-                    <h2>4. Gann Wheel + Square of 9 - Price Confirmation</h2>
-                    <div class="two" id="priceConfluence"></div>
-                </section>
-
-                <section class="panel">
-                    <h2>Debug / Explanation</h2>
-                    <pre id="debugOutput"></pre>
-                </section>
-            </section>
-        </div>
+        <details id="detailsBox">
+            <summary>Details</summary>
+            <h3>Matrix 24</h3>
+            <table id="matrixDetails"></table>
+            <h3>Price Confluence</h3>
+            <table id="priceDetails"></table>
+            <h3>Timing</h3>
+            <table id="timeDetails"></table>
+            <h3>Debug</h3>
+            <pre id="debugOutput"></pre>
+        </details>
     </main>
 
     <script>
         const TRADEM_SCAN_URL = 'https://tradem-eight.vercel.app/api/market/scan?refresh=1';
         const TRADEM_PROXY_URL = 'https://r.jina.ai/http://r.jina.ai/http://https://tradem-eight.vercel.app/api/market/scan';
         const MATRIX_SIZE = 24 * 24;
+        const DEFAULT_STEP = 1;
+        const PRICE_TOLERANCE = 1.5;
+        const TIME_TOLERANCE_MINUTES = 30;
+        const HEX_HOUR_BASE = '09:00';
+        const HEX_LAYERS = 12;
+        const GANN_SHAPE = 45;
+        const GANN_CYCLES = 1;
+        const SQ9_CELLS = 25;
 
         const $ = (id) => document.getElementById(id);
         const fmt = (n, d = 2) => Number.isFinite(n) ? Number(n).toFixed(d) : '--';
-
-        function getInputNumber(id, fallback = 0) {
-            const n = parseFloat($(id).value);
-            return Number.isFinite(n) ? n : fallback;
-        }
-
-        function getActiveDateTime() {
-            const manual = $('manualTime').value;
-            const now = new Date();
-            if(manual) {
-                const [h, m] = manual.split(':').map(Number);
-                now.setHours(h || 0, m || 0, 0, 0);
-            }
-            return now;
-        }
-
-        function activeHourFromDate(date) {
-            const h = date.getHours();
-            return h === 0 ? 24 : h;
-        }
 
         function getStepDecimals(stepVal) {
             // Source: matrix24.html -> getStepDecimals()
@@ -373,6 +292,17 @@
                     throw new Error(`TradeM/Dukascopy data failed: ${primaryErr.message}; fallback failed: ${proxyErr.message}`);
                 }
             }
+        }
+
+        function inferTrendFromScan(scan) {
+            const pivotKind = scan && scan.setup && scan.setup.anchorPivot && scan.setup.anchorPivot.kind;
+            if(pivotKind === 'high') return { trend: 'down', reason: 'TradeM anchorPivot.kind is high, so Matrix uses DOWN/swing-high mode.' };
+            if(pivotKind === 'low') return { trend: 'up', reason: 'TradeM anchorPivot.kind is low, so Matrix uses UP/swing-low mode.' };
+            const unified = scan && scan.strategies && scan.strategies.unified;
+            const resistanceCount = unified && Array.isArray(unified.resistanceZones) ? unified.resistanceZones.length : 0;
+            const supportCount = unified && Array.isArray(unified.supportZones) ? unified.supportZones.length : 0;
+            if(resistanceCount >= supportCount) return { trend: 'down', reason: 'No anchor pivot kind was available; resistance zones were used to choose DOWN mode.' };
+            return { trend: 'up', reason: 'No anchor pivot kind was available; support zones were used to choose UP mode.' };
         }
 
         function selectSq24AnchorFromTradeM(scan, trendDir, stepVal) {
@@ -433,15 +363,17 @@
             };
         }
 
+        function activeHourFromDate(date) {
+            const h = date.getHours();
+            return h === 0 ? 24 : h;
+        }
+
         function calculateMatrixPlan(price, base, stepVal, trendDir, activeHour) {
             // Source: matrix24.html -> generateMatrixSignal()
             const col = activeHour - 1;
             let nFloat;
-            if(trendDir === 'up') {
-                nFloat = (price - base - col * stepVal) / (24 * stepVal);
-            } else {
-                nFloat = (base - price - col * stepVal) / (24 * stepVal);
-            }
+            if(trendDir === 'up') nFloat = (price - base - col * stepVal) / (24 * stepVal);
+            else nFloat = (base - price - col * stepVal) / (24 * stepVal);
 
             let n1 = Math.floor(nFloat);
             let n2 = Math.ceil(nFloat);
@@ -456,282 +388,35 @@
                 val2 = base - (n2 * 24 + col) * stepVal;
             }
 
-            const gridBelow = parseFloat(Math.min(val1, val2).toFixed(2));
-            const gridAbove = parseFloat(Math.max(val1, val2).toFixed(2));
-            const dist = gridAbove - gridBelow;
+            const lower = parseFloat(Math.min(val1, val2).toFixed(2));
+            const upper = parseFloat(Math.max(val1, val2).toFixed(2));
+            const dist = upper - lower;
             const q1 = dist * 0.25, q2 = dist * 0.50, q3 = dist * 0.75;
             const buyTargets = [
-                parseFloat((gridBelow + q1).toFixed(2)),
-                parseFloat((gridBelow + q2).toFixed(2)),
-                parseFloat((gridBelow + q3).toFixed(2)),
-                gridAbove
+                parseFloat((lower + q1).toFixed(2)),
+                parseFloat((lower + q2).toFixed(2)),
+                parseFloat((lower + q3).toFixed(2)),
+                upper
             ];
             const sellTargets = [
-                parseFloat((gridAbove - q1).toFixed(2)),
-                parseFloat((gridAbove - q2).toFixed(2)),
-                parseFloat((gridAbove - q3).toFixed(2)),
-                gridBelow
+                parseFloat((upper - q1).toFixed(2)),
+                parseFloat((upper - q2).toFixed(2)),
+                parseFloat((upper - q3).toFixed(2)),
+                lower
             ];
             const slOffset = parseFloat((stepVal * 1.5).toFixed(2));
-
             return {
                 activeHour,
                 col,
                 nFloat,
                 rows: [n1, n2],
-                lower: gridBelow,
-                upper: gridAbove,
+                lower,
+                upper,
                 dist,
                 buyTargets,
                 sellTargets,
-                buySL: parseFloat((gridBelow - slOffset).toFixed(2)),
-                sellSL: parseFloat((gridAbove + slOffset).toFixed(2))
-            };
-        }
-
-        function matrixCellValue(base, stepVal, trendDir, row, col) {
-            // Source: matrix24.html -> drawSq24()
-            if(trendDir === 'up') return parseFloat((base + ((23 - row) * 24 + col) * stepVal).toFixed(2));
-            return parseFloat((base - (row * 24 + col) * stepVal).toFixed(2));
-        }
-
-        function generateHexCells(mode, baseRaw, step, trend, layers) {
-            // Source: hexagon.html -> dHx(), dH(), gDV()
-            const dir = trend === 'up' ? 1 : -1;
-            const dr = [{q: 1, r: 0}, {q: 0, r: 1}, {q: -1, r: 1}, {q: -1, r: 0}, {q: 0, r: -1}, {q: 1, r: -1}];
-            let vO, sMs = 0;
-
-            if(mode === 'hour') {
-                const [h, m] = baseRaw.split(':').map(Number);
-                const d = new Date();
-                d.setHours(h || 0, m || 0, 0, 0);
-                vO = d.getTime();
-                sMs = 3600000 * step * dir;
-            } else if(mode === 'date') {
-                vO = new Date(baseRaw).getTime();
-                if(isNaN(vO)) vO = new Date().getTime();
-                sMs = 86400000 * step * dir;
-            } else {
-                vO = parseFloat(baseRaw) || 0;
-            }
-
-            function nextValue() {
-                if(mode === 'price') {
-                    const d = parseFloat(vO.toFixed(2));
-                    vO += step * dir;
-                    return { label: String(d < 0 ? 0 : d), value: d };
-                }
-                if(mode === 'hour') {
-                    const dt = new Date(vO);
-                    const label = dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0');
-                    const value = new Date(vO);
-                    vO += sMs;
-                    return { label, value };
-                }
-                const dt = new Date(vO);
-                const label = dt.getDate() + '/' + (dt.getMonth() + 1);
-                const value = new Date(vO);
-                vO += sMs;
-                return { label, value };
-            }
-
-            const cells = [];
-            let q = 0, rr = 0;
-            cells.push({ ...nextValue(), ring: 0, side: 0, indexInSide: 0, important: true, importantType: 'center', q, r: rr });
-
-            for(let ring = 1; ring < layers; ring++) {
-                q += dr[4].q;
-                rr += dr[4].r;
-                for(let side = 0; side < 6; side++) {
-                    for(let j = 0; j < ring; j++) {
-                        const isEdge = j === 0;
-                        let isTurn = false;
-                        if(ring > 1) {
-                            if(ring % 2 === 0 && j === ring / 2) isTurn = true;
-                            if(ring % 2 !== 0 && (j === Math.floor(ring / 2) || j === Math.ceil(ring / 2))) isTurn = true;
-                        }
-                        cells.push({
-                            ...nextValue(),
-                            ring,
-                            side,
-                            indexInSide: j,
-                            important: isEdge || isTurn,
-                            importantType: isEdge ? 'hex edge' : (isTurn ? 'mid-turn' : 'normal'),
-                            q,
-                            r: rr
-                        });
-                        q += dr[side].q;
-                        rr += dr[side].r;
-                    }
-                }
-            }
-            return cells;
-        }
-
-        function minutesOfDay(date) {
-            return date.getHours() * 60 + date.getMinutes();
-        }
-
-        function circularMinuteDistance(a, b) {
-            const diff = Math.abs(a - b);
-            return Math.min(diff, 1440 - diff);
-        }
-
-        function forwardMinuteDistance(targetMinutes, activeMinutes) {
-            return (targetMinutes - activeMinutes + 1440) % 1440;
-        }
-
-        function analyzeHexTime(activeDate, matrixLevel) {
-            const step = getInputNumber('hexStep', 1);
-            const trend = $('hexTrend').value;
-            const layers = Math.max(3, parseInt($('hexLayers').value, 10) || 12);
-            const tolerance = getInputNumber('timeTolerance', 30);
-            const hourCells = generateHexCells('hour', $('hexHourBase').value || '09:00', step, trend, layers);
-            const activeMinutes = minutesOfDay(activeDate);
-            const important = hourCells.filter(c => c.important);
-            const withDistance = important.map(c => ({
-                ...c,
-                distanceMinutes: circularMinuteDistance(minutesOfDay(c.value), activeMinutes),
-                forwardMinutes: forwardMinuteDistance(minutesOfDay(c.value), activeMinutes)
-            })).sort((a, b) => a.forwardMinutes - b.forwardMinutes);
-            const closest = [...withDistance].sort((a, b) => a.distanceMinutes - b.distanceMinutes)[0];
-            const upcoming = withDistance.slice(0, 8);
-
-            const dateBase = $('hexDateBase').value || new Date().toISOString().split('T')[0];
-            const dateCells = generateHexCells('date', dateBase, step, trend, layers);
-            const todayLabel = activeDate.getDate() + '/' + (activeDate.getMonth() + 1);
-            const activeDateCell = dateCells.find(c => c.label === todayLabel);
-
-            return {
-                status: closest && closest.distanceMinutes <= tolerance ? 'TIME CONFLUENCE' : 'NO TIME CONFLUENCE',
-                closest,
-                upcoming,
-                activeDateCell,
-                note: `Hexagon does not create BUY/SELL here. It only shows whether the active Matrix hour is close to an important Hexagon hour cell for level ${fmt(matrixLevel)}.`
-            };
-        }
-
-        function getPlanets(dateObj) {
-            // Source: astro.html -> getPlanets()
-            const d = (dateObj.getTime() / 86400000) - 10957.5;
-            let gSun = (357.529 + 0.98560028 * d) % 360, qSun = (280.459 + 0.98564736 * d) % 360;
-            let LSun = qSun + 1.915 * Math.sin(gSun * Math.PI/180) + 0.020 * Math.sin(2*gSun * Math.PI/180);
-            let LMoon = (218.316 + 13.176396 * d) % 360, MMoon = (134.963 + 13.064993 * d) % 360; LMoon = LMoon + 6.289 * Math.sin(MMoon * Math.PI/180);
-            let LMerc = (252.251 + 4.092339 * d) % 360, LVen = (181.979 + 1.602130 * d) % 360, LMars = (355.433 + 0.524020 * d) % 360;
-            let LJup = (34.351 + 0.083091 * d) % 360, LSat = (50.077 + 0.033459 * d) % 360, LUra = (314.055 + 0.011731 * d) % 360;
-            let LNep = (304.349 + 0.005981 * d) % 360, LPluto = (238.929 + 0.00396 * d) % 360;
-            let LNode = (125.045 - 0.05295 * d) % 360, LSouthNode = (LNode + 180) % 360;
-            let pl = [
-                { id: "Sun", symbol: "Sun", angle: LSun, color: "#ffd700", speed: 0.9856 },
-                { id: "Moon", symbol: "Moon", angle: LMoon, color: "#e6e6e6", speed: 13.176 },
-                { id: "Mercury", symbol: "Mercury", angle: LMerc, color: "#11ffcc", speed: 4.092 },
-                { id: "Venus", symbol: "Venus", angle: LVen, color: "#ff66b2", speed: 1.602 },
-                { id: "Mars", symbol: "Mars", angle: LMars, color: "#ff3333", speed: 0.524 },
-                { id: "Jupiter", symbol: "Jupiter", angle: LJup, color: "#ffa500", speed: 0.083 },
-                { id: "Saturn", symbol: "Saturn", angle: LSat, color: "#b366ff", speed: 0.033 },
-                { id: "Uranus", symbol: "Uranus", angle: LUra, color: "#00ccff", speed: 0.011 },
-                { id: "Neptune", symbol: "Neptune", angle: LNep, color: "#3333ff", speed: 0.005 },
-                { id: "Pluto", symbol: "Pluto", angle: LPluto, color: "#ff99cc", speed: 0.003 },
-                { id: "Node", symbol: "Node", angle: LNode, color: "#ffffff", speed: -0.052 },
-                { id: "S-Node", symbol: "S-Node", angle: LSouthNode, color: "#aaaaaa", speed: -0.052 }
-            ];
-            return pl.map(p => { p.angle = p.angle % 360; if(p.angle < 0) p.angle += 360; return p; });
-        }
-
-        function getStaticTime(nowDate, orbDeg, relativeSpeed, isStart, maxOrb) {
-            // Source: astro.html -> getStaticTime()
-            const dDiff = (maxOrb - orbDeg) / (relativeSpeed || 1);
-            const tDate = new Date(nowDate.getTime() + (isStart ? -1 : 1) * dDiff * 86400000);
-            return tDate;
-        }
-
-        function classifyAspect(p1, p2, diff) {
-            // Source: astro.html -> updateAstro(), Aspect Signal Generation
-            let aspectName = "", classification = "neutral", orb = 0, maxLimit = 5, effect = "";
-            if(Math.abs(diff - 0) < 6) {
-                aspectName = "Conjunction 0";
-                orb = diff;
-                maxLimit = 6;
-                effect = (p1.id === "Sun" && p2.id === "Moon") ? "Eclipse/New Moon. Major reversal." : "Creates a new strong trend.";
-                classification = (p1.id === "Sun" && p2.id === "Moon") ? "bearish" : "bullish";
-            } else if(Math.abs(diff - 180) < 6) {
-                aspectName = "Opposition 180";
-                orb = Math.abs(diff - 180);
-                maxLimit = 6;
-                effect = "High pressure for rapid drops.";
-                classification = "bearish";
-            } else if(Math.abs(diff - 120) < 5) {
-                aspectName = "Trine 120";
-                orb = Math.abs(diff - 120);
-                maxLimit = 5;
-                effect = "Strong support for trend.";
-                classification = "bullish";
-            } else if(Math.abs(diff - 90) < 5) {
-                aspectName = "Square 90";
-                orb = Math.abs(diff - 90);
-                maxLimit = 5;
-                effect = "Heavy resistance and breakouts.";
-                classification = "neutral";
-            } else if(Math.abs(diff - 60) < 4) {
-                aspectName = "Sextile 60";
-                orb = Math.abs(diff - 60);
-                maxLimit = 4;
-                effect = "Short-term stability.";
-                classification = "bullish";
-            }
-            if(!aspectName) return null;
-
-            const combinedIDs = p1.id + p2.id;
-            let impact = "";
-            if(combinedIDs.includes("Sun") || combinedIDs.includes("Moon") || combinedIDs.includes("Venus")) impact += "Gold";
-            if(combinedIDs.includes("Uranus") || combinedIDs.includes("Pluto") || combinedIDs.includes("Node")) {
-                impact += (impact ? " | " : "") + "Crypto";
-                classification = "bearish";
-            }
-            if(combinedIDs.includes("Jupiter") || combinedIDs.includes("Saturn") || combinedIDs.includes("Mars") || combinedIDs.includes("Mercury")) {
-                impact += (impact ? " | " : "") + "News";
-                if(combinedIDs.includes("Jupiter")) classification = "bullish";
-                else if(combinedIDs.includes("Saturn")) classification = "bearish";
-            }
-
-            return { aspectName, classification, orb, maxLimit, effect, impact };
-        }
-
-        function analyzeAstro(dateObj, price) {
-            const planets = getPlanets(dateObj);
-            const method = $('priceDegreeMethod').value;
-            const priceDegree = method === 'sqrt' ? (Math.sqrt(price) * 180) % 360 : price % 360;
-            const aspects = [];
-            for(let i = 0; i < planets.length; i++) {
-                for(let j = i + 1; j < planets.length; j++) {
-                    let diff = Math.abs(planets[i].angle - planets[j].angle);
-                    if(diff > 180) diff = 360 - diff;
-                    const asp = classifyAspect(planets[i], planets[j], diff);
-                    if(asp) {
-                        const relSpeed = Math.abs(planets[i].speed - planets[j].speed) || 0.5;
-                        const start = getStaticTime(dateObj, asp.orb, relSpeed, true, asp.maxLimit);
-                        const end = getStaticTime(dateObj, asp.orb, relSpeed, false, asp.maxLimit);
-                        const exactEstimate = new Date(dateObj.getTime() + (asp.orb / relSpeed) * 86400000);
-                        aspects.push({
-                            p1: planets[i],
-                            p2: planets[j],
-                            diff,
-                            relSpeed,
-                            start,
-                            end,
-                            exactEstimate,
-                            ...asp
-                        });
-                    }
-                }
-            }
-            aspects.sort((a, b) => a.orb - b.orb);
-            return {
-                planets,
-                priceDegree,
-                aspects,
-                closest: aspects[0] || null,
-                status: aspects.length ? 'ASTRO TIMING WINDOW' : 'NO ASTRO WINDOW'
+                buySL: parseFloat((lower - slOffset).toFixed(2)),
+                sellSL: parseFloat((upper + slOffset).toFixed(2))
             };
         }
 
@@ -806,215 +491,402 @@
                 .sort((a, b) => a.distance - b.distance)[0] || null;
         }
 
-        function confluenceStatus(count, total) {
-            if(count >= total) return 'STRONG';
-            if(count > 0) return 'PARTIAL';
-            return 'NONE';
-        }
-
-        function renderCards(container, cards) {
-            container.innerHTML = cards.map(c => `
-                <div class="card">
-                    <div class="k">${c.k}</div>
-                    <div class="v ${c.cls || ''}">${c.v}</div>
-                    ${c.note ? `<div class="mini">${c.note}</div>` : ''}
-                </div>
-            `).join('');
-        }
-
-        function renderTable(el, headers, rows) {
-            el.innerHTML = `
-                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-                <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
-            `;
-        }
-
-        function runCombinedAnalysis() {
-            const price = getInputNumber('currentPrice', 0);
-            const base = getInputNumber('matrixBase', 0);
-            const step = getInputNumber('matrixStep', 1) || 1;
-            const trend = $('matrixTrend').value;
-            const activeDate = getActiveDateTime();
-            const activeHour = activeHourFromDate(activeDate);
-
-            const matrix = calculateMatrixPlan(price, base, step, trend, activeHour);
-            const currentRowVal = matrixCellValue(base, step, trend, Math.max(0, matrix.rows[0]), matrix.col);
-
-            renderCards($('matrixCards'), [
-                { k: 'Anchor', v: fmt(base), cls: 'warn', note: trend === 'down' ? 'Swing high style anchor' : 'Swing low style anchor' },
-                { k: 'Active Hour', v: `${activeHour}:00`, cls: 'blue', note: `Column ${matrix.col + 1} of 24` },
-                { k: 'Lower Matrix Level', v: fmt(matrix.lower), cls: 'buy', note: 'BUY reaction zone if bounce occurs' },
-                { k: 'Upper Matrix Level', v: fmt(matrix.upper), cls: 'sell', note: 'SELL reaction zone if drop occurs' },
-                { k: 'Channel Width', v: fmt(matrix.dist), note: 'Usually 24 x step' },
-                { k: 'Trend Direction', v: trend.toUpperCase(), cls: trend === 'down' ? 'sell' : 'buy' },
-                { k: 'Step', v: fmt(step), note: 'Changes every level' },
-                { k: 'Current Row Formula', v: fmt(currentRowVal), note: `Rows used: ${matrix.rows.join(' / ')}` }
-            ]);
-
-            $('buyPlan').innerHTML = `
-                <div class="k">BUY Zone</div>
-                <div class="v buy">${fmt(matrix.lower)}</div>
-                <div class="small-v">TP1 ${fmt(matrix.buyTargets[0])} | TP2 ${fmt(matrix.buyTargets[1])} | TP3 ${fmt(matrix.buyTargets[2])} | TP4 ${fmt(matrix.buyTargets[3])}</div>
-                <div class="small-v bad">SL ${fmt(matrix.buySL)}</div>
-            `;
-            $('sellPlan').innerHTML = `
-                <div class="k">SELL Zone</div>
-                <div class="v sell">${fmt(matrix.upper)}</div>
-                <div class="small-v">TP1 ${fmt(matrix.sellTargets[0])} | TP2 ${fmt(matrix.sellTargets[1])} | TP3 ${fmt(matrix.sellTargets[2])} | TP4 ${fmt(matrix.sellTargets[3])}</div>
-                <div class="small-v bad">SL ${fmt(matrix.sellSL)}</div>
-            `;
-
-            const hex = analyzeHexTime(activeDate, matrix.lower);
-            $('hexSummary').innerHTML = `
-                <span class="tag ${hex.status === 'TIME CONFLUENCE' ? 'medium' : 'none'}">${hex.status}</span>
-                <span class="tag">Current Hex Time Position: ${activeDate.getHours().toString().padStart(2, '0')}:${activeDate.getMinutes().toString().padStart(2, '0')}</span>
-                <span class="tag">Closest important cell: ${hex.closest ? hex.closest.label : '--'}</span>
-                <span class="tag">Distance: ${hex.closest ? hex.closest.distanceMinutes.toFixed(0) + ' min' : '--'}</span>
-                <span class="tag">Active Date Cell: ${hex.activeDateCell ? `ring ${hex.activeDateCell.ring}, ${hex.activeDateCell.importantType}` : 'not found'}</span>
-                <p class="mini">${hex.note}</p>
-            `;
-            renderTable($('hexTable'), ['Time', 'Ring/Cell', 'Why Important', 'Distance'], hex.upcoming.map(c => [
-                c.label,
-                `ring ${c.ring}, side ${c.side}, cell ${c.indexInSide}`,
-                c.importantType,
-                `${c.forwardMinutes.toFixed(0)} min forward`
-            ]));
-
-            let astroDate = new Date();
-            if($('astroDate').value) {
-                astroDate = new Date(`${$('astroDate').value}T${$('astroTime').value || '00:00'}`);
-            } else if($('astroTime').value) {
-                const [h, m] = $('astroTime').value.split(':').map(Number);
-                astroDate.setHours(h || 0, m || 0, 0, 0);
+        function generateHexCells(mode, baseRaw, step, trend, layers) {
+            // Source: hexagon.html -> dHx(), dH(), gDV()
+            const dir = trend === 'up' ? 1 : -1;
+            const dr = [{q: 1, r: 0}, {q: 0, r: 1}, {q: -1, r: 1}, {q: -1, r: 0}, {q: 0, r: -1}, {q: 1, r: -1}];
+            let vO, sMs = 0;
+            if(mode === 'hour') {
+                const [h, m] = baseRaw.split(':').map(Number);
+                const d = new Date();
+                d.setHours(h || 0, m || 0, 0, 0);
+                vO = d.getTime();
+                sMs = 3600000 * step * dir;
+            } else {
+                vO = new Date(baseRaw).getTime();
+                if(isNaN(vO)) vO = new Date().getTime();
+                sMs = 86400000 * step * dir;
             }
-            const astro = analyzeAstro(astroDate, price);
-            $('astroSummary').innerHTML = `
-                <span class="tag ${astro.aspects.length ? 'medium' : 'none'}">${astro.status}</span>
-                <span class="tag">Price Degree: ${fmt(astro.priceDegree, 1)} deg</span>
-                <span class="tag">Active Aspects: ${astro.aspects.length}</span>
-                <span class="tag">Closest: ${astro.closest ? `${astro.closest.p1.id}/${astro.closest.p2.id} ${fmt(astro.closest.orb, 2)} deg orb` : '--'}</span>
-                <p class="mini">Astro is timing context only. This code does not link aspects to actual XAU/USD price behavior.</p>
-            `;
-            renderTable($('astroTable'), ['Planets', 'Aspect', 'Class', 'Orb', 'Window', 'Degrees'], astro.aspects.slice(0, 10).map(a => [
-                `${a.p1.id} / ${a.p2.id}`,
-                a.aspectName,
-                a.classification,
-                `${fmt(a.orb, 2)} deg`,
-                `${a.start.toLocaleString()} - ${a.end.toLocaleString()}`,
-                `${fmt(a.p1.angle, 1)} deg / ${fmt(a.p2.angle, 1)} deg`
-            ]));
 
-            const gannLevels = generateGannLevels(base, trend, getInputNumber('gannShape', 45), parseInt($('gannCycles').value, 10) || 1);
-            const sq9Levels = generateSq9Levels(base, step, trend, parseInt($('sq9Cells').value, 10) || 25);
-            const tolerance = getInputNumber('priceTolerance', 1.5);
-            const targets = [
-                { name: 'Matrix BUY boundary', level: matrix.lower },
-                { name: 'Matrix SELL boundary', level: matrix.upper }
-            ];
+            function nextValue() {
+                const dt = new Date(vO);
+                const label = mode === 'hour'
+                    ? dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0')
+                    : dt.getDate() + '/' + (dt.getMonth() + 1);
+                const value = new Date(vO);
+                vO += sMs;
+                return { label, value };
+            }
 
-            const priceRows = targets.map(t => {
-                const g = nearestLevel(gannLevels, t.level);
-                const s = nearestLevel(sq9Levels, t.level);
-                const gHit = g && g.distance <= tolerance;
-                const sHit = s && s.distance <= tolerance;
-                const count = 1 + (gHit ? 1 : 0) + (sHit ? 1 : 0);
-                return { target: t, g, s, gHit, sHit, count, status: confluenceStatus(count, 3) };
-            });
+            const cells = [];
+            let q = 0, rr = 0;
+            cells.push({ ...nextValue(), ring: 0, side: 0, indexInSide: 0, important: true, importantType: 'center', q, r: rr });
+            for(let ring = 1; ring < layers; ring++) {
+                q += dr[4].q;
+                rr += dr[4].r;
+                for(let side = 0; side < 6; side++) {
+                    for(let j = 0; j < ring; j++) {
+                        const isEdge = j === 0;
+                        let isTurn = false;
+                        if(ring > 1) {
+                            if(ring % 2 === 0 && j === ring / 2) isTurn = true;
+                            if(ring % 2 !== 0 && (j === Math.floor(ring / 2) || j === Math.ceil(ring / 2))) isTurn = true;
+                        }
+                        cells.push({
+                            ...nextValue(),
+                            ring,
+                            side,
+                            indexInSide: j,
+                            important: isEdge || isTurn,
+                            importantType: isEdge ? 'hex edge' : (isTurn ? 'mid-turn' : 'normal'),
+                            q,
+                            r: rr
+                        });
+                        q += dr[side].q;
+                        rr += dr[side].r;
+                    }
+                }
+            }
+            return cells;
+        }
 
-            $('priceConfluence').innerHTML = priceRows.map(r => `
-                <div class="card">
-                    <div class="k">${r.target.name}</div>
-                    <div class="v">${fmt(r.target.level)}</div>
-                    <span class="tag ${r.status === 'STRONG' ? 'strong' : (r.status === 'PARTIAL' ? 'medium' : 'none')}">PRICE CONFLUENCE: ${r.status}</span>
-                    <div class="small-v">Gann nearest: ${r.g ? `${fmt(r.g.price)} (${fmt(r.g.distance)} away, ${r.g.source})` : '--'}</div>
-                    <div class="small-v">SQ9 nearest: ${r.s ? `${fmt(r.s.price)} (${fmt(r.s.distance)} away, ${r.s.source})` : '--'}</div>
-                    <div class="mini">Score: ${r.count}/3 = Matrix + ${r.gHit ? 'Gann' : 'no Gann'} + ${r.sHit ? 'SQ9' : 'no SQ9'}</div>
-                </div>
-            `).join('');
+        function minutesOfDay(date) {
+            return date.getHours() * 60 + date.getMinutes();
+        }
 
-            const bestPrice = priceRows.sort((a, b) => b.count - a.count)[0];
-            const priceScore = bestPrice.count;
-            const timeScore = (hex.status === 'TIME CONFLUENCE' ? 1 : 0) + (astro.aspects.length ? 1 : 0);
-            const high = priceScore >= 3 && timeScore >= 2;
-            const partial = priceScore >= 2 || timeScore >= 1;
-            const status = high ? 'HIGH CONFLUENCE WINDOW' : (partial ? 'PARTIAL CONFLUENCE WINDOW' : 'LOW / NO CONFLUENCE');
+        function circularMinuteDistance(a, b) {
+            const diff = Math.abs(a - b);
+            return Math.min(diff, 1440 - diff);
+        }
 
-            $('eventStatus').innerHTML = `
-                <div class="three">
-                    <div class="card"><div class="k">Status</div><div class="v ${high ? 'buy' : (partial ? 'warn' : 'bad')}">${status}</div></div>
-                    <div class="card"><div class="k">Price Confluence</div><div class="v">${priceScore}/3</div><div class="mini">Matrix + Gann + SQ9</div></div>
-                    <div class="card"><div class="k">Time Confluence</div><div class="v">${timeScore}/2</div><div class="mini">Hexagon + Astro</div></div>
-                </div>
-                <table style="margin-top:10px;">
-                    <tr><th>Time</th><td>${activeHour}:00 active hour; closest Hexagon important time ${hex.closest ? hex.closest.label : '--'}; Astro ${astro.closest ? `${astro.closest.aspectName} ${fmt(astro.closest.orb, 2)} deg orb` : 'no active aspect'}</td></tr>
-                    <tr><th>Matrix Level</th><td>${bestPrice.target.name}: ${fmt(bestPrice.target.level)}</td></tr>
-                    <tr><th>Gann Level</th><td>${bestPrice.g ? `${fmt(bestPrice.g.price)} (${bestPrice.g.source})` : '--'}</td></tr>
-                    <tr><th>SQ9 Level</th><td>${bestPrice.s ? `${fmt(bestPrice.s.price)} (${bestPrice.s.source})` : '--'}</td></tr>
-                    <tr><th>Direction</th><td>No automatic BUY/SELL direction is created here. Matrix gives reaction boundaries; Astro and Hexagon are timing context.</td></tr>
-                </table>
-            `;
+        function forwardMinuteDistance(targetMinutes, activeMinutes) {
+            return (targetMinutes - activeMinutes + 1440) % 1440;
+        }
 
-            const debug = {
-                matrixSource: 'matrix24.html -> generateMatrixSignal(), drawSq24(), selectSq24AnchorFromTradeM()',
-                matrixInputs: { price, base, step, trend, activeHour, col: matrix.col },
-                matrixFormula: {
-                    nFloat: matrix.nFloat,
-                    rows: matrix.rows,
-                    lower: matrix.lower,
-                    upper: matrix.upper,
-                    buyTargets: matrix.buyTargets,
-                    sellTargets: matrix.sellTargets,
-                    buySL: matrix.buySL,
-                    sellSL: matrix.sellSL
-                },
-                hexSource: 'hexagon.html -> dHx(), gDV()',
-                hexClosest: hex.closest,
-                astroSource: 'astro.html -> getPlanets(), updateAstro(), getStaticTime()',
-                astroPriceDegree: astro.priceDegree,
-                astroClosest: astro.closest ? {
-                    planets: `${astro.closest.p1.id}/${astro.closest.p2.id}`,
-                    aspect: astro.closest.aspectName,
-                    orb: astro.closest.orb,
-                    classification: astro.closest.classification,
-                    p1Degree: astro.closest.p1.angle,
-                    p2Degree: astro.closest.p2.angle
-                } : null,
-                gannSource: 'planetary.html -> dPl()',
-                sq9Source: 'sq9.html -> drawSq9()',
-                priceConfluence: priceRows,
-                finalScores: { priceScore, timeScore, status }
+        function analyzeHexTime(activeDate, trend) {
+            const hourCells = generateHexCells('hour', HEX_HOUR_BASE, DEFAULT_STEP, trend === 'down' ? 'down' : 'up', HEX_LAYERS);
+            const activeMinutes = minutesOfDay(activeDate);
+            const important = hourCells.filter(c => c.important);
+            const cells = important.map(c => ({
+                ...c,
+                distanceMinutes: circularMinuteDistance(minutesOfDay(c.value), activeMinutes),
+                forwardMinutes: forwardMinuteDistance(minutesOfDay(c.value), activeMinutes)
+            }));
+            const closest = [...cells].sort((a, b) => a.distanceMinutes - b.distanceMinutes)[0];
+            const upcoming = [...cells].sort((a, b) => a.forwardMinutes - b.forwardMinutes).slice(0, 5);
+            return {
+                closest,
+                upcoming,
+                hasConfluence: !!closest && closest.distanceMinutes <= TIME_TOLERANCE_MINUTES,
+                window: upcoming[0] ? `${upcoming[0].label}-${upcoming[1] ? upcoming[1].label : upcoming[0].label}` : `${activeDate.getHours()}:00`
             };
-            $('debugOutput').textContent = JSON.stringify(debug, null, 2);
         }
 
-        $('runAnalysis').addEventListener('click', runCombinedAnalysis);
-        document.querySelectorAll('input, select').forEach(el => {
-            if(el.id !== 'loadTradeM') el.addEventListener('change', runCombinedAnalysis);
-            if(el.tagName === 'INPUT') el.addEventListener('input', () => {
-                if(el.type !== 'date' && el.type !== 'time') runCombinedAnalysis();
-            });
-        });
+        function getPlanets(dateObj) {
+            // Source: astro.html -> getPlanets()
+            const d = (dateObj.getTime() / 86400000) - 10957.5;
+            let gSun = (357.529 + 0.98560028 * d) % 360, qSun = (280.459 + 0.98564736 * d) % 360;
+            let LSun = qSun + 1.915 * Math.sin(gSun * Math.PI/180) + 0.020 * Math.sin(2*gSun * Math.PI/180);
+            let LMoon = (218.316 + 13.176396 * d) % 360, MMoon = (134.963 + 13.064993 * d) % 360; LMoon = LMoon + 6.289 * Math.sin(MMoon * Math.PI/180);
+            let LMerc = (252.251 + 4.092339 * d) % 360, LVen = (181.979 + 1.602130 * d) % 360, LMars = (355.433 + 0.524020 * d) % 360;
+            let LJup = (34.351 + 0.083091 * d) % 360, LSat = (50.077 + 0.033459 * d) % 360, LUra = (314.055 + 0.011731 * d) % 360;
+            let LNep = (304.349 + 0.005981 * d) % 360, LPluto = (238.929 + 0.00396 * d) % 360;
+            let LNode = (125.045 - 0.05295 * d) % 360, LSouthNode = (LNode + 180) % 360;
+            let pl = [
+                { id: "Sun", angle: LSun, speed: 0.9856 },
+                { id: "Moon", angle: LMoon, speed: 13.176 },
+                { id: "Mercury", angle: LMerc, speed: 4.092 },
+                { id: "Venus", angle: LVen, speed: 1.602 },
+                { id: "Mars", angle: LMars, speed: 0.524 },
+                { id: "Jupiter", angle: LJup, speed: 0.083 },
+                { id: "Saturn", angle: LSat, speed: 0.033 },
+                { id: "Uranus", angle: LUra, speed: 0.011 },
+                { id: "Neptune", angle: LNep, speed: 0.005 },
+                { id: "Pluto", angle: LPluto, speed: 0.003 },
+                { id: "Node", angle: LNode, speed: -0.052 },
+                { id: "S-Node", angle: LSouthNode, speed: -0.052 }
+            ];
+            return pl.map(p => { p.angle = p.angle % 360; if(p.angle < 0) p.angle += 360; return p; });
+        }
 
-        $('loadTradeM').addEventListener('click', async () => {
-            $('anchorStatus').textContent = 'Loading TradeM anchor...';
-            try {
-                const scan = await fetchTradeMScan();
-                const step = getInputNumber('matrixStep', 1) || 1;
-                const trend = $('matrixTrend').value;
-                const selected = selectSq24AnchorFromTradeM(scan, trend, step);
-                $('matrixBase').value = selected.base;
-                $('currentPrice').value = selected.currentPrice.toFixed(2);
-                $('anchorStatus').textContent = `${selected.reason}. Current ${selected.currentPrice.toFixed(2)}. Range ${selected.rangeMin.toFixed(2)} - ${selected.rangeMax.toFixed(2)}.`;
-                runCombinedAnalysis();
-            } catch(e) {
-                $('anchorStatus').textContent = `TradeM anchor failed: ${e.message}`;
+        function getStaticTime(nowDate, orbDeg, relativeSpeed, isStart, maxOrb) {
+            // Source: astro.html -> getStaticTime()
+            const dDiff = (maxOrb - orbDeg) / (relativeSpeed || 1);
+            return new Date(nowDate.getTime() + (isStart ? -1 : 1) * dDiff * 86400000);
+        }
+
+        function classifyAspect(p1, p2, diff) {
+            // Source: astro.html -> updateAstro(), Aspect Signal Generation
+            let aspectName = "", classification = "neutral", orb = 0, maxLimit = 5;
+            if(Math.abs(diff - 0) < 6) {
+                aspectName = "Conjunction 0";
+                orb = diff;
+                maxLimit = 6;
+                classification = (p1.id === "Sun" && p2.id === "Moon") ? "bearish" : "bullish";
+            } else if(Math.abs(diff - 180) < 6) {
+                aspectName = "Opposition 180";
+                orb = Math.abs(diff - 180);
+                maxLimit = 6;
+                classification = "bearish";
+            } else if(Math.abs(diff - 120) < 5) {
+                aspectName = "Trine 120";
+                orb = Math.abs(diff - 120);
+                maxLimit = 5;
+                classification = "bullish";
+            } else if(Math.abs(diff - 90) < 5) {
+                aspectName = "Square 90";
+                orb = Math.abs(diff - 90);
+                maxLimit = 5;
+                classification = "neutral";
+            } else if(Math.abs(diff - 60) < 4) {
+                aspectName = "Sextile 60";
+                orb = Math.abs(diff - 60);
+                maxLimit = 4;
+                classification = "bullish";
             }
-        });
+            if(!aspectName) return null;
 
-        const today = new Date().toISOString().split('T')[0];
-        $('hexDateBase').value = today;
-        $('astroDate').value = today;
-        runCombinedAnalysis();
+            const combinedIDs = p1.id + p2.id;
+            if(combinedIDs.includes("Uranus") || combinedIDs.includes("Pluto") || combinedIDs.includes("Node")) classification = "bearish";
+            if(combinedIDs.includes("Jupiter")) classification = "bullish";
+            else if(combinedIDs.includes("Saturn")) classification = "bearish";
+            return { aspectName, classification, orb, maxLimit };
+        }
+
+        function analyzeAstro(dateObj, price) {
+            const planets = getPlanets(dateObj);
+            const priceDegree = (Math.sqrt(price) * 180) % 360;
+            const aspects = [];
+            for(let i = 0; i < planets.length; i++) {
+                for(let j = i + 1; j < planets.length; j++) {
+                    let diff = Math.abs(planets[i].angle - planets[j].angle);
+                    if(diff > 180) diff = 360 - diff;
+                    const asp = classifyAspect(planets[i], planets[j], diff);
+                    if(asp) {
+                        const relSpeed = Math.abs(planets[i].speed - planets[j].speed) || 0.5;
+                        aspects.push({
+                            p1: planets[i],
+                            p2: planets[j],
+                            diff,
+                            relSpeed,
+                            start: getStaticTime(dateObj, asp.orb, relSpeed, true, asp.maxLimit),
+                            end: getStaticTime(dateObj, asp.orb, relSpeed, false, asp.maxLimit),
+                            ...asp
+                        });
+                    }
+                }
+            }
+            aspects.sort((a, b) => a.orb - b.orb);
+            return { planets, priceDegree, aspects, closest: aspects[0] || null };
+        }
+
+        function pipsBetween(a, b) {
+            return Math.round(Math.abs(a - b) * 10);
+        }
+
+        function scoreBoundary(boundary, kind, matrix, gannLevels, sq9Levels) {
+            const gann = nearestLevel(gannLevels, boundary);
+            const sq9 = nearestLevel(sq9Levels, boundary);
+            const gannHit = !!gann && gann.distance <= PRICE_TOLERANCE;
+            const sq9Hit = !!sq9 && sq9.distance <= PRICE_TOLERANCE;
+            return {
+                kind,
+                boundary,
+                gann,
+                sq9,
+                gannHit,
+                sq9Hit,
+                priceScore: 1 + (gannHit ? 1 : 0) + (sq9Hit ? 1 : 0),
+                sl: kind === 'SELL' ? matrix.sellSL : matrix.buySL,
+                targets: kind === 'SELL' ? matrix.sellTargets : matrix.buyTargets,
+                opposite: kind === 'SELL' ? matrix.lower : matrix.upper
+            };
+        }
+
+        function chooseSide(buyScore, sellScore, trend) {
+            if(sellScore.priceScore > buyScore.priceScore) return sellScore;
+            if(buyScore.priceScore > sellScore.priceScore) return buyScore;
+            if(trend === 'down' && sellScore.priceScore >= 2) return sellScore;
+            if(trend === 'up' && buyScore.priceScore >= 2) return buyScore;
+            return null;
+        }
+
+        function renderTable(id, rows) {
+            $(id).innerHTML = rows.map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('');
+        }
+
+        function setStatus(text, cls) {
+            const el = $('mainStatus');
+            el.textContent = text;
+            el.className = `status ${cls}`;
+        }
+
+        function renderLoading(price) {
+            $('displayPrice').textContent = fmt(price);
+            setStatus('Analyzing...', 'wait');
+            $('simpleResult').innerHTML = '';
+            $('reasonText').textContent = 'Loading TradeM anchor, then calculating Matrix, Gann, SQ9, Hexagon, and Astro.';
+        }
+
+        function renderError(price, message) {
+            $('displayPrice').textContent = fmt(price);
+            setStatus('NO CLEAR SETUP', 'none');
+            $('simpleResult').innerHTML = `<div class="box"><div class="k">Data</div><div class="v">Unavailable</div><div class="small">${message}</div></div>`;
+            $('reasonText').textContent = 'The analyzer could not complete because the existing TradeM anchor/data logic did not return usable data.';
+            $('debugOutput').textContent = message;
+        }
+
+        function renderResult(data) {
+            const { price, selected, buyScore, sellScore, matrix, hex, astro, anchor, trend, trendReason, overall } = data;
+            $('displayPrice').textContent = fmt(price);
+
+            if(!selected) {
+                setStatus('WAIT', 'wait');
+            } else if(overall === 'HIGH') {
+                setStatus(selected.kind, selected.kind === 'SELL' ? 'sell' : 'buy');
+            } else {
+                setStatus('NO CLEAR SETUP', 'none');
+            }
+
+            const entryLow = selected ? Math.min(selected.boundary, selected.boundary + (selected.kind === 'SELL' ? -DEFAULT_STEP * 3 : DEFAULT_STEP * 3)) : matrix.lower;
+            const entryHigh = selected ? Math.max(selected.boundary, selected.boundary + (selected.kind === 'SELL' ? -DEFAULT_STEP * 3 : DEFAULT_STEP * 3)) : matrix.upper;
+            const targets = selected ? selected.targets.slice(0, 3) : [];
+            const move = selected && targets.length ? pipsBetween(selected.boundary, targets[targets.length - 1]) : 0;
+            const priceChecks = selected ? [
+                `<span class="check yes">Matrix ✓</span>`,
+                `<span class="check ${selected.gannHit ? 'yes' : 'no'}">Gann ${selected.gannHit ? '✓' : '×'}</span>`,
+                `<span class="check ${selected.sq9Hit ? 'yes' : 'no'}">SQ9 ${selected.sq9Hit ? '✓' : '×'}</span>`
+            ].join('') : `<span class="check yes">Matrix ✓</span><span class="check no">Gann ×</span><span class="check no">SQ9 ×</span>`;
+            const timingChecks = `
+                <span class="check ${hex.hasConfluence ? 'yes' : 'no'}">Hexagon ${hex.hasConfluence ? '✓' : '×'}</span>
+                <span class="check ${astro.closest ? 'yes' : 'no'}">Astro ${astro.closest ? '✓' : '×'}</span>
+            `;
+
+            $('simpleResult').innerHTML = `
+                <div class="box">
+                    <div class="k">Preferred Zone</div>
+                    <div class="v">${selected && overall === 'HIGH' ? selected.kind : 'WAIT'}</div>
+                    <div class="small">${selected ? `Entry Zone: ${fmt(entryLow)}-${fmt(entryHigh)}` : 'No side has clear enough support.'}</div>
+                </div>
+                <div class="box">
+                    <div class="k">Risk / Targets</div>
+                    <div class="targets">
+                        <div>SL: ${selected ? fmt(selected.sl) : '--'}</div>
+                        <div>TP1: ${targets[0] ? fmt(targets[0]) : '--'}</div>
+                        <div>TP2: ${targets[1] ? fmt(targets[1]) : '--'}</div>
+                        <div>TP3: ${targets[2] ? fmt(targets[2]) : '--'}</div>
+                    </div>
+                    <div class="small">Potential Move: ${move} pips</div>
+                </div>
+                <div class="box">
+                    <div class="k">Price Confluence</div>
+                    <div class="checks">${priceChecks}</div>
+                    <div class="small">BUY score ${buyScore.priceScore}/3 | SELL score ${sellScore.priceScore}/3</div>
+                </div>
+                <div class="box">
+                    <div class="k">Timing</div>
+                    <div class="checks">${timingChecks}</div>
+                    <div class="small">Time Window: ${hex.window}</div>
+                </div>
+                <div class="box">
+                    <div class="k">Overall Confluence</div>
+                    <div class="v">${overall}</div>
+                    <div class="small">Matrix trend: ${trend.toUpperCase()}</div>
+                </div>
+                <div class="box">
+                    <div class="k">Secondary Matrix Level</div>
+                    <div class="v">${selected ? fmt(selected.opposite) : `${fmt(matrix.lower)} / ${fmt(matrix.upper)}`}</div>
+                    <div class="small">${selected ? `Opposite reaction boundary from Matrix 24.` : 'Both Matrix boundaries shown because no side was selected.'}</div>
+                </div>
+            `;
+
+            const reasonParts = [];
+            if(selected && overall === 'HIGH') {
+                reasonParts.push(`Matrix ${selected.kind === 'SELL' ? 'upper' : 'lower'} boundary is the strongest side by current price confluence.`);
+                reasonParts.push(`Gann is ${selected.gannHit ? 'nearby' : 'not nearby'} and SQ9 is ${selected.sq9Hit ? 'nearby' : 'not nearby'}.`);
+                reasonParts.push(`Timing score is ${(hex.hasConfluence ? 1 : 0) + (astro.closest ? 1 : 0)}/2 from Hexagon and Astro.`);
+            } else {
+                reasonParts.push('The systems do not clearly support one side strongly enough, so this page does not force BUY or SELL.');
+                reasonParts.push('Matrix still shows reaction boundaries, but Gann/SQ9/timing confluence is not decisive.');
+            }
+            reasonParts.push('Hexagon and Astro are used only as timing context, not direction predictors.');
+            $('reasonText').textContent = reasonParts.join(' ');
+
+            renderTable('matrixDetails', [
+                ['Anchor', `${fmt(anchor.base)} (${anchor.reason})`],
+                ['Trend inference', trendReason],
+                ['Active hour', `${matrix.activeHour}:00, column ${matrix.col + 1}`],
+                ['Channel', `${fmt(matrix.lower)} - ${fmt(matrix.upper)}`],
+                ['BUY level / SL / TP', `${fmt(matrix.lower)} / ${fmt(matrix.buySL)} / ${matrix.buyTargets.map(x => fmt(x)).join(', ')}`],
+                ['SELL level / SL / TP', `${fmt(matrix.upper)} / ${fmt(matrix.sellSL)} / ${matrix.sellTargets.map(x => fmt(x)).join(', ')}`]
+            ]);
+            renderTable('priceDetails', [
+                ['BUY confluence', `Score ${buyScore.priceScore}/3; Gann ${buyScore.gann ? fmt(buyScore.gann.price) : '--'} (${buyScore.gann ? fmt(buyScore.gann.distance) : '--'} away); SQ9 ${buyScore.sq9 ? fmt(buyScore.sq9.price) : '--'} (${buyScore.sq9 ? fmt(buyScore.sq9.distance) : '--'} away)`],
+                ['SELL confluence', `Score ${sellScore.priceScore}/3; Gann ${sellScore.gann ? fmt(sellScore.gann.price) : '--'} (${sellScore.gann ? fmt(sellScore.gann.distance) : '--'} away); SQ9 ${sellScore.sq9 ? fmt(sellScore.sq9.price) : '--'} (${sellScore.sq9 ? fmt(sellScore.sq9.distance) : '--'} away)`]
+            ]);
+            renderTable('timeDetails', [
+                ['Hexagon closest', hex.closest ? `${hex.closest.label}, ${hex.closest.distanceMinutes.toFixed(0)} minutes away, ${hex.closest.importantType}` : '--'],
+                ['Hexagon upcoming', hex.upcoming.map(c => `${c.label} (${c.forwardMinutes.toFixed(0)}m)`).join(', ')],
+                ['Astro closest', astro.closest ? `${astro.closest.p1.id}/${astro.closest.p2.id}, ${astro.closest.aspectName}, ${fmt(astro.closest.orb, 2)} degree orb, ${astro.closest.classification}` : '--'],
+                ['Astro window', astro.closest ? `${astro.closest.start.toLocaleString()} - ${astro.closest.end.toLocaleString()}` : '--'],
+                ['Price degree', `${fmt(astro.priceDegree, 1)} degrees by Astro sqrt method`]
+            ]);
+            $('debugOutput').textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function analyze() {
+            const price = parseFloat($('currentPrice').value);
+            if(!Number.isFinite(price) || price <= 0) {
+                renderError(price, 'Please enter a valid XAU/USD price.');
+                return;
+            }
+
+            renderLoading(price);
+            try {
+                const now = new Date();
+                const activeHour = activeHourFromDate(now);
+                const scan = await fetchTradeMScan();
+                const inferred = inferTrendFromScan(scan);
+                const anchor = selectSq24AnchorFromTradeM(scan, inferred.trend, DEFAULT_STEP);
+                const matrix = calculateMatrixPlan(price, anchor.base, DEFAULT_STEP, inferred.trend, activeHour);
+                const gannLevels = generateGannLevels(anchor.base, inferred.trend, GANN_SHAPE, GANN_CYCLES);
+                const sq9Levels = generateSq9Levels(anchor.base, DEFAULT_STEP, inferred.trend, SQ9_CELLS);
+                const buyScore = scoreBoundary(matrix.lower, 'BUY', matrix, gannLevels, sq9Levels);
+                const sellScore = scoreBoundary(matrix.upper, 'SELL', matrix, gannLevels, sq9Levels);
+                const hex = analyzeHexTime(now, inferred.trend);
+                const astro = analyzeAstro(now, price);
+                const selected = chooseSide(buyScore, sellScore, inferred.trend);
+                const timeScore = (hex.hasConfluence ? 1 : 0) + (astro.closest ? 1 : 0);
+                const selectedPriceScore = selected ? selected.priceScore : Math.max(buyScore.priceScore, sellScore.priceScore);
+                const overall = selected && selectedPriceScore >= 3 && timeScore >= 2 ? 'HIGH'
+                    : selected && selectedPriceScore >= 2 && timeScore >= 1 ? 'MEDIUM'
+                    : 'LOW';
+
+                renderResult({
+                    price,
+                    scan,
+                    anchor,
+                    trend: inferred.trend,
+                    trendReason: inferred.reason,
+                    matrix,
+                    gannLevels: gannLevels.slice(0, 20),
+                    sq9Levels: sq9Levels.slice(0, 20),
+                    buyScore,
+                    sellScore,
+                    hex,
+                    astro,
+                    selected,
+                    overall
+                });
+            } catch(e) {
+                renderError(price, e.message || 'Unknown analysis error');
+            }
+        }
+
+        $('analyzeBtn').addEventListener('click', analyze);
+        $('currentPrice').addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') analyze();
+        });
     </script>
 </body>
 </html>
