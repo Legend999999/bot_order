@@ -91,6 +91,17 @@
         html[dir="ltr"] .sell-signal { background: rgba(255, 51, 153, 0.08); border-left: 4px solid var(--neon-pink); color: var(--neon-pink); margin-top: 10px; border-right: none;}
         
         .target-val { color: #fff; font-family: monospace; font-size: 15px; font-weight: bold; }
+        .matrix-hours-panel { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); width: min(92vw, 720px); background: rgba(5, 8, 12, 0.94); border: 1px solid var(--neon-pink); border-radius: 8px; padding: 10px 12px; z-index: 9000; box-shadow: 0 8px 28px rgba(0,0,0,0.65); backdrop-filter: blur(8px); }
+        .matrix-hours-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; color: var(--neon-gold); font-size: 12px; font-weight: 900; text-transform: uppercase; border-bottom: 1px dashed #443; padding-bottom: 6px; margin-bottom: 7px; }
+        .matrix-hour-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+        .matrix-hour-chip { border: 1px solid #3c2840; border-radius: 6px; padding: 7px; background: rgba(255,255,255,0.035); font-size: 11px; text-align: center; }
+        .matrix-hour-chip strong { display: block; color: #fff; font-size: 16px; font-family: monospace; }
+        .mh-badge { display: inline-block; border-radius: 999px; padding: 2px 6px; font-size: 9px; font-weight: 900; margin-top: 3px; border: 1px solid #444; }
+        .mh-next { color: #00110d; background: var(--neon-cyan); border-color: var(--neon-cyan); }
+        .mh-current { color: #000; background: var(--neon-pink); border-color: var(--neon-pink); }
+        .mh-past { color: #aaa; background: #151515; }
+        .mh-upcoming { color: #160f00; background: var(--neon-gold); border-color: var(--neon-gold); }
+        @media (max-width: 700px) { .matrix-hours-panel { top: 54px; width: 94vw; } .matrix-hour-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .matrix-hours-title { display: grid; } }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -102,6 +113,15 @@
     </div>
 
     <div id="San-bot-btn" data-i18n="btn_bot">🤖 بۆتی گەن</div>
+
+    <section class="matrix-hours-panel">
+        <div class="matrix-hours-title">
+            <span>IMPORTANT HOURS TODAY</span>
+            <span id="matrix-hours-date">Asia/Baghdad</span>
+        </div>
+        <div style="color:#bbb;font-size:11px;margin-bottom:7px;">Matrix important hours are the existing highlighted Matrix 24 golden hours. They are not Hexagon times or Astro windows.</div>
+        <div class="matrix-hour-list" id="matrix-hour-list"></div>
+    </section>
 
     <div id="bot-modal">
         <button class="close-bot" onclick="window.closeBot()">✕</button>
@@ -215,7 +235,38 @@
         const SQ24_TRADEM_PROXY_URL = 'https://r.jina.ai/http://r.jina.ai/http://https://tradem-eight.vercel.app/api/market/scan';
         const SQ24_PIVOT_SIDE = 3;
         const SQ24_MATRIX_SIZE = 24 * 24;
+        const BAGHDAD_TZ = 'Asia/Baghdad';
+        const MATRIX_GOLDEN_HOURS = [10, 11, 15, 16, 18]; // Source: matrix24.html -> drawSq24() goldenHours
         let sq24AnchorState = { status: 'idle', message: '', base: null, candleTime: null, currentPrice: null, reason: '' };
+
+        function getBaghdadParts(date = new Date()) {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: BAGHDAD_TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            }).formatToParts(date).reduce((acc, p) => { acc[p.type] = p.value; return acc; }, {});
+            return { year: +parts.year, month: +parts.month, day: +parts.day, hour: +parts.hour, minute: +parts.minute };
+        }
+
+        function formatBaghdadToday() {
+            return new Intl.DateTimeFormat('en-US', { timeZone: BAGHDAD_TZ, month: 'short', day: '2-digit' }).format(new Date()).toUpperCase();
+        }
+
+        function updateMatrixImportantHours() {
+            const list = document.getElementById('matrix-hour-list');
+            if(!list) return;
+            const parts = getBaghdadParts();
+            const nowMinutes = parts.hour * 60 + parts.minute;
+            const next = MATRIX_GOLDEN_HOURS
+                .map(h => ({ h, forward: ((h * 60) - nowMinutes + 1440) % 1440 }))
+                .sort((a, b) => a.forward - b.forward)[0];
+            document.getElementById('matrix-hours-date').innerText = `TODAY - ${formatBaghdadToday()} - KURDISTAN UTC+3`;
+            list.innerHTML = MATRIX_GOLDEN_HOURS.map(h => {
+                const start = h * 60, end = start + 59;
+                const state = nowMinutes >= start && nowMinutes <= end ? 'CURRENT' : (start < nowMinutes ? 'PAST' : (next && h === next.h ? 'NEXT' : 'UPCOMING'));
+                const cls = state === 'CURRENT' ? 'mh-current' : (state === 'NEXT' ? 'mh-next' : (state === 'PAST' ? 'mh-past' : 'mh-upcoming'));
+                return `<div class="matrix-hour-chip"><strong>${String(h).padStart(2, '0')}:00</strong>Matrix important hour<br><span class="mh-badge ${cls}">${state}</span></div>`;
+            }).join('');
+        }
 
         function setSq24AnchorStatus(message, type = '') {
             sq24AnchorState.message = message;
@@ -494,6 +545,7 @@
 
         window.refreshSq24Anchor = function() {
             applyAutoSq24Anchor();
+            updateMatrixImportantHours();
         };
 
         function applyLanguage() {
@@ -539,6 +591,7 @@
             
             // ئەپدەیتکردنەوەی نەخشە هەموو خولەکێک
             setInterval(() => { drawSq24(); }, 60000);
+            setInterval(updateMatrixImportantHours, 60000);
         });
 
         const savedIds = ['sq24BasePrice', 'sq24TrendDir', 'sq24ManualTime', 'sq24StepValue', 'sq24AnchorMode'];

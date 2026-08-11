@@ -43,6 +43,21 @@
         canvas { background: transparent; display: block;}
         
         #container-hexagon { position: relative; width: 3800px; height: 3800px; }
+        .today-panel { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); width: min(92vw, 760px); background: rgba(5, 8, 12, 0.94); border: 1px solid var(--neon-cyan); border-radius: 8px; padding: 10px 12px; z-index: 9000; box-shadow: 0 8px 28px rgba(0,0,0,0.65); backdrop-filter: blur(8px); }
+        .today-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; color: var(--neon-gold); font-size: 12px; font-weight: 900; text-transform: uppercase; border-bottom: 1px dashed #344; padding-bottom: 6px; margin-bottom: 7px; }
+        .next-time { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; background: rgba(0,255,204,0.07); border: 1px solid rgba(0,255,204,0.25); border-radius: 6px; padding: 8px; margin-bottom: 7px; }
+        .next-time .time { color: var(--neon-cyan); font-size: 22px; font-weight: 900; font-family: monospace; }
+        .time-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+        .time-chip { border: 1px solid #29384a; border-radius: 6px; padding: 6px; background: rgba(255,255,255,0.035); font-size: 11px; }
+        .time-chip strong { display: block; color: #fff; font-size: 15px; font-family: monospace; }
+        .badge { display: inline-block; border-radius: 999px; padding: 2px 6px; font-size: 9px; font-weight: 900; margin-top: 3px; border: 1px solid #444; }
+        .badge.high { color: #00110d; background: var(--neon-cyan); border-color: var(--neon-cyan); }
+        .badge.medium { color: #160f00; background: var(--neon-gold); border-color: var(--neon-gold); }
+        .badge.low { color: #ddd; background: #333; }
+        .badge.next { color: #00110d; background: #fff; border-color: #fff; }
+        .badge.current { color: #000; background: #ff3399; border-color: #ff3399; }
+        .badge.past { color: #aaa; background: #151515; }
+        @media (max-width: 700px) { .today-panel { top: 54px; width: 94vw; } .time-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .today-title, .next-time { grid-template-columns: 1fr; display: grid; } }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -52,6 +67,21 @@
         <div class="center-brand-text">__w.d.gann__@San_FX</div>
         <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
     </div>
+
+    <section class="today-panel" id="hex-today-panel">
+        <div class="today-title">
+            <span>TODAY'S IMPORTANT TIMES</span>
+            <span id="hex-today-date">Asia/Baghdad</span>
+        </div>
+        <div class="next-time">
+            <div>
+                <div style="color:#aaa;font-size:10px;font-weight:900;">NEXT IMPORTANT TIME</div>
+                <div class="time" id="hex-next-time">--:--</div>
+            </div>
+            <div id="hex-next-reason" style="font-size:11px;color:#d8f7ff;">Calculating Hexagon hour geometry...</div>
+        </div>
+        <div class="time-list" id="hex-time-list"></div>
+    </section>
 
     <div class="sidebar" id="sidebar">
         <button class="close-menu" id="btn-close-menu">✕</button>
@@ -120,6 +150,80 @@
         };
 
         let currentLang = 'ku';
+        const BAGHDAD_TZ = 'Asia/Baghdad';
+
+        function getBaghdadParts(date = new Date()) {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: BAGHDAD_TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            }).formatToParts(date).reduce((acc, p) => { acc[p.type] = p.value; return acc; }, {});
+            return { year: +parts.year, month: +parts.month, day: +parts.day, hour: +parts.hour, minute: +parts.minute };
+        }
+
+        function formatBaghdadToday() {
+            return new Intl.DateTimeFormat('en-US', { timeZone: BAGHDAD_TZ, month: 'short', day: '2-digit' }).format(new Date()).toUpperCase();
+        }
+
+        function scoreHexCell(ring, side, indexInSide) {
+            // New ranking/display logic based on existing hexagon.html -> dHx() geometry.
+            // The original grid visually emphasizes center cells, side starts, and mid-turn cells.
+            if(ring === 0) return { score: 100, strength: 'HIGH', why: 'center of the hour spiral' };
+            if(indexInSide === 0) return { score: Math.max(95 - ring * 4, 68), strength: ring <= 4 ? 'HIGH' : 'MEDIUM', why: 'hexagon corner / important axis' };
+            if(ring > 1 && ((ring % 2 === 0 && indexInSide === ring / 2) || (ring % 2 !== 0 && (indexInSide === Math.floor(ring / 2) || indexInSide === Math.ceil(ring / 2))))) {
+                return { score: Math.max(72 - ring * 3, 48), strength: ring <= 5 ? 'MEDIUM' : 'LOW', why: 'mid-turn alignment' };
+            }
+            return { score: 0, strength: 'LOW', why: 'normal cell' };
+        }
+
+        function generateHexHourImportance() {
+            // Source: hexagon.html -> dHx(), hour-mode gDV(). This uses the same spiral traversal and step/direction inputs.
+            const step = parseFloat(document.getElementById('hexStepValue').value) || 1;
+            const trend = document.getElementById('hexTrendDir').value;
+            const dir = trend === 'up' ? 1 : -1;
+            const layers = parseInt(document.getElementById('hexGridLayers').value) || 12;
+            const dr = [{q: 1, r: 0}, {q: 0, r: 1}, {q: -1, r: 1}, {q: -1, r: 0}, {q: 0, r: -1}, {q: 1, r: -1}];
+            let hourCursor = 0, q = 0, rr = 0;
+            const bestByHour = {};
+            function addHour(ring, side, indexInSide) {
+                const hr = ((Math.round(hourCursor) % 24) + 24) % 24;
+                const s = scoreHexCell(ring, side, indexInSide);
+                if(s.score > 0 && (!bestByHour[hr] || s.score > bestByHour[hr].score)) {
+                    bestByHour[hr] = { hour: hr, ring, side, indexInSide, ...s };
+                }
+                hourCursor += step * dir;
+            }
+            addHour(0, 0, 0);
+            for(let ring = 1; ring < layers; ring++) {
+                q += dr[4].q; rr += dr[4].r;
+                for(let side = 0; side < 6; side++) {
+                    for(let j = 0; j < ring; j++) {
+                        addHour(ring, side, j);
+                        q += dr[side].q; rr += dr[side].r;
+                    }
+                }
+            }
+            return Object.values(bestByHour).sort((a, b) => b.score - a.score || a.hour - b.hour);
+        }
+
+        function updateHexTodayTimes() {
+            const panel = document.getElementById('hex-today-panel');
+            if(!panel) return;
+            const parts = getBaghdadParts();
+            const nowMinutes = parts.hour * 60 + parts.minute;
+            const ranked = generateHexHourImportance().filter(x => x.score >= 45).slice(0, 8);
+            const next = ranked
+                .map(x => ({ ...x, forward: ((x.hour * 60) - nowMinutes + 1440) % 1440 }))
+                .sort((a, b) => a.forward - b.forward || b.score - a.score)[0];
+            document.getElementById('hex-today-date').innerText = `TODAY - ${formatBaghdadToday()} - KURDISTAN UTC+3`;
+            document.getElementById('hex-next-time').innerText = next ? `${String(next.hour).padStart(2, '0')}:00` : '--:--';
+            document.getElementById('hex-next-reason').innerHTML = next ? `Hexagon ring: <b>${next.ring}</b><br>Position: ${next.why}<br>Strength: <b>${next.strength}</b>` : 'No important hour found from current Hexagon settings.';
+            document.getElementById('hex-time-list').innerHTML = ranked.map(x => {
+                const start = x.hour * 60, end = start + 59;
+                const state = nowMinutes >= start && nowMinutes <= end ? 'CURRENT' : (start < nowMinutes ? 'PAST' : (next && x.hour === next.hour ? 'NEXT' : 'UPCOMING'));
+                const stateClass = state === 'CURRENT' ? 'current' : (state === 'NEXT' ? 'next' : (state === 'PAST' ? 'past' : 'low'));
+                return `<div class="time-chip"><strong>${String(x.hour).padStart(2, '0')}:00</strong>Ring ${x.ring} | ${x.why}<br><span class="badge ${x.strength.toLowerCase()}">${x.strength}</span> <span class="badge ${stateClass}">${state}</span></div>`;
+            }).join('');
+        }
 
         function applyLanguage() {
             try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
@@ -159,6 +263,8 @@
             py = 0;
             upT();
             dHx();
+            updateHexTodayTimes();
+            setInterval(updateHexTodayTimes, 60000);
         });
 
         const savedIds = ['hexDataType', 'hexBaseInput', 'hexTargetInput', 'hexTrendDir', 'hexStepValue', 'hexGridLayers'];
@@ -203,13 +309,14 @@
             handleInputType();
             saveSet();
             dHx();
+            updateHexTodayTimes();
         });
 
         savedIds.forEach(id => {
             let el = document.getElementById(id);
             if(el) {
-                el.addEventListener('change', () => { saveSet(); dHx(); });
-                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); dHx(); });
+                el.addEventListener('change', () => { saveSet(); dHx(); updateHexTodayTimes(); });
+                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); dHx(); updateHexTodayTimes(); });
             }
         });
 

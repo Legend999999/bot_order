@@ -114,6 +114,15 @@
         .sig-times { display: flex; justify-content: space-between; font-size: 10px; color: #888; background: #050505; padding: 6px; border-radius: 4px; border: 1px solid #222;}
         .sig-times span strong { color: #00ffcc; display: block; margin-top: 2px; font-size: 11px;}
         .sig-times span.end strong { color: #ff3333; }
+        .astro-today-panel { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); width: min(92vw, 760px); background: rgba(15, 10, 25, 0.94); border: 1px solid var(--neon-purple); border-radius: 8px; padding: 10px 12px; z-index: 9000; box-shadow: 0 8px 28px rgba(0,0,0,0.65); backdrop-filter: blur(8px); }
+        .astro-today-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; color: var(--neon-gold); font-size: 12px; font-weight: 900; text-transform: uppercase; border-bottom: 1px dashed #443; padding-bottom: 6px; margin-bottom: 7px; }
+        .astro-window-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+        .astro-window-card { border: 1px solid #37284a; border-radius: 6px; padding: 7px; background: rgba(255,255,255,0.035); font-size: 11px; }
+        .astro-window-card strong { color: #fff; font-size: 15px; font-family: monospace; }
+        .astro-window-card .bullish { color: #00ffcc; font-weight: 900; }
+        .astro-window-card .bearish { color: #ff5555; font-weight: 900; }
+        .astro-window-card .neutral { color: #ffcc00; font-weight: 900; }
+        @media (max-width: 700px) { .astro-today-panel { top: 54px; width: 94vw; } .astro-window-list { grid-template-columns: 1fr; } .astro-today-title { display: grid; } }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -123,6 +132,16 @@
         <div class="center-brand-text">__w.d.gann__@San_FX</div>
         <a href="index.html?showHub=true" class="back-arrow-btn">⬅️</a>
     </div>
+
+    <section class="astro-today-panel">
+        <div class="astro-today-title">
+            <span>TODAY'S ASTRO TIMING WINDOWS</span>
+            <span id="astro-today-date">Asia/Baghdad</span>
+        </div>
+        <div class="astro-window-list" id="astro-window-list">
+            <div class="astro-window-card">Scanning today with existing Astro formulas...</div>
+        </div>
+    </section>
 
     <button id="astro-info-btn" onclick="window.toggleAstroInfo()">
         <span data-i18n="btn_astro_info">ℹ️ زانیاری</span>
@@ -284,6 +303,78 @@
         };
 
         let currentLang = 'ku';
+        const BAGHDAD_TZ = 'Asia/Baghdad';
+
+        function getBaghdadParts(date = new Date()) {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: BAGHDAD_TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
+            }).formatToParts(date).reduce((acc, p) => { acc[p.type] = p.value; return acc; }, {});
+            return { year: +parts.year, month: +parts.month, day: +parts.day, hour: +parts.hour, minute: +parts.minute };
+        }
+
+        function baghdadDateForTime(parts, hour, minute) {
+            // Baghdad is UTC+3. This creates the instant for today's Baghdad local time without depending on browser timezone.
+            return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, hour - 3, minute, 0, 0));
+        }
+
+        function formatBaghdadTime(date) {
+            return new Intl.DateTimeFormat('en-GB', { timeZone: BAGHDAD_TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+        }
+
+        function formatBaghdadToday() {
+            return new Intl.DateTimeFormat('en-US', { timeZone: BAGHDAD_TZ, month: 'short', day: '2-digit' }).format(new Date()).toUpperCase();
+        }
+
+        function classifyAstroAspectForToday(p1, p2, diff) {
+            // Source: astro.html -> updateAstro() aspect thresholds/classification.
+            let aspectName = "", classification = "neutral", orb = 0, maxLimit = 5;
+            if(Math.abs(diff - 0) < 6) { aspectName = "Conjunction 0"; orb = diff; maxLimit = 6; classification = (p1.id === "Sun" && p2.id === "Moon") ? "bearish" : "bullish"; }
+            else if(Math.abs(diff - 180) < 6) { aspectName = "Opposition 180"; orb = Math.abs(diff - 180); maxLimit = 6; classification = "bearish"; }
+            else if(Math.abs(diff - 120) < 5) { aspectName = "Trine 120"; orb = Math.abs(diff - 120); maxLimit = 5; classification = "bullish"; }
+            else if(Math.abs(diff - 90) < 5) { aspectName = "Square 90"; orb = Math.abs(diff - 90); maxLimit = 5; classification = "neutral"; }
+            else if(Math.abs(diff - 60) < 4) { aspectName = "Sextile 60"; orb = Math.abs(diff - 60); maxLimit = 4; classification = "bullish"; }
+            if(!aspectName) return null;
+            const combinedIDs = p1.id + p2.id;
+            if(combinedIDs.includes("Uranus") || combinedIDs.includes("Pluto") || combinedIDs.includes("Node")) classification = "bearish";
+            if(combinedIDs.includes("Jupiter")) classification = "bullish";
+            else if(combinedIDs.includes("Saturn")) classification = "bearish";
+            return { aspectName, classification, orb, maxLimit };
+        }
+
+        function scanAstroTodayWindows() {
+            const parts = getBaghdadParts();
+            const best = {};
+            for(let mins = 0; mins < 1440; mins += 10) {
+                const sampleDate = baghdadDateForTime(parts, Math.floor(mins / 60), mins % 60);
+                const planets = getPlanets(sampleDate);
+                for(let i = 0; i < planets.length; i++) {
+                    for(let j = i + 1; j < planets.length; j++) {
+                        let diff = Math.abs(planets[i].angle - planets[j].angle);
+                        if(diff > 180) diff = 360 - diff;
+                        const asp = classifyAstroAspectForToday(planets[i], planets[j], diff);
+                        if(!asp) continue;
+                        const key = `${planets[i].id}-${planets[j].id}-${asp.aspectName}`;
+                        if(!best[key] || asp.orb < best[key].orb) {
+                            best[key] = { p1: planets[i], p2: planets[j], sampleDate, diff, ...asp };
+                        }
+                    }
+                }
+            }
+            return Object.values(best).sort((a, b) => (a.orb / a.maxLimit) - (b.orb / b.maxLimit)).slice(0, 6);
+        }
+
+        function updateAstroTodayWindows() {
+            const list = document.getElementById('astro-window-list');
+            if(!list) return;
+            const windows = scanAstroTodayWindows();
+            document.getElementById('astro-today-date').innerText = `TODAY - ${formatBaghdadToday()} - KURDISTAN UTC+3`;
+            list.innerHTML = windows.length ? windows.map(w => {
+                const start = new Date(w.sampleDate.getTime() - 20 * 60000);
+                const end = new Date(w.sampleDate.getTime() + 20 * 60000);
+                return `<div class="astro-window-card"><strong>${formatBaghdadTime(start)}-${formatBaghdadTime(end)}</strong><br>${w.p1.id} ${w.aspectName} ${w.p2.id}<br>Orb closest: <b>${w.orb.toFixed(2)}°</b><br>Existing classification: <span class="${w.classification}">${w.classification.toUpperCase()}</span></div>`;
+            }).join('') : '<div class="astro-window-card">No active aspect window found today from the current Astro thresholds.</div>';
+        }
 
         function applyLanguage() {
             try { currentLang = localStorage.getItem('rfx_lang') || 'ku'; } catch(e) {}
@@ -364,7 +455,9 @@
             
             px = 0; py = 0; upT();
             window.updateAstro();
+            updateAstroTodayWindows();
             setInterval(() => { window.updateAstro(); }, 60000); // Update every minute to keep planets fresh
+            setInterval(updateAstroTodayWindows, 10 * 60000);
         });
 
         window.toggleAstroInfo = function() {
