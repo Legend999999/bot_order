@@ -218,10 +218,10 @@
 
         <details>
             <summary>Details</summary>
-            <h3>Optional Manual Anchor Override</h3>
+            <h3>Optional Manual 1H Anchor Override</h3>
             <div class="input-row">
                 <div>
-                    <label for="manualAnchor">Manual Anchor Price</label>
+                    <label for="manualAnchor">Manual 1H Anchor Price</label>
                     <input id="manualAnchor" type="number" placeholder="Leave empty for automatic" step="0.01" inputmode="decimal">
                 </div>
                 <div>
@@ -232,7 +232,7 @@
                     </select>
                 </div>
             </div>
-            <p class="note">Leave this empty for the automatic TradeM/1H pivot anchor. This override is only for testing/debugging.</p>
+            <p class="note">Leave this empty for the automatic center price from the confirmed 1H candle structure. This override is only for testing/debugging.</p>
             <h3>4H Context</h3>
             <table id="contextTable"></table>
             <h3>1H Price Engine</h3>
@@ -898,6 +898,12 @@
             return { eventType: 'Ordinary movement', reason: 'No strong expansion candle is visible.' };
         }
 
+        function currentOneHourOpen(candles1h) {
+            if(!candles1h || !candles1h.length) return null;
+            const last = candles1h[candles1h.length - 1];
+            return Number.isFinite(last.open) ? last.open : null;
+        }
+
         function evaluateWindow(candles15, window, side, projectedPrice = null) {
             const startIndex = candles15.findIndex(c => candleInWindow(c, window));
             if(startIndex < 0 || startIndex + 8 >= candles15.length) return null;
@@ -1044,7 +1050,7 @@
         }
 
         function render(data) {
-            const { price, context, matrix, buyZone, sellZone, timeWindows, selected, selectionReason, backtests, dataNotes } = data;
+            const { price, matrixPrice, context, matrix, buyZone, sellZone, timeWindows, selected, selectionReason, backtests, dataNotes } = data;
             $('displayPrice').textContent = fmt(price);
             $('dataStatus').textContent = dataNotes.join(' | ');
             const status = setupStatus(selected);
@@ -1121,6 +1127,7 @@
                 ['Confirmed pivots', context.pivots.slice(-6).map(p => `${p.kind} ${fmt(p.price)} at ${new Date(p.time * 1000).toLocaleString()}`).join('<br>') || '--']
             ]);
             renderTable('priceTable', [
+                ['Matrix price basis', `${fmt(matrixPrice)}; current 1H candle open`],
                 ['Matrix channel', `${fmt(matrix.buyLevel)}-${fmt(matrix.sellLevel)}; active hour ${matrix.activeHour}:00 Baghdad`],
                 ['BUY score', `${buyZone.score}; evidence ${buyZone.checks.map(c => `${c.name}:${c.hit ? 'yes' : 'no'}`).join(', ')}`],
                 ['SELL score', `${sellZone.score}; evidence ${sellZone.checks.map(c => `${c.name}:${c.hit ? 'yes' : 'no'}`).join(', ')}`],
@@ -1180,7 +1187,10 @@
                 dataNotes.push('Manual anchor override active');
             } else {
                 try {
-                    anchor = scan ? autoAnchorFromScan(scan, DEFAULT_STEP) : autoAnchorFromPivots(candles1h, context.bias, DEFAULT_STEP);
+                    anchor = candles1h.length
+                        ? autoAnchorFromPivots(candles1h, context.bias, DEFAULT_STEP)
+                        : autoAnchorFromScan(scan, DEFAULT_STEP);
+                    dataNotes.push('Center/anchor selected from confirmed 1H candle structure');
                 } catch(e) {
                     try {
                         anchor = autoAnchorFromPivots(candles1h, context.bias, DEFAULT_STEP);
@@ -1199,7 +1209,13 @@
             }
 
             const activeHour = hourFromDate(new Date());
-            const matrix = calculateMatrixPlan(price, anchor.base, DEFAULT_STEP, anchor.trend, activeHour);
+            const matrixPrice = currentOneHourOpen(candles1h) || price;
+            if(currentOneHourOpen(candles1h)) {
+                dataNotes.push(`Matrix bot price basis: 1H candle open ${fmt(matrixPrice)}`);
+            } else {
+                dataNotes.push('Matrix bot price basis fallback: entered current price');
+            }
+            const matrix = calculateMatrixPlan(matrixPrice, anchor.base, DEFAULT_STEP, anchor.trend, activeHour);
             const pivots1h = candles1h.length ? findSignificantPivots(candles1h, 3, 0.8).slice(-20) : [];
             const gannLevels = generateGannLevels(anchor.base, anchor.trend, 45, 2);
             const sq9Levels = generateSq9Levels(anchor.base, DEFAULT_STEP, anchor.trend, 25);
@@ -1213,6 +1229,7 @@
 
             const snapshot = {
                 price,
+                matrixPrice,
                 scan,
                 anchor,
                 context,

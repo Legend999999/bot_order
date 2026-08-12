@@ -471,6 +471,13 @@
             });
         }
 
+        async function fetchCurrentOneHourOpenForMatrixBot() {
+            const candles = await fetchTradingViewXauUsdCandles(5);
+            const last = candles[candles.length - 1];
+            if(!last || !Number.isFinite(last.open)) throw new Error('Current 1H candle open is unavailable.');
+            return { open: last.open, time: last.time };
+        }
+
         function isConfirmedPivot(candles, index, field, direction) {
             const value = candles[index][field];
             for(let j = index - SQ24_PIVOT_SIDE; j <= index + SQ24_PIVOT_SIDE; j++) {
@@ -834,15 +841,24 @@
         window.closeBot = function() { document.getElementById('bot-modal').style.display = 'none'; }
 
         // --- Bot Signal Generator Matrix 24 Logic ---
-        window.generateMatrixSignal = function() {
-            let p = parseFloat(document.getElementById('botPriceInput').value);
+        window.generateMatrixSignal = async function() {
+            let typedPrice = parseFloat(document.getElementById('botPriceInput').value);
             let t = lexicon[currentLang] || lexicon['ku'];
             
-            if(!p || p <= 0) { alert(t.bot_err); return; }
+            if(!typedPrice || typedPrice <= 0) { alert(t.bot_err); return; }
             if(document.getElementById('sq24AnchorMode').value === 'auto' && sq24AnchorState.status !== 'ok') {
                 alert('DATA ERROR: XAU/USD 1H anchor is not available.');
                 return;
             }
+
+            let oneHourBasis;
+            try {
+                oneHourBasis = await fetchCurrentOneHourOpenForMatrixBot();
+            } catch(e) {
+                alert(`DATA ERROR: Matrix bot needs the current 1H candle open price.\n${e.message || e}`);
+                return;
+            }
+            let p = oneHourBasis.open;
 
             let base = parseFloat(document.getElementById('sq24BasePrice').value) || 0;
             let stepVal = parseFloat(document.getElementById('sq24StepValue').value) || 1;
@@ -889,6 +905,7 @@
             
             document.getElementById('bot-status').innerHTML = `
                 ${resTitle}
+                <span style="color:#aaa; font-size:12px; display:block; margin-top:5px;">Matrix basis: 1H candle open <b style="color:var(--neon-cyan);">${p.toFixed(2)}</b> from ${formatSq24Time(oneHourBasis.time)} | typed current price reference: ${typedPrice.toFixed(2)}</span>
                 <span style="color:var(--neon-gold); font-size:18px; display:inline-block; margin-top:5px;">[ ${gridBelow} ] — [ ${gridAbove} ]</span>
             `;
 
