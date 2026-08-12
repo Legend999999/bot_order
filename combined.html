@@ -3,73 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>San FX - Simple Combined Analyzer</title>
+    <title>San FX - Price + Time Confluence Engine</title>
     <style>
         :root {
-            --bg: #050508;
-            --panel: #0d1119;
-            --panel-2: #121927;
-            --line: #263241;
-            --text: #f5f7fb;
-            --muted: #9aa6b2;
+            --bg: #050608;
+            --panel: #10151d;
+            --panel2: #161d28;
+            --line: #2b3645;
+            --text: #f4f7fb;
+            --muted: #98a5b3;
             --cyan: #00ffcc;
             --gold: #d4af37;
-            --pink: #ff3399;
-            --red: #ff4d4d;
-            --green: #58e07b;
-            --blue: #4aa3ff;
+            --green: #57dd78;
+            --pink: #ff4fab;
+            --red: #ff5b5b;
+            --blue: #5ea8ff;
         }
 
         * { box-sizing: border-box; }
         body {
             margin: 0;
             min-height: 100vh;
-            background: radial-gradient(circle at top, #111827 0%, #050508 55%, #000 100%);
+            background: #050608;
             color: var(--text);
             font-family: "Segoe UI", Tahoma, Arial, sans-serif;
             line-height: 1.45;
         }
-
         header {
             display: flex;
             justify-content: space-between;
-            gap: 14px;
+            gap: 16px;
             align-items: center;
             padding: 14px 18px;
             border-bottom: 1px solid var(--line);
-            background: rgba(5, 5, 8, 0.94);
+            background: rgba(5, 6, 8, 0.96);
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
-
         h1, h2, h3, p { margin: 0; }
         h1 { font-size: 20px; }
-        h2 { font-size: 15px; color: var(--cyan); margin-bottom: 10px; }
-        h3 { font-size: 13px; color: var(--gold); margin: 14px 0 7px; }
+        h2 { font-size: 14px; color: var(--cyan); margin-bottom: 10px; }
+        h3 { font-size: 13px; color: var(--gold); margin: 14px 0 8px; }
         .brand { color: var(--gold); font-size: 12px; font-weight: 800; margin-top: 2px; }
         .back { color: var(--cyan); text-decoration: none; font-weight: 800; white-space: nowrap; }
-
         main {
-            width: min(980px, calc(100% - 24px));
+            width: min(1120px, calc(100% - 24px));
             margin: 0 auto;
-            padding: 18px 0 28px;
+            padding: 18px 0 32px;
         }
-
         .panel, details {
-            background: linear-gradient(180deg, rgba(18, 25, 39, 0.98), rgba(8, 11, 17, 0.98));
+            background: var(--panel);
             border: 1px solid var(--line);
             border-radius: 8px;
             padding: 14px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
         }
-
         .input-row {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 160px;
             gap: 10px;
             align-items: end;
         }
-
         label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
-        input {
+        input, select {
             width: 100%;
             background: #05080d;
             border: 1px solid #344151;
@@ -90,84 +86,73 @@
             cursor: pointer;
             width: 100%;
         }
-
-        .note {
-            margin-top: 8px;
-            color: var(--muted);
-            font-size: 12px;
-        }
-
+        .note { margin-top: 8px; color: var(--muted); font-size: 12px; }
         .result {
             margin-top: 14px;
             padding: 18px;
             border-radius: 8px;
             border: 1px solid #314255;
-            background: rgba(0, 0, 0, 0.28);
-            min-height: 260px;
+            background: var(--panel2);
+            min-height: 310px;
         }
-
         .result-head {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             gap: 12px;
-            align-items: flex-start;
+            align-items: start;
             border-bottom: 1px solid #253346;
             padding-bottom: 12px;
             margin-bottom: 12px;
         }
-
         .symbol { color: var(--muted); font-size: 12px; text-transform: uppercase; }
-        .price { font: 900 26px Consolas, monospace; color: var(--text); }
-        .status {
-            text-align: right;
-            font: 900 28px Consolas, monospace;
-            color: var(--gold);
-        }
+        .price { font: 900 28px Consolas, monospace; color: var(--text); }
+        .status { text-align: right; font: 900 28px Consolas, monospace; color: var(--gold); }
         .status.buy { color: var(--green); }
         .status.sell { color: var(--pink); }
-        .status.wait { color: var(--gold); }
         .status.none { color: var(--red); }
-
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
         }
-
         .box {
-            border: 1px solid #243244;
+            border: 1px solid #283545;
             border-radius: 8px;
             padding: 10px;
             background: rgba(255, 255, 255, 0.035);
+            min-height: 76px;
         }
+        .box.wide { grid-column: span 2; }
         .k { color: var(--muted); font-size: 11px; text-transform: uppercase; }
         .v { font: 800 18px Consolas, monospace; margin-top: 4px; }
         .small { color: var(--muted); font-size: 12px; margin-top: 5px; }
-        .targets { display: grid; gap: 4px; font: 800 14px Consolas, monospace; }
-        .checks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-        .check {
+        .good { color: var(--green); }
+        .bad { color: var(--red); }
+        .warn { color: var(--gold); }
+        .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .tag {
             border-radius: 999px;
             padding: 4px 9px;
             font-size: 12px;
             font-weight: 900;
             background: #17202d;
             border: 1px solid #324357;
+            color: var(--muted);
         }
-        .check.yes { color: #00130f; background: var(--cyan); border-color: var(--cyan); }
-        .check.no { color: #fff; background: #3a2028; border-color: #70404d; }
+        .tag.yes { color: #00130f; background: var(--cyan); border-color: var(--cyan); }
+        .tag.no { color: #fff; background: #3a2028; border-color: #70404d; }
         .reason {
             margin-top: 12px;
             border-top: 1px solid #253346;
             padding-top: 12px;
-            color: #d6dde7;
+            color: #d8e0ea;
             font-size: 14px;
         }
-
         details { margin-top: 14px; }
         summary { cursor: pointer; color: var(--cyan); font-weight: 900; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
         th, td { text-align: left; border-bottom: 1px solid #223042; padding: 7px 5px; vertical-align: top; }
-        th { color: var(--muted); }
+        th { color: var(--muted); width: 210px; }
         pre {
             white-space: pre-wrap;
             overflow-wrap: anywhere;
@@ -178,19 +163,22 @@
             color: #c8d2dd;
             font-size: 12px;
         }
-
-        @media (max-width: 700px) {
-            header, .result-head { flex-direction: column; }
-            .status { text-align: left; }
-            .input-row, .summary-grid { grid-template-columns: 1fr; }
+        @media (max-width: 880px) {
+            .summary-grid { grid-template-columns: 1fr; }
+            .box.wide { grid-column: span 1; }
+        }
+        @media (max-width: 680px) {
+            header, .result-head { display: block; }
+            .status { text-align: left; margin-top: 8px; }
+            .input-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <header>
         <div>
-            <h1>Simple Combined Analyzer</h1>
-            <div class="brand">Matrix = location | Hexagon + Astro = time | Gann + SQ9 = price confluence</div>
+            <h1>Price + Time Confluence Engine</h1>
+            <div class="brand">4H context | 1H Gann zone | 15M confirmation | Baghdad time</div>
         </div>
         <a class="back" href="index.html?showHub=true">Back to Hub</a>
     </header>
@@ -204,81 +192,232 @@
                 </div>
                 <button id="analyzeBtn" type="button">ANALYZE</button>
             </div>
-            <p class="note">This page uses only the existing project formulas. Hexagon and Astro are timing context only.</p>
+            <p class="note">This page does not create trade direction from Hexagon or Astro. They are timing evidence only. Confidence is shown only when historical candle data is available.</p>
         </section>
 
-        <section class="result" id="resultCard">
+        <section class="result">
             <div class="result-head">
                 <div>
                     <div class="symbol">XAU/USD</div>
                     <div class="price" id="displayPrice">--</div>
+                    <div class="small" id="dataStatus">Waiting for analysis.</div>
                 </div>
                 <div>
-                    <div class="symbol">Result</div>
-                    <div class="status wait" id="mainStatus">Enter price</div>
+                    <div class="symbol">Best Setup</div>
+                    <div class="status none" id="mainStatus">NO TRADE</div>
                 </div>
             </div>
             <div id="simpleResult" class="summary-grid"></div>
             <div class="reason" id="reasonText">Enter the current XAU/USD price and press ANALYZE.</div>
         </section>
 
-        <details id="detailsBox">
+        <details open>
+            <summary>Backtest Evidence</summary>
+            <table id="backtestTable"></table>
+        </details>
+
+        <details>
             <summary>Details</summary>
-            <h3>Matrix 24</h3>
-            <table id="matrixDetails"></table>
-            <h3>Price Confluence</h3>
-            <table id="priceDetails"></table>
-            <h3>Timing</h3>
-            <table id="timeDetails"></table>
+            <h3>Optional Manual Anchor Override</h3>
+            <div class="input-row">
+                <div>
+                    <label for="manualAnchor">Manual Anchor Price</label>
+                    <input id="manualAnchor" type="number" placeholder="Leave empty for automatic" step="0.01" inputmode="decimal">
+                </div>
+                <div>
+                    <label for="manualTrend">Anchor Direction</label>
+                    <select id="manualTrend">
+                        <option value="up">Up from swing low</option>
+                        <option value="down">Down from swing high</option>
+                    </select>
+                </div>
+            </div>
+            <p class="note">Leave this empty for the automatic TradeM/1H pivot anchor. This override is only for testing/debugging.</p>
+            <h3>4H Context</h3>
+            <table id="contextTable"></table>
+            <h3>1H Price Engine</h3>
+            <table id="priceTable"></table>
+            <h3>Time Engine</h3>
+            <table id="timeTable"></table>
+            <h3>15M Execution</h3>
+            <table id="executionTable"></table>
             <h3>Debug</h3>
             <pre id="debugOutput"></pre>
         </details>
     </main>
 
     <script>
+        const BAGHDAD_TZ = 'Asia/Baghdad';
+        const TV_SYMBOL = 'OANDA:XAUUSD';
         const TRADEM_SCAN_URL = 'https://tradem-eight.vercel.app/api/market/scan?refresh=1';
         const TRADEM_PROXY_URL = 'https://r.jina.ai/http://r.jina.ai/http://https://tradem-eight.vercel.app/api/market/scan';
         const MATRIX_SIZE = 24 * 24;
         const DEFAULT_STEP = 1;
         const PRICE_TOLERANCE = 1.5;
-        const TIME_TOLERANCE_MINUTES = 30;
+        const MATRIX_GOLDEN_HOURS = [10, 11, 15, 16, 18];
         const HEX_HOUR_BASE = '09:00';
         const HEX_LAYERS = 12;
-        const GANN_SHAPE = 45;
-        const GANN_CYCLES = 1;
-        const SQ9_CELLS = 25;
-
+        const MIN_BACKTEST_EVENTS = 18;
+        const BIG_MOVE_ATR_MULTIPLE = 1.15;
         const $ = (id) => document.getElementById(id);
         const fmt = (n, d = 2) => Number.isFinite(n) ? Number(n).toFixed(d) : '--';
+        const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-        function getStepDecimals(stepVal) {
-            // Source: matrix24.html -> getStepDecimals()
-            const txt = String(stepVal);
-            return txt.includes('.') ? Math.min(txt.split('.')[1].length, 6) : 0;
+        function baghdadParts(date = new Date()) {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: BAGHDAD_TZ,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hourCycle: 'h23'
+            }).formatToParts(date).reduce((acc, p) => {
+                if(p.type !== 'literal') acc[p.type] = p.value;
+                return acc;
+            }, {});
+            return {
+                year: +parts.year,
+                month: +parts.month,
+                day: +parts.day,
+                hour: +parts.hour,
+                minute: +parts.minute,
+                second: +parts.second
+            };
         }
 
-        function roundToStep(price, stepVal) {
-            // Source: matrix24.html -> roundToStep()
-            const safeStep = stepVal > 0 ? stepVal : 1;
-            return parseFloat((Math.round(price / safeStep) * safeStep).toFixed(getStepDecimals(safeStep)));
+        function baghdadLabel(date) {
+            return new Intl.DateTimeFormat('en-GB', {
+                timeZone: BAGHDAD_TZ,
+                hour: '2-digit',
+                minute: '2-digit',
+                hourCycle: 'h23'
+            }).format(date);
+        }
+
+        function minuteOfDayFromDate(date) {
+            const p = baghdadParts(date);
+            return p.hour * 60 + p.minute;
+        }
+
+        function hourFromDate(date) {
+            return baghdadParts(date).hour;
+        }
+
+        function parseHourLabel(label) {
+            const [h, m] = label.split(':').map(Number);
+            return h * 60 + (m || 0);
+        }
+
+        function circularMinuteDistance(a, b) {
+            const diff = Math.abs(a - b);
+            return Math.min(diff, 1440 - diff);
+        }
+
+        function forwardMinuteDistance(target, now) {
+            return target >= now ? target - now : target + 1440 - now;
+        }
+
+        function tvPacket(method, params) {
+            const payload = JSON.stringify({ m: method, p: params });
+            return `~m~${payload.length}~m~${payload}`;
+        }
+
+        function parseTvPackets(raw) {
+            const packets = [];
+            let i = 0;
+            while(i < raw.length) {
+                if(raw.startsWith('~h~', i)) {
+                    const next = raw.indexOf('~m~', i + 3);
+                    packets.push(raw.slice(i, next === -1 ? raw.length : next));
+                    i = next === -1 ? raw.length : next;
+                    continue;
+                }
+                const start = raw.indexOf('~m~', i);
+                if(start === -1) break;
+                const lenStart = start + 3;
+                const lenEnd = raw.indexOf('~m~', lenStart);
+                if(lenEnd === -1) break;
+                const len = parseInt(raw.slice(lenStart, lenEnd), 10);
+                const payloadStart = lenEnd + 3;
+                packets.push(raw.slice(payloadStart, payloadStart + len));
+                i = payloadStart + len;
+            }
+            return packets;
+        }
+
+        function fetchTradingViewCandles(interval, barCount) {
+            // Source: matrix24.html -> fetchTradingViewXauUsdCandles(), generalized for 4H/1H/15M.
+            return new Promise((resolve, reject) => {
+                const chartSession = 'cs_' + Math.random().toString(36).slice(2, 14);
+                const quoteSession = 'qs_' + Math.random().toString(36).slice(2, 14);
+                const ws = new WebSocket('wss://data.tradingview.com/socket.io/websocket');
+                let settled = false;
+                const timer = setTimeout(() => fail(new Error(`TradingView ${interval} candle request timed out`)), 20000);
+
+                function done(candles) {
+                    if(settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    try { ws.close(); } catch(e) {}
+                    resolve(candles);
+                }
+                function fail(err) {
+                    if(settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    try { ws.close(); } catch(e) {}
+                    reject(err);
+                }
+                function send(method, params) {
+                    ws.send(tvPacket(method, params));
+                }
+                ws.onerror = () => fail(new Error('TradingView WebSocket error'));
+                ws.onopen = () => {
+                    send('set_auth_token', ['unauthorized_user_token']);
+                    send('chart_create_session', [chartSession, '']);
+                    send('quote_create_session', [quoteSession]);
+                    send('quote_add_symbols', [quoteSession, TV_SYMBOL, { flags: ['force_permission'] }]);
+                    send('resolve_symbol', [chartSession, 'symbol_1', `={"symbol":"${TV_SYMBOL}","adjustment":"splits","session":"regular"}`]);
+                    send('create_series', [chartSession, 's1', 's1', 'symbol_1', String(interval), barCount]);
+                };
+                ws.onmessage = (event) => {
+                    parseTvPackets(event.data).forEach(packet => {
+                        if(packet.startsWith('~h~')) {
+                            try { ws.send(packet); } catch(e) {}
+                            return;
+                        }
+                        let msg;
+                        try { msg = JSON.parse(packet); } catch(e) { return; }
+                        if(msg.m === 'timescale_update' && msg.p && msg.p[1] && msg.p[1].s1 && Array.isArray(msg.p[1].s1.s)) {
+                            const candles = msg.p[1].s1.s.map(item => {
+                                const v = item.v || [];
+                                return { time: v[0], open: v[1], high: v[2], low: v[3], close: v[4] };
+                            }).filter(c => [c.time, c.open, c.high, c.low, c.close].every(Number.isFinite))
+                              .sort((a, b) => a.time - b.time);
+                            if(candles.length >= 30) done(candles);
+                        }
+                        if(msg.m === 'critical_error' || msg.m === 'symbol_error') fail(new Error('TradingView returned ' + msg.m));
+                    });
+                };
+            });
         }
 
         function extractJsonFromText(text) {
             // Source: matrix24.html -> extractJsonFromText()
-            const trimmed = (text || '').trim();
-            if(trimmed.startsWith('{')) return JSON.parse(trimmed);
-            const start = trimmed.indexOf('{');
-            const end = trimmed.lastIndexOf('}');
-            if(start < 0 || end <= start) throw new Error('Market API did not return JSON');
-            return JSON.parse(trimmed.slice(start, end + 1));
+            const start = text.indexOf('{');
+            const end = text.lastIndexOf('}');
+            if(start === -1 || end === -1 || end <= start) throw new Error('No JSON object found in response');
+            return JSON.parse(text.slice(start, end + 1));
         }
 
         async function fetchJsonWithTextFallback(url) {
             // Source: matrix24.html -> fetchJsonWithTextFallback()
             const res = await fetch(url, { cache: 'no-store' });
             const text = await res.text();
-            if(!res.ok) throw new Error(`Market API returned HTTP ${res.status}`);
-            return extractJsonFromText(text);
+            if(!res.ok) throw new Error(`HTTP ${res.status}`);
+            try { return JSON.parse(text); } catch(e) { return extractJsonFromText(text); }
         }
 
         async function fetchTradeMScan() {
@@ -289,604 +428,813 @@
                 try {
                     return await fetchJsonWithTextFallback(TRADEM_PROXY_URL);
                 } catch(proxyErr) {
-                    throw new Error(`TradeM/Dukascopy data failed: ${primaryErr.message}; fallback failed: ${proxyErr.message}`);
+                    throw new Error(`TradeM scan failed: ${primaryErr.message}; fallback failed: ${proxyErr.message}`);
                 }
             }
         }
 
-        function inferTrendFromScan(scan) {
+        function atr(candles, period = 14) {
+            if(!candles || candles.length < period + 1) return null;
+            const trs = [];
+            for(let i = candles.length - period; i < candles.length; i++) {
+                const c = candles[i], p = candles[i - 1];
+                trs.push(Math.max(c.high - c.low, Math.abs(c.high - p.close), Math.abs(c.low - p.close)));
+            }
+            return trs.reduce((a, b) => a + b, 0) / trs.length;
+        }
+
+        function confirmedPivot(candles, index, field, direction, side) {
+            const value = candles[index][field];
+            for(let i = index - side; i <= index + side; i++) {
+                if(i === index || i < 0 || i >= candles.length) continue;
+                if(direction === 'high' && candles[i].high >= value) return false;
+                if(direction === 'low' && candles[i].low <= value) return false;
+            }
+            return true;
+        }
+
+        function findSignificantPivots(candles, side = 3, minAtrMultiple = 0.8) {
+            const baseAtr = atr(candles, 20) || 1;
+            const pivots = [];
+            for(let i = side; i < candles.length - side; i++) {
+                if(confirmedPivot(candles, i, 'high', 'high', side)) {
+                    const nearLow = Math.min(...candles.slice(i - side, i + side + 1).map(c => c.low));
+                    const prominence = candles[i].high - nearLow;
+                    if(prominence >= baseAtr * minAtrMultiple) pivots.push({ kind: 'high', price: candles[i].high, time: candles[i].time, index: i, prominence });
+                }
+                if(confirmedPivot(candles, i, 'low', 'low', side)) {
+                    const nearHigh = Math.max(...candles.slice(i - side, i + side + 1).map(c => c.high));
+                    const prominence = nearHigh - candles[i].low;
+                    if(prominence >= baseAtr * minAtrMultiple) pivots.push({ kind: 'low', price: candles[i].low, time: candles[i].time, index: i, prominence });
+                }
+            }
+            return pivots.sort((a, b) => a.time - b.time);
+        }
+
+        function infer4hContext(candles) {
+            const pivots = findSignificantPivots(candles, 3, 0.9);
+            const highs = pivots.filter(p => p.kind === 'high').slice(-3);
+            const lows = pivots.filter(p => p.kind === 'low').slice(-3);
+            const last = candles[candles.length - 1];
+            let bias = 'Neutral';
+            let reason = 'Not enough confirmed swing sequence for a clean 4H bias.';
+            if(highs.length >= 2 && lows.length >= 2) {
+                const hh = highs[highs.length - 1].price > highs[highs.length - 2].price;
+                const hl = lows[lows.length - 1].price > lows[lows.length - 2].price;
+                const lh = highs[highs.length - 1].price < highs[highs.length - 2].price;
+                const ll = lows[lows.length - 1].price < lows[lows.length - 2].price;
+                if(hh && hl) {
+                    bias = 'Bullish';
+                    reason = '4H structure has a higher high and higher low.';
+                } else if(lh && ll) {
+                    bias = 'Bearish';
+                    reason = '4H structure has a lower high and lower low.';
+                }
+            }
+            return { bias, reason, pivots, lastClose: last.close, atr: atr(candles, 14) };
+        }
+
+        function autoAnchorFromScan(scan, stepVal) {
+            // Source: matrix24.html -> selectSq24AnchorFromTradeM(), simplified to select confirmed TradeM pivot.
             const pivotKind = scan && scan.setup && scan.setup.anchorPivot && scan.setup.anchorPivot.kind;
-            if(pivotKind === 'high') return { trend: 'down', reason: 'TradeM anchorPivot.kind is high, so Matrix uses DOWN/swing-high mode.' };
-            if(pivotKind === 'low') return { trend: 'up', reason: 'TradeM anchorPivot.kind is low, so Matrix uses UP/swing-low mode.' };
-            const unified = scan && scan.strategies && scan.strategies.unified;
-            const resistanceCount = unified && Array.isArray(unified.resistanceZones) ? unified.resistanceZones.length : 0;
-            const supportCount = unified && Array.isArray(unified.supportZones) ? unified.supportZones.length : 0;
-            if(resistanceCount >= supportCount) return { trend: 'down', reason: 'No anchor pivot kind was available; resistance zones were used to choose DOWN mode.' };
-            return { trend: 'up', reason: 'No anchor pivot kind was available; support zones were used to choose UP mode.' };
-        }
-
-        function selectSq24AnchorFromTradeM(scan, trendDir, stepVal) {
-            // Source: matrix24.html -> selectSq24AnchorFromTradeM()
-            if(!scan || !scan.setup || !scan.market) throw new Error(scan && scan.error ? scan.error : 'No TradeM setup data');
-            const pivot = scan.setup.anchorPivot;
-            const expectedKind = trendDir === 'down' ? 'high' : 'low';
-            const currentPrice = Number(scan.market.currentPrice || scan.setup.currentPrice);
-            if(!Number.isFinite(currentPrice)) throw new Error('TradeM scan has no current XAU/USD price');
-
-            let anchor = null;
-            if(pivot && pivot.kind === expectedKind) {
-                anchor = {
-                    price: Number(pivot.price),
-                    timestamp: pivot.timestamp,
-                    timeframe: pivot.timeframe || 'unknown',
-                    sourceNote: pivot.timeframe === '1H' ? 'confirmed 1H pivot' : `confirmed ${pivot.timeframe || 'unknown'} pivot`
-                };
-            } else {
-                const zones = trendDir === 'down'
-                    ? (scan.strategies && scan.strategies.unified && scan.strategies.unified.resistanceZones) || []
-                    : (scan.strategies && scan.strategies.unified && scan.strategies.unified.supportZones) || [];
-                const sortedZones = zones
-                    .filter(z => z && Number.isFinite(Number(z.level || z.high || z.low)) && z.createdAt)
-                    .filter(z => trendDir === 'down' ? Number(z.level || z.high) >= currentPrice : Number(z.level || z.low) <= currentPrice)
-                    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
-                const zone = sortedZones[0];
-                if(zone) {
-                    anchor = {
-                        price: Number(zone.level || (trendDir === 'down' ? zone.high : zone.low)),
-                        timestamp: zone.createdAt,
-                        timeframe: zone.timeframe || 'unknown',
-                        sourceNote: `confirmed ${zone.kind || (trendDir === 'down' ? 'resistance' : 'support')} zone from TradeM`
-                    };
-                }
+            const trend = pivotKind === 'high' ? 'down' : pivotKind === 'low' ? 'up' : null;
+            if(!trend) throw new Error('TradeM scan did not provide anchorPivot.kind.');
+            const setup = scan.setup || {};
+            const market = scan.market || {};
+            const zones = trend === 'down' ? (setup.supplyZones || []) : (setup.demandZones || []);
+            const expectedKind = trend === 'down' ? 'high' : 'low';
+            let best = null;
+            for(const z of zones) {
+                const raw = z.anchor || z.pivot || z.price || z.top || z.bottom;
+                const price = Number(raw);
+                if(!Number.isFinite(price)) continue;
+                if(z.confirmed === false) continue;
+                if(z.kind && z.kind !== expectedKind && z.type && z.type !== expectedKind) continue;
+                best = { price, kind: expectedKind, source: 'TradeM confirmed zone' };
+                break;
             }
-
-            if(!anchor) throw new Error(`TradeM scan did not return a confirmed ${expectedKind} anchor for ${trendDir.toUpperCase()} direction`);
-            const rawPrice = Number(anchor.price);
-            const candleMs = Date.parse(anchor.timestamp);
-            if(!Number.isFinite(currentPrice) || !Number.isFinite(rawPrice) || !Number.isFinite(candleMs)) throw new Error('TradeM scan has incomplete market data');
-
-            const base = roundToStep(rawPrice, stepVal);
-            const rangeMin = trendDir === 'down' ? base - ((MATRIX_SIZE - 1) * stepVal) : base;
-            const rangeMax = trendDir === 'down' ? base : base + ((MATRIX_SIZE - 1) * stepVal);
+            if(!best && setup.anchorPivot && Number.isFinite(Number(setup.anchorPivot.price))) {
+                best = { price: Number(setup.anchorPivot.price), kind: expectedKind, source: 'TradeM anchorPivot' };
+            }
+            if(!best) throw new Error('TradeM scan did not return a usable automatic anchor.');
             return {
-                base,
-                rawPrice,
-                currentPrice,
-                candleTime: candleMs,
-                rangeMin,
-                rangeMax,
-                provider: scan.provider || 'TradeM / Dukascopy Free Data Feed',
-                reason: trendDir === 'down'
-                    ? `DOWN direction: ${anchor.sourceNote} used as latest swing high anchor`
-                    : `UP direction: ${anchor.sourceNote} used as latest swing low anchor`,
-                inRange: currentPrice >= rangeMin && currentPrice <= rangeMax
+                base: roundToStep(best.price, stepVal),
+                trend,
+                reason: best.source,
+                marketPrice: Number(market.price || market.close || scan.price)
             };
         }
 
-        function activeHourFromDate(date) {
-            const h = date.getHours();
-            return h === 0 ? 24 : h;
+        function autoAnchorFromPivots(candles, preferredTrend, stepVal) {
+            const pivots = findSignificantPivots(candles, 3, 0.8);
+            const expected = preferredTrend === 'Bearish' ? 'high' : preferredTrend === 'Bullish' ? 'low' : null;
+            const candidates = expected ? pivots.filter(p => p.kind === expected) : pivots;
+            const selected = (candidates.length ? candidates : pivots).slice(-1)[0];
+            if(!selected) throw new Error('Could not detect a significant 1H pivot anchor.');
+            return {
+                base: roundToStep(selected.price, stepVal),
+                trend: selected.kind === 'high' ? 'down' : 'up',
+                reason: `1H confirmed ${selected.kind} pivot`,
+                marketPrice: null
+            };
+        }
+
+        function roundToStep(price, stepVal) {
+            // Source: matrix24.html -> roundToStep()
+            return Math.round(price / stepVal) * stepVal;
         }
 
         function calculateMatrixPlan(price, base, stepVal, trendDir, activeHour) {
             // Source: matrix24.html -> generateMatrixSignal()
-            const col = activeHour - 1;
-            let nFloat;
-            if(trendDir === 'up') nFloat = (price - base - col * stepVal) / (24 * stepVal);
-            else nFloat = (base - price - col * stepVal) / (24 * stepVal);
-
-            let n1 = Math.floor(nFloat);
-            let n2 = Math.ceil(nFloat);
-            if(n1 === n2) n2 = n1 + 1;
-
-            let val1, val2;
-            if(trendDir === 'up') {
-                val1 = base + (n1 * 24 + col) * stepVal;
-                val2 = base + (n2 * 24 + col) * stepVal;
-            } else {
-                val1 = base - (n1 * 24 + col) * stepVal;
-                val2 = base - (n2 * 24 + col) * stepVal;
-            }
-
-            const lower = parseFloat(Math.min(val1, val2).toFixed(2));
-            const upper = parseFloat(Math.max(val1, val2).toFixed(2));
-            const dist = upper - lower;
-            const q1 = dist * 0.25, q2 = dist * 0.50, q3 = dist * 0.75;
-            const buyTargets = [
-                parseFloat((lower + q1).toFixed(2)),
-                parseFloat((lower + q2).toFixed(2)),
-                parseFloat((lower + q3).toFixed(2)),
-                upper
-            ];
-            const sellTargets = [
-                parseFloat((upper - q1).toFixed(2)),
-                parseFloat((upper - q2).toFixed(2)),
-                parseFloat((upper - q3).toFixed(2)),
-                lower
-            ];
-            const slOffset = parseFloat((stepVal * 1.5).toFixed(2));
+            const col = Math.max(0, Math.min(23, Number(activeHour) - 1));
+            const raw = trendDir === 'up'
+                ? (price - base - col * stepVal) / (24 * stepVal)
+                : (base - price - col * stepVal) / (24 * stepVal);
+            const lowerRow = Math.floor(raw);
+            const upperRow = Math.ceil(raw);
+            const buyLevel = trendDir === 'up'
+                ? base + (lowerRow * 24 + col) * stepVal
+                : base - (upperRow * 24 + col) * stepVal;
+            const sellLevel = trendDir === 'up'
+                ? base + (upperRow * 24 + col) * stepVal
+                : base - (lowerRow * 24 + col) * stepVal;
+            const channel = Math.abs(sellLevel - buyLevel);
+            const targetsDown = [0.25, 0.5, 0.75, 1].map(x => sellLevel - channel * x);
+            const targetsUp = [0.25, 0.5, 0.75, 1].map(x => buyLevel + channel * x);
             return {
-                activeHour,
                 col,
-                nFloat,
-                rows: [n1, n2],
-                lower,
-                upper,
-                dist,
-                buyTargets,
-                sellTargets,
-                buySL: parseFloat((lower - slOffset).toFixed(2)),
-                sellSL: parseFloat((upper + slOffset).toFixed(2))
+                activeHour,
+                raw,
+                lower: Math.min(buyLevel, sellLevel),
+                upper: Math.max(buyLevel, sellLevel),
+                buyLevel: Math.min(buyLevel, sellLevel),
+                sellLevel: Math.max(buyLevel, sellLevel),
+                buySL: Math.min(buyLevel, sellLevel) - stepVal * 1.5,
+                sellSL: Math.max(buyLevel, sellLevel) + stepVal * 1.5,
+                buyTargets: targetsUp.map(v => roundToStep(v, stepVal)),
+                sellTargets: targetsDown.map(v => roundToStep(v, stepVal)),
+                channel
             };
         }
 
-        function generateGannLevels(base, trend, shapeAngle, cycles) {
+        function generateGannLevels(base, trend, shapeAngle = 45, cycles = 2) {
             // Source: planetary.html -> dPl()
             const levels = [];
-            const root = Math.sqrt(base);
-            const dirUp = trend === 'up';
-            for(let cycle = 0; cycle < cycles; cycle++) {
-                const offset = cycle * 360;
-                for(let a = 0; a < 359.99; a += shapeAngle) {
-                    const totalAngle = offset + a;
-                    const price = dirUp
-                        ? Math.pow(root + (totalAngle / 180), 2)
-                        : Math.pow(Math.max(0, root - (totalAngle / 180)), 2);
-                    levels.push({ price: parseFloat(price.toFixed(2)), angle: totalAngle, source: `Gann ${totalAngle.toFixed(1)} deg` });
-                }
-                for(let a = shapeAngle / 2; a < 359.99; a += shapeAngle) {
-                    const totalAngle = offset + a;
-                    const price = dirUp
-                        ? Math.pow(root + (totalAngle / 180), 2)
-                        : Math.pow(Math.max(0, root - (totalAngle / 180)), 2);
-                    levels.push({ price: parseFloat(price.toFixed(2)), angle: totalAngle, source: `Gann mid ${totalAngle.toFixed(1)} deg` });
-                }
+            const root = Math.sqrt(Math.max(base, 0.0001));
+            const dir = trend === 'up' ? 1 : -1;
+            for(let angle = shapeAngle; angle <= 360 * cycles; angle += shapeAngle) {
+                const move = dir * angle / 180;
+                const price = Math.pow(root + move, 2);
+                if(price > 0) levels.push({ price: Number(price.toFixed(2)), source: `Gann ${angle} deg`, angle });
             }
             return levels;
         }
 
-        function generateSq9Levels(centerPrice, stepVal, trendDir, gridCells) {
+        function generateSq9Levels(centerPrice, stepVal, trendDir, gridCells = 25) {
             // Source: sq9.html -> drawSq9()
-            if(gridCells % 2 === 0) gridCells++;
-            const grid = Array(gridCells).fill().map(() => Array(gridCells).fill(0));
-            let x = Math.floor(gridCells / 2);
-            let y = Math.floor(gridCells / 2);
-            let value = Math.round(centerPrice) || 2304;
-            const actualStep = trendDir === 'up' ? stepVal : -stepVal;
-            grid[y][x] = value;
-            const dirs = [[-1, 0], [0, -1], [1, 0], [0, 1]];
-            let dirIdx = 0, steps = 1, count = 1, totalCells = gridCells * gridCells;
-            while(count < totalCells) {
-                for(let i = 0; i < 2; i++) {
-                    for(let j = 0; j < steps; j++) {
-                        if(count >= totalCells) break;
-                        x += dirs[dirIdx][0];
-                        y += dirs[dirIdx][1];
-                        value = parseFloat((value + actualStep).toFixed(2));
-                        if(x >= 0 && x < gridCells && y >= 0 && y < gridCells) grid[y][x] = value;
-                        count++;
-                    }
-                    dirIdx = (dirIdx + 1) % 4;
+            const center = Math.floor(gridCells / 2);
+            let x = center, y = center, dx = 1, dy = 0, segmentLen = 1, segmentPassed = 0, turnCount = 0;
+            let raw = 0;
+            const levels = [{ price: roundToStep(centerPrice, stepVal), source: 'SQ9 center', row: center, col: center }];
+            for(let i = 1; i < gridCells * gridCells; i++) {
+                x += dx; y += dy; segmentPassed++;
+                raw += trendDir === 'down' ? -stepVal : stepVal;
+                const price = roundToStep(centerPrice + raw, stepVal);
+                if(x >= 0 && x < gridCells && y >= 0 && y < gridCells) {
+                    const isCross = x === center || y === center || Math.abs(x - center) === Math.abs(y - center);
+                    if(isCross) levels.push({ price, source: 'SQ9 cross/diagonal', row: y, col: x });
                 }
-                steps++;
-            }
-            const centerIdx = Math.floor(gridCells / 2);
-            const levels = [];
-            for(let row = 0; row < gridCells; row++) {
-                for(let col = 0; col < gridCells; col++) {
-                    const num = grid[row][col];
-                    if(num !== 0) {
-                        const isCenter = row === centerIdx && col === centerIdx;
-                        const isCross = row === centerIdx || col === centerIdx || Math.abs(row - centerIdx) === Math.abs(col - centerIdx);
-                        if(isCenter || isCross) levels.push({ price: num, row, col, source: isCenter ? 'SQ9 center' : 'SQ9 cross/diagonal' });
-                    }
+                if(segmentPassed === segmentLen) {
+                    segmentPassed = 0;
+                    const oldDx = dx;
+                    dx = -dy;
+                    dy = oldDx;
+                    turnCount++;
+                    if(turnCount % 2 === 0) segmentLen++;
                 }
             }
             return levels;
         }
 
-        function nearestLevel(levels, target) {
-            return levels
-                .map(l => ({ ...l, distance: Math.abs(l.price - target) }))
-                .sort((a, b) => a.distance - b.distance)[0] || null;
+        function rangeDivisionLevels(candles) {
+            const recent = candles.slice(-120);
+            if(recent.length < 30) return [];
+            const high = Math.max(...recent.map(c => c.high));
+            const low = Math.min(...recent.map(c => c.low));
+            const range = high - low;
+            return [0, 0.25, 0.3333, 0.5, 0.6667, 0.75, 1].map(r => ({
+                price: low + range * r,
+                source: `1H range ${(r * 100).toFixed(0)}%`
+            }));
+        }
+
+        function nearest(levels, target) {
+            return levels.reduce((best, level) => {
+                const distance = Math.abs(level.price - target);
+                return !best || distance < best.distance ? { ...level, distance } : best;
+            }, null);
+        }
+
+        function scorePriceZone(side, matrix, gannLevels, sq9Levels, rangeLevels, pivots, context) {
+            const boundary = side === 'SELL' ? matrix.sellLevel : matrix.buyLevel;
+            const gann = nearest(gannLevels, boundary);
+            const sq9 = nearest(sq9Levels, boundary);
+            const range = nearest(rangeLevels, boundary);
+            const swing = nearest(pivots.map(p => ({ price: p.price, source: `1H swing ${p.kind}` })), boundary);
+            const checks = [
+                { name: 'Matrix', hit: true, distance: 0 },
+                { name: 'Gann Wheel', hit: gann && gann.distance <= PRICE_TOLERANCE, distance: gann ? gann.distance : null },
+                { name: 'Square of 9', hit: sq9 && sq9.distance <= PRICE_TOLERANCE, distance: sq9 ? sq9.distance : null },
+                { name: 'Range division', hit: range && range.distance <= PRICE_TOLERANCE * 1.5, distance: range ? range.distance : null },
+                { name: 'Swing structure', hit: swing && swing.distance <= PRICE_TOLERANCE * 2, distance: swing ? swing.distance : null }
+            ];
+            const evidence = checks.filter(c => c.hit).length;
+            const contextAligned = (side === 'BUY' && context.bias === 'Bullish') || (side === 'SELL' && context.bias === 'Bearish');
+            return {
+                side,
+                boundary,
+                entryLow: side === 'SELL' ? boundary - 2 : boundary,
+                entryHigh: side === 'SELL' ? boundary : boundary + 2,
+                sl: side === 'SELL' ? matrix.sellSL : matrix.buySL,
+                targets: side === 'SELL' ? matrix.sellTargets : matrix.buyTargets,
+                checks,
+                gann,
+                sq9,
+                range,
+                swing,
+                priceEvidence: evidence,
+                contextAligned,
+                score: evidence + (contextAligned ? 1 : 0)
+            };
         }
 
         function generateHexCells(mode, baseRaw, step, trend, layers) {
-            // Source: hexagon.html -> dHx(), dH(), gDV()
-            const dir = trend === 'up' ? 1 : -1;
-            const dr = [{q: 1, r: 0}, {q: 0, r: 1}, {q: -1, r: 1}, {q: -1, r: 0}, {q: 0, r: -1}, {q: 1, r: -1}];
-            let vO, sMs = 0;
-            if(mode === 'hour') {
-                const [h, m] = baseRaw.split(':').map(Number);
-                const d = new Date();
-                d.setHours(h || 0, m || 0, 0, 0);
-                vO = d.getTime();
-                sMs = 3600000 * step * dir;
-            } else {
-                vO = new Date(baseRaw).getTime();
-                if(isNaN(vO)) vO = new Date().getTime();
-                sMs = 86400000 * step * dir;
-            }
-
+            // Source: hexagon.html -> dHx(), gDV()
+            const cells = [{ value: baseRaw, ring: 0, indexInSide: 0, sideIndex: 0, importantType: 'center', score: 5 }];
+            let val = baseRaw;
+            let currentHour = parseHourLabel(String(baseRaw));
             function nextValue() {
-                const dt = new Date(vO);
-                const label = mode === 'hour'
-                    ? dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0')
-                    : dt.getDate() + '/' + (dt.getMonth() + 1);
-                const value = new Date(vO);
-                vO += sMs;
-                return { label, value };
+                if(mode === 'hour') {
+                    currentHour = (currentHour + step + 1440) % 1440;
+                    const h = Math.floor(currentHour / 60).toString().padStart(2, '0');
+                    const m = (currentHour % 60).toString().padStart(2, '0');
+                    return `${h}:${m}`;
+                }
+                val += trend === 'down' ? -step : step;
+                return val;
             }
-
-            const cells = [];
-            let q = 0, rr = 0;
-            cells.push({ ...nextValue(), ring: 0, side: 0, indexInSide: 0, important: true, importantType: 'center', q, r: rr });
-            for(let ring = 1; ring < layers; ring++) {
-                q += dr[4].q;
-                rr += dr[4].r;
+            for(let ring = 1; ring <= layers; ring++) {
                 for(let side = 0; side < 6; side++) {
                     for(let j = 0; j < ring; j++) {
-                        const isEdge = j === 0;
-                        let isTurn = false;
-                        if(ring > 1) {
-                            if(ring % 2 === 0 && j === ring / 2) isTurn = true;
-                            if(ring % 2 !== 0 && (j === Math.floor(ring / 2) || j === Math.ceil(ring / 2))) isTurn = true;
-                        }
-                        cells.push({
-                            ...nextValue(),
-                            ring,
-                            side,
-                            indexInSide: j,
-                            important: isEdge || isTurn,
-                            importantType: isEdge ? 'hex edge' : (isTurn ? 'mid-turn' : 'normal'),
-                            q,
-                            r: rr
-                        });
-                        q += dr[side].q;
-                        rr += dr[side].r;
+                        const label = nextValue();
+                        const isCorner = j === 0;
+                        const isMiddle = ring > 2 && j === Math.floor(ring / 2);
+                        const score = isCorner ? (ring <= 4 ? 4 : 3) : isMiddle ? 2 : 1;
+                        cells.push({ value: label, ring, sideIndex: side, indexInSide: j, importantType: isCorner ? 'axis/corner' : isMiddle ? 'mid-side alignment' : 'ordinary cell', score });
                     }
                 }
             }
             return cells;
         }
 
-        function minutesOfDay(date) {
-            return date.getHours() * 60 + date.getMinutes();
-        }
-
-        function circularMinuteDistance(a, b) {
-            const diff = Math.abs(a - b);
-            return Math.min(diff, 1440 - diff);
-        }
-
-        function forwardMinuteDistance(targetMinutes, activeMinutes) {
-            return (targetMinutes - activeMinutes + 1440) % 1440;
-        }
-
-        function analyzeHexTime(activeDate, trend) {
-            const hourCells = generateHexCells('hour', HEX_HOUR_BASE, DEFAULT_STEP, trend === 'down' ? 'down' : 'up', HEX_LAYERS);
-            const activeMinutes = minutesOfDay(activeDate);
-            const important = hourCells.filter(c => c.important);
-            const cells = important.map(c => ({
-                ...c,
-                distanceMinutes: circularMinuteDistance(minutesOfDay(c.value), activeMinutes),
-                forwardMinutes: forwardMinuteDistance(minutesOfDay(c.value), activeMinutes)
-            }));
-            const closest = [...cells].sort((a, b) => a.distanceMinutes - b.distanceMinutes)[0];
-            const upcoming = [...cells].sort((a, b) => a.forwardMinutes - b.forwardMinutes).slice(0, 5);
-            return {
-                closest,
-                upcoming,
-                hasConfluence: !!closest && closest.distanceMinutes <= TIME_TOLERANCE_MINUTES,
-                window: upcoming[0] ? `${upcoming[0].label}-${upcoming[1] ? upcoming[1].label : upcoming[0].label}` : `${activeDate.getHours()}:00`
-            };
+        function todaysHexTimes(now = new Date()) {
+            const nowMin = minuteOfDayFromDate(now);
+            const cells = generateHexCells('hour', HEX_HOUR_BASE, 60, 'up', HEX_LAYERS)
+                .filter(c => c.score >= 3)
+                .map(c => {
+                    const min = parseHourLabel(c.value);
+                    return {
+                        label: c.value,
+                        ring: c.ring,
+                        type: c.importantType,
+                        score: c.score,
+                        distance: circularMinuteDistance(min, nowMin),
+                        forward: forwardMinuteDistance(min, nowMin)
+                    };
+                })
+                .sort((a, b) => b.score - a.score || a.forward - b.forward);
+            const unique = [];
+            for(const c of cells) {
+                if(!unique.some(u => u.label === c.label)) unique.push(c);
+            }
+            return unique;
         }
 
         function getPlanets(dateObj) {
             // Source: astro.html -> getPlanets()
-            const d = (dateObj.getTime() / 86400000) - 10957.5;
-            let gSun = (357.529 + 0.98560028 * d) % 360, qSun = (280.459 + 0.98564736 * d) % 360;
-            let LSun = qSun + 1.915 * Math.sin(gSun * Math.PI/180) + 0.020 * Math.sin(2*gSun * Math.PI/180);
-            let LMoon = (218.316 + 13.176396 * d) % 360, MMoon = (134.963 + 13.064993 * d) % 360; LMoon = LMoon + 6.289 * Math.sin(MMoon * Math.PI/180);
-            let LMerc = (252.251 + 4.092339 * d) % 360, LVen = (181.979 + 1.602130 * d) % 360, LMars = (355.433 + 0.524020 * d) % 360;
-            let LJup = (34.351 + 0.083091 * d) % 360, LSat = (50.077 + 0.033459 * d) % 360, LUra = (314.055 + 0.011731 * d) % 360;
-            let LNep = (304.349 + 0.005981 * d) % 360, LPluto = (238.929 + 0.00396 * d) % 360;
-            let LNode = (125.045 - 0.05295 * d) % 360, LSouthNode = (LNode + 180) % 360;
-            let pl = [
-                { id: "Sun", angle: LSun, speed: 0.9856 },
-                { id: "Moon", angle: LMoon, speed: 13.176 },
-                { id: "Mercury", angle: LMerc, speed: 4.092 },
-                { id: "Venus", angle: LVen, speed: 1.602 },
-                { id: "Mars", angle: LMars, speed: 0.524 },
-                { id: "Jupiter", angle: LJup, speed: 0.083 },
-                { id: "Saturn", angle: LSat, speed: 0.033 },
-                { id: "Uranus", angle: LUra, speed: 0.011 },
-                { id: "Neptune", angle: LNep, speed: 0.005 },
-                { id: "Pluto", angle: LPluto, speed: 0.003 },
-                { id: "Node", angle: LNode, speed: -0.052 },
-                { id: "S-Node", angle: LSouthNode, speed: -0.052 }
+            const d = (dateObj.getTime() - new Date("2000-01-01T12:00:00Z").getTime()) / 86400000;
+            const raw = [
+                ["Sun", 280.46 + 0.9856474 * d, 0.9856],
+                ["Moon", 218.32 + 13.176396 * d, 13.176],
+                ["Mercury", 252.25 + 4.092334 * d, 4.092],
+                ["Venus", 181.98 + 1.602130 * d, 1.602],
+                ["Mars", 355.43 + 0.524020 * d, 0.524],
+                ["Jupiter", 34.35 + 0.083086 * d, 0.083],
+                ["Saturn", 50.08 + 0.033459 * d, 0.033],
+                ["Uranus", 314.05 + 0.011728 * d, 0.0117],
+                ["Neptune", 304.35 + 0.005981 * d, 0.006],
+                ["Pluto", 238.95 + 0.003964 * d, 0.004],
+                ["Node", 125.04 - 0.052954 * d, -0.052]
             ];
-            return pl.map(p => { p.angle = p.angle % 360; if(p.angle < 0) p.angle += 360; return p; });
-        }
-
-        function getStaticTime(nowDate, orbDeg, relativeSpeed, isStart, maxOrb) {
-            // Source: astro.html -> getStaticTime()
-            const dDiff = (maxOrb - orbDeg) / (relativeSpeed || 1);
-            return new Date(nowDate.getTime() + (isStart ? -1 : 1) * dDiff * 86400000);
+            return raw.map(([id, angle, speed]) => ({ id, angle: ((angle % 360) + 360) % 360, speed }));
         }
 
         function classifyAspect(p1, p2, diff) {
-            // Source: astro.html -> updateAstro(), Aspect Signal Generation
-            let aspectName = "", classification = "neutral", orb = 0, maxLimit = 5;
-            if(Math.abs(diff - 0) < 6) {
-                aspectName = "Conjunction 0";
-                orb = diff;
-                maxLimit = 6;
-                classification = (p1.id === "Sun" && p2.id === "Moon") ? "bearish" : "bullish";
-            } else if(Math.abs(diff - 180) < 6) {
-                aspectName = "Opposition 180";
-                orb = Math.abs(diff - 180);
-                maxLimit = 6;
-                classification = "bearish";
-            } else if(Math.abs(diff - 120) < 5) {
-                aspectName = "Trine 120";
-                orb = Math.abs(diff - 120);
-                maxLimit = 5;
-                classification = "bullish";
-            } else if(Math.abs(diff - 90) < 5) {
-                aspectName = "Square 90";
-                orb = Math.abs(diff - 90);
-                maxLimit = 5;
-                classification = "neutral";
-            } else if(Math.abs(diff - 60) < 4) {
-                aspectName = "Sextile 60";
-                orb = Math.abs(diff - 60);
-                maxLimit = 4;
-                classification = "bullish";
-            }
+            // Source: astro.html -> updateAstro()
+            let aspectName = null, orb = 0, maxLimit = 0, classification = 'neutral';
+            if(diff < 6) { aspectName = 'Conjunction 0'; orb = diff; maxLimit = 6; classification = (p1.id === 'Sun' && p2.id === 'Moon') ? 'bearish' : 'bullish'; }
+            else if(Math.abs(diff - 180) < 6) { aspectName = 'Opposition 180'; orb = Math.abs(diff - 180); maxLimit = 6; classification = 'bearish'; }
+            else if(Math.abs(diff - 120) < 5) { aspectName = 'Trine 120'; orb = Math.abs(diff - 120); maxLimit = 5; classification = 'bullish'; }
+            else if(Math.abs(diff - 90) < 5) { aspectName = 'Square 90'; orb = Math.abs(diff - 90); maxLimit = 5; classification = 'neutral'; }
+            else if(Math.abs(diff - 60) < 4) { aspectName = 'Sextile 60'; orb = Math.abs(diff - 60); maxLimit = 4; classification = 'bullish'; }
             if(!aspectName) return null;
-
-            const combinedIDs = p1.id + p2.id;
-            if(combinedIDs.includes("Uranus") || combinedIDs.includes("Pluto") || combinedIDs.includes("Node")) classification = "bearish";
-            if(combinedIDs.includes("Jupiter")) classification = "bullish";
-            else if(combinedIDs.includes("Saturn")) classification = "bearish";
-            return { aspectName, classification, orb, maxLimit };
+            const ids = p1.id + p2.id;
+            if(ids.includes('Uranus') || ids.includes('Pluto') || ids.includes('Node')) classification = 'bearish';
+            if(ids.includes('Jupiter')) classification = 'bullish';
+            else if(ids.includes('Saturn')) classification = 'bearish';
+            return { aspectName, orb, maxLimit, classification };
         }
 
-        function analyzeAstro(dateObj, price) {
+        function astroAspectsAt(dateObj) {
             const planets = getPlanets(dateObj);
-            const priceDegree = (Math.sqrt(price) * 180) % 360;
             const aspects = [];
             for(let i = 0; i < planets.length; i++) {
                 for(let j = i + 1; j < planets.length; j++) {
                     let diff = Math.abs(planets[i].angle - planets[j].angle);
                     if(diff > 180) diff = 360 - diff;
                     const asp = classifyAspect(planets[i], planets[j], diff);
-                    if(asp) {
-                        const relSpeed = Math.abs(planets[i].speed - planets[j].speed) || 0.5;
-                        aspects.push({
-                            p1: planets[i],
-                            p2: planets[j],
-                            diff,
-                            relSpeed,
-                            start: getStaticTime(dateObj, asp.orb, relSpeed, true, asp.maxLimit),
-                            end: getStaticTime(dateObj, asp.orb, relSpeed, false, asp.maxLimit),
-                            ...asp
-                        });
-                    }
+                    if(asp) aspects.push({ p1: planets[i].id, p2: planets[j].id, diff, ...asp });
                 }
             }
-            aspects.sort((a, b) => a.orb - b.orb);
-            return { planets, priceDegree, aspects, closest: aspects[0] || null };
+            return aspects.sort((a, b) => a.orb - b.orb);
         }
 
-        function pipsBetween(a, b) {
-            return Math.round(Math.abs(a - b) * 10);
+        function astroTodayWindows(now = new Date()) {
+            const parts = baghdadParts(now);
+            const windows = [];
+            for(let m = 0; m < 1440; m += 15) {
+                const utcGuess = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 0, m - 180, 0));
+                const aspects = astroAspectsAt(utcGuess);
+                if(!aspects.length) continue;
+                const best = aspects[0];
+                const strength = clamp(1 - best.orb / best.maxLimit, 0, 1);
+                if(strength >= 0.45) {
+                    windows.push({
+                        startMin: Math.max(0, m - 15),
+                        endMin: Math.min(1439, m + 15),
+                        exactMin: m,
+                        strength,
+                        aspect: best
+                    });
+                }
+            }
+            return windows.sort((a, b) => b.strength - a.strength).slice(0, 8);
         }
 
-        function scoreBoundary(boundary, kind, matrix, gannLevels, sq9Levels) {
-            const gann = nearestLevel(gannLevels, boundary);
-            const sq9 = nearestLevel(sq9Levels, boundary);
-            const gannHit = !!gann && gann.distance <= PRICE_TOLERANCE;
-            const sq9Hit = !!sq9 && sq9.distance <= PRICE_TOLERANCE;
+        function timeLabelFromMinute(min) {
+            const h = Math.floor(min / 60).toString().padStart(2, '0');
+            const m = Math.floor(min % 60).toString().padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+        function buildTimeWindows(now = new Date()) {
+            const nowMin = minuteOfDayFromDate(now);
+            const hexTimes = todaysHexTimes(now);
+            const astroWindows = astroTodayWindows(now);
+            const windows = [];
+            for(const h of MATRIX_GOLDEN_HOURS) {
+                const start = h * 60;
+                const end = start + 59;
+                const hexHit = hexTimes.some(x => circularMinuteDistance(parseHourLabel(x.label), start) <= 30);
+                const astroHit = astroWindows.some(x => Math.max(start, x.startMin) <= Math.min(end, x.endMin));
+                const score = 1 + (hexHit ? 1 : 0) + (astroHit ? 1 : 0);
+                windows.push({
+                    source: 'Matrix/Gann golden hour',
+                    startMin: start,
+                    endMin: end,
+                    label: `${timeLabelFromMinute(start)}-${timeLabelFromMinute(end)}`,
+                    distance: nowMin >= start && nowMin <= end ? 0 : Math.min(forwardMinuteDistance(start, nowMin), circularMinuteDistance(end, nowMin)),
+                    hexHit,
+                    astroHit,
+                    score
+                });
+            }
+            for(const h of hexTimes.slice(0, 8)) {
+                const center = parseHourLabel(h.label);
+                const start = Math.max(0, center - 15);
+                const end = Math.min(1439, center + 15);
+                const astroHit = astroWindows.some(x => Math.max(start, x.startMin) <= Math.min(end, x.endMin));
+                windows.push({
+                    source: 'Hexagon axis/corner time',
+                    startMin: start,
+                    endMin: end,
+                    label: `${timeLabelFromMinute(start)}-${timeLabelFromMinute(end)}`,
+                    distance: circularMinuteDistance(center, nowMin),
+                    hexHit: true,
+                    astroHit,
+                    score: 1 + (h.score >= 4 ? 1 : 0) + (astroHit ? 1 : 0)
+                });
+            }
+            return windows.sort((a, b) => b.score - a.score || a.distance - b.distance);
+        }
+
+        function candleMinute(c) {
+            return minuteOfDayFromDate(new Date(c.time * 1000));
+        }
+
+        function candleInWindow(c, w) {
+            const m = candleMinute(c);
+            return m >= w.startMin && m <= w.endMin;
+        }
+
+        function isGannCycleCandle(c) {
+            return MATRIX_GOLDEN_HOURS.includes(Math.floor(candleMinute(c) / 60));
+        }
+
+        function isHexImportantCandle(c) {
+            const m = candleMinute(c);
+            return todaysHexTimes(new Date(c.time * 1000)).some(h => circularMinuteDistance(parseHourLabel(h.label), m) <= 15);
+        }
+
+        function isAstroImportantCandle(c) {
+            const aspects = astroAspectsAt(new Date(c.time * 1000));
+            if(!aspects.length) return false;
+            const best = aspects[0];
+            return (1 - best.orb / best.maxLimit) >= 0.45;
+        }
+
+        function confirmsAtCandle(side, candles, index, zone) {
+            if(index <= 0 || index >= candles.length) return false;
+            const c = candles[index], p = candles[index - 1];
+            const touched = c.high >= zone.entryLow && c.low <= zone.entryHigh;
+            if(!touched) return false;
+            return side === 'SELL'
+                ? c.close < c.open && c.close < p.close
+                : c.close > c.open && c.close > p.close;
+        }
+
+        function executionConfirmation(side, candles15, zone) {
+            if(!candles15 || candles15.length < 4) return { state: 'Unavailable', reason: 'No 15M candles.' };
+            const last = candles15[candles15.length - 1];
+            const prev = candles15[candles15.length - 2];
+            const touched = last.high >= zone.entryLow && last.low <= zone.entryHigh;
+            if(side === 'SELL') {
+                const rejected = touched && last.close < last.open && last.close < prev.close;
+                return { state: rejected ? 'Confirmed' : 'Waiting', touched, reason: rejected ? '15M touched sell zone and closed bearish.' : '15M has not rejected the sell zone yet.' };
+            }
+            const rejected = touched && last.close > last.open && last.close > prev.close;
+            return { state: rejected ? 'Confirmed' : 'Waiting', touched, reason: rejected ? '15M touched buy zone and closed bullish.' : '15M has not rejected the buy zone yet.' };
+        }
+
+        function classifyMove(candles15, side) {
+            const a = atr(candles15, 20);
+            if(!a) return { eventType: 'Unknown', reason: 'Not enough 15M volatility data.' };
+            const last = candles15[candles15.length - 1];
+            const body = Math.abs(last.close - last.open);
+            const range = last.high - last.low;
+            if(range >= a * 1.6 && body >= range * 0.55) return { eventType: 'High-energy expansion', reason: `Last 15M range is ${(range / a).toFixed(2)} ATR.` };
+            if(side === 'SELL' && last.close < last.open) return { eventType: 'Possible reversal', reason: 'Last 15M candle is bearish near the selected zone.' };
+            if(side === 'BUY' && last.close > last.open) return { eventType: 'Possible reversal', reason: 'Last 15M candle is bullish near the selected zone.' };
+            return { eventType: 'Ordinary movement', reason: 'No strong expansion candle is visible.' };
+        }
+
+        function evaluateWindow(candles15, window, side, projectedPrice = null) {
+            const startIndex = candles15.findIndex(c => candleInWindow(c, window));
+            if(startIndex < 0 || startIndex + 8 >= candles15.length) return null;
+            const entry = candles15[startIndex].close;
+            const future = candles15.slice(startIndex + 1, startIndex + 9);
+            const futureHigh = Math.max(...future.map(c => c.high));
+            const futureLow = Math.min(...future.map(c => c.low));
+            const localAtr = atr(candles15.slice(Math.max(0, startIndex - 30), startIndex + 1), 14) || 1;
+            const mfe = side === 'SELL' ? entry - futureLow : futureHigh - entry;
+            const mae = side === 'SELL' ? futureHigh - entry : entry - futureLow;
+            const largeMove = Math.max(futureHigh - entry, entry - futureLow) >= localAtr * BIG_MOVE_ATR_MULTIPLE;
+            const reversed = side === 'SELL' ? mfe >= localAtr && mae <= localAtr * 1.2 : mfe >= localAtr && mae <= localAtr * 1.2;
+            const hit = reversed || largeMove;
+            const priceError = Number.isFinite(projectedPrice) ? Math.min(...future.map(c => Math.min(Math.abs(c.high - projectedPrice), Math.abs(c.low - projectedPrice)))) : null;
+            let bestMoveIndex = 0;
+            let bestMove = -Infinity;
+            future.forEach((c, idx) => {
+                const move = side === 'SELL' ? entry - c.low : c.high - entry;
+                if(move > bestMove) { bestMove = move; bestMoveIndex = idx; }
+            });
+            return { hit, reversed, largeMove, mfe, mae, timeErrorMinutes: (bestMoveIndex + 1) * 15, priceError };
+        }
+
+        function summarizeEvents(events, randomEvents) {
+            const valid = events.filter(Boolean);
+            const randomValid = randomEvents.filter(Boolean);
+            if(valid.length < MIN_BACKTEST_EVENTS) {
+                return { samples: valid.length, confidence: null, label: 'Insufficient data', hitRate: null, randomHitRate: randomValid.length ? randomValid.filter(e => e.hit).length / randomValid.length : null, outperform: null };
+            }
+            const hitRate = valid.filter(e => e.hit).length / valid.length;
+            const randomHitRate = randomValid.length ? randomValid.filter(e => e.hit).length / randomValid.length : 0;
+            const outperform = hitRate - randomHitRate;
+            const avgMfe = valid.reduce((a, e) => a + e.mfe, 0) / valid.length;
+            const avgMae = valid.reduce((a, e) => a + e.mae, 0) / valid.length;
+            const avgTimeError = valid.reduce((a, e) => a + e.timeErrorMinutes, 0) / valid.length;
+            const base = hitRate * 100;
+            const penalty = outperform <= 0 ? 35 : outperform < 0.08 ? 15 : 0;
             return {
-                kind,
-                boundary,
-                gann,
-                sq9,
-                gannHit,
-                sq9Hit,
-                priceScore: 1 + (gannHit ? 1 : 0) + (sq9Hit ? 1 : 0),
-                sl: kind === 'SELL' ? matrix.sellSL : matrix.buySL,
-                targets: kind === 'SELL' ? matrix.sellTargets : matrix.buyTargets,
-                opposite: kind === 'SELL' ? matrix.lower : matrix.upper
+                samples: valid.length,
+                confidence: Math.round(clamp(base - penalty, 0, 100)),
+                label: outperform > 0.08 ? 'Outperformed random' : outperform > 0 ? 'Slight edge' : 'Did not beat random',
+                hitRate,
+                randomHitRate,
+                outperform,
+                avgMfe,
+                avgMae,
+                avgTimeError
             };
         }
 
-        function chooseSide(buyScore, sellScore, trend) {
-            if(sellScore.priceScore > buyScore.priceScore) return sellScore;
-            if(buyScore.priceScore > sellScore.priceScore) return buyScore;
-            if(trend === 'down' && sellScore.priceScore >= 2) return sellScore;
-            if(trend === 'up' && buyScore.priceScore >= 2) return buyScore;
-            return null;
+        function runBacktests(candles15, side, selectedZone, windows) {
+            if(!candles15 || candles15.length < 120) return [];
+            const sorted = candles15.slice().sort((a, b) => a.time - b.time);
+            const methods = [
+                { name: 'Gann time cycles alone', test: c => isGannCycleCandle(c) },
+                { name: 'Hexagon timing alone', test: c => isHexImportantCandle(c) },
+                { name: 'Astro timing alone', test: c => isAstroImportantCandle(c) },
+                { name: 'Gann + Hexagon', test: c => isGannCycleCandle(c) && isHexImportantCandle(c) },
+                { name: 'Gann + Astro', test: c => isGannCycleCandle(c) && isAstroImportantCandle(c) },
+                { name: 'Gann + Hexagon + Astro', test: c => isGannCycleCandle(c) && isHexImportantCandle(c) && isAstroImportantCandle(c) },
+                { name: 'Full price + time + 15M confirmation', test: (c, idx) => isGannCycleCandle(c) && (isHexImportantCandle(c) || isAstroImportantCandle(c)) && confirmsAtCandle(side, sorted, idx, selectedZone) }
+            ];
+            const results = [];
+            methods.forEach(method => {
+                const events = [];
+                const randomEvents = [];
+                sorted.forEach((c, idx) => {
+                    if(idx < 40 || idx > sorted.length - 10) return;
+                    if(!method.test(c, idx)) return;
+                    events.push(evaluateWindow(sorted, { startMin: candleMinute(c), endMin: candleMinute(c) }, side, selectedZone.boundary));
+                    const randomOffset = (idx * 37 + 19) % 96;
+                    const randomCandle = sorted[Math.min(sorted.length - 10, Math.max(40, idx - 48 + randomOffset))];
+                    randomEvents.push(evaluateWindow(sorted, { startMin: candleMinute(randomCandle), endMin: candleMinute(randomCandle) }, side, selectedZone.boundary));
+                });
+                results.push({ name: method.name, ...summarizeEvents(events, randomEvents) });
+            });
+            return results;
+        }
+
+        function chooseBestSetup(price, buyZone, sellZone, timeWindows, context, candles15, backtests) {
+            const candidates = [buyZone, sellZone].map(zone => {
+                const confirmation = executionConfirmation(zone.side, candles15, zone);
+                const event = classifyMove(candles15, zone.side);
+                const bestWindow = timeWindows[0];
+                const nowMin = minuteOfDayFromDate(new Date());
+                const inWindow = bestWindow && nowMin >= bestWindow.startMin && nowMin <= bestWindow.endMin;
+                const priceInZone = price >= zone.entryLow && price <= zone.entryHigh;
+                const fullBt = backtests.find(b => b.name === 'Full price + time + 15M confirmation');
+                const hist = fullBt && Number.isFinite(fullBt.confidence) ? fullBt.confidence / 20 : 0;
+                const score = zone.score + (bestWindow ? bestWindow.score : 0) + (confirmation.state === 'Confirmed' ? 2 : 0) + hist;
+                return { ...zone, confirmation, event, bestWindow, inWindow, priceInZone, score, historical: fullBt };
+            }).sort((a, b) => b.score - a.score);
+            const best = candidates[0];
+            if(!best || best.priceEvidence < 3) return { setup: null, reason: 'No side has enough price confluence. Matrix exists, but Gann/SQ9/range/swing evidence is weak.' };
+            if(best.contextAligned === false && context.bias !== 'Neutral') return { setup: null, reason: `Best price zone conflicts with 4H ${context.bias} context.` };
+            if(!best.bestWindow) return { setup: null, reason: 'No valid time window is available.' };
+            return { setup: best, reason: 'Best setup selected from price evidence, timing evidence, 4H context, 15M confirmation, and historical evidence when available.' };
+        }
+
+        function confidenceText(result) {
+            if(!result || !Number.isFinite(result.confidence)) return 'No proven confidence';
+            return `${result.confidence}%`;
+        }
+
+        function saveLivePrediction(snapshot) {
+            if(!snapshot || !snapshot.selected) return;
+            const key = 'sanfx_confluence_prediction_log';
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            existing.push({
+                savedAt: new Date().toISOString(),
+                timezone: BAGHDAD_TZ,
+                symbol: 'XAU/USD',
+                side: snapshot.selected.side,
+                projectedPrice: snapshot.selected.boundary,
+                entryLow: snapshot.selected.entryLow,
+                entryHigh: snapshot.selected.entryHigh,
+                window: snapshot.selected.bestWindow ? snapshot.selected.bestWindow.label : null,
+                status: setupStatus(snapshot.selected).text,
+                anchor: snapshot.anchor,
+                note: 'Saved before future candles are known. This supports later no-repaint review.'
+            });
+            localStorage.setItem(key, JSON.stringify(existing.slice(-100)));
+        }
+
+        function setupStatus(setup) {
+            if(!setup) return { text: 'NO TRADE', cls: 'none' };
+            if(setup.inWindow && setup.priceInZone && setup.confirmation.state === 'Confirmed') return { text: setup.side + ' READY', cls: setup.side === 'SELL' ? 'sell' : 'buy' };
+            if(setup.bestWindow && setup.bestWindow.distance > 180 && !setup.inWindow) return { text: 'WAIT', cls: 'wait' };
+            if(setup.priceInZone || setup.bestWindow.distance <= 90) return { text: setup.side + ' WAIT', cls: setup.side === 'SELL' ? 'sell' : 'buy' };
+            return { text: 'NO TRADE', cls: 'none' };
         }
 
         function renderTable(id, rows) {
             $(id).innerHTML = rows.map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('');
         }
 
-        function setStatus(text, cls) {
-            const el = $('mainStatus');
-            el.textContent = text;
-            el.className = `status ${cls}`;
+        function renderBacktests(rows) {
+            if(!rows.length) {
+                $('backtestTable').innerHTML = '<tr><th>Backtest</th><td>Unavailable. TradingView 15M candles did not load.</td></tr>';
+                return;
+            }
+            $('backtestTable').innerHTML = '<tr><th>Method</th><th>Samples</th><th>Hit Rate</th><th>Random</th><th>Confidence</th><th>Meaning</th></tr>' +
+                rows.map(r => `<tr><td>${r.name}</td><td>${r.samples}</td><td>${Number.isFinite(r.hitRate) ? (r.hitRate * 100).toFixed(1) + '%' : '--'}</td><td>${Number.isFinite(r.randomHitRate) ? (r.randomHitRate * 100).toFixed(1) + '%' : '--'}</td><td>${confidenceText(r)}</td><td>${r.label}</td></tr>`).join('');
         }
 
-        function renderLoading(price) {
+        function render(data) {
+            const { price, context, matrix, buyZone, sellZone, timeWindows, selected, selectionReason, backtests, dataNotes } = data;
             $('displayPrice').textContent = fmt(price);
-            setStatus('Analyzing...', 'wait');
-            $('simpleResult').innerHTML = '';
-            $('reasonText').textContent = 'Loading TradeM anchor, then calculating Matrix, Gann, SQ9, Hexagon, and Astro.';
-        }
-
-        function renderError(price, message) {
-            $('displayPrice').textContent = fmt(price);
-            setStatus('NO CLEAR SETUP', 'none');
-            $('simpleResult').innerHTML = `<div class="box"><div class="k">Data</div><div class="v">Unavailable</div><div class="small">${message}</div></div>`;
-            $('reasonText').textContent = 'The analyzer could not complete because the existing TradeM anchor/data logic did not return usable data.';
-            $('debugOutput').textContent = message;
-        }
-
-        function renderResult(data) {
-            const { price, selected, buyScore, sellScore, matrix, hex, astro, anchor, trend, trendReason, overall } = data;
-            $('displayPrice').textContent = fmt(price);
+            $('dataStatus').textContent = dataNotes.join(' | ');
+            const status = setupStatus(selected);
+            $('mainStatus').textContent = status.text;
+            $('mainStatus').className = `status ${status.cls}`;
+            renderBacktests(backtests);
 
             if(!selected) {
-                setStatus('WAIT', 'wait');
-            } else if(overall === 'HIGH') {
-                setStatus(selected.kind, selected.kind === 'SELL' ? 'sell' : 'buy');
+                $('simpleResult').innerHTML = `
+                    <div class="box wide"><div class="k">Result</div><div class="v bad">NO TRADE</div><div class="small">${selectionReason}</div></div>
+                    <div class="box"><div class="k">Matrix Channel</div><div class="v">${fmt(matrix.buyLevel)}-${fmt(matrix.sellLevel)}</div><div class="small">Matrix still gives reaction boundaries.</div></div>
+                    <div class="box"><div class="k">Next Time Window</div><div class="v">${timeWindows[0] ? timeWindows[0].label : '--'}</div><div class="small">${timeWindows[0] ? timeWindows[0].source : 'No timing window.'}</div></div>
+                `;
             } else {
-                setStatus('NO CLEAR SETUP', 'none');
-            }
-
-            const entryLow = selected ? Math.min(selected.boundary, selected.boundary + (selected.kind === 'SELL' ? -DEFAULT_STEP * 3 : DEFAULT_STEP * 3)) : matrix.lower;
-            const entryHigh = selected ? Math.max(selected.boundary, selected.boundary + (selected.kind === 'SELL' ? -DEFAULT_STEP * 3 : DEFAULT_STEP * 3)) : matrix.upper;
-            const targets = selected ? selected.targets.slice(0, 3) : [];
-            const move = selected && targets.length ? pipsBetween(selected.boundary, targets[targets.length - 1]) : 0;
-            const priceChecks = selected ? [
-                `<span class="check yes">Matrix ✓</span>`,
-                `<span class="check ${selected.gannHit ? 'yes' : 'no'}">Gann ${selected.gannHit ? '✓' : '×'}</span>`,
-                `<span class="check ${selected.sq9Hit ? 'yes' : 'no'}">SQ9 ${selected.sq9Hit ? '✓' : '×'}</span>`
-            ].join('') : `<span class="check yes">Matrix ✓</span><span class="check no">Gann ×</span><span class="check no">SQ9 ×</span>`;
-            const timingChecks = `
-                <span class="check ${hex.hasConfluence ? 'yes' : 'no'}">Hexagon ${hex.hasConfluence ? '✓' : '×'}</span>
-                <span class="check ${astro.closest ? 'yes' : 'no'}">Astro ${astro.closest ? '✓' : '×'}</span>
-            `;
-
-            $('simpleResult').innerHTML = `
-                <div class="box">
-                    <div class="k">Preferred Zone</div>
-                    <div class="v">${selected && overall === 'HIGH' ? selected.kind : 'WAIT'}</div>
-                    <div class="small">${selected ? `Entry Zone: ${fmt(entryLow)}-${fmt(entryHigh)}` : 'No side has clear enough support.'}</div>
-                </div>
-                <div class="box">
-                    <div class="k">Risk / Targets</div>
-                    <div class="targets">
-                        <div>SL: ${selected ? fmt(selected.sl) : '--'}</div>
-                        <div>TP1: ${targets[0] ? fmt(targets[0]) : '--'}</div>
-                        <div>TP2: ${targets[1] ? fmt(targets[1]) : '--'}</div>
-                        <div>TP3: ${targets[2] ? fmt(targets[2]) : '--'}</div>
+                const full = selected.historical;
+                const timeConf = timeWindows[0] ? `${timeWindows[0].score}/3` : '--';
+                $('simpleResult').innerHTML = `
+                    <div class="box">
+                        <div class="k">${selected.side} Setup</div>
+                        <div class="v">${fmt(selected.boundary)}</div>
+                        <div class="small">Entry Zone: ${fmt(selected.entryLow)}-${fmt(selected.entryHigh)}</div>
                     </div>
-                    <div class="small">Potential Move: ${move} pips</div>
-                </div>
-                <div class="box">
-                    <div class="k">Price Confluence</div>
-                    <div class="checks">${priceChecks}</div>
-                    <div class="small">BUY score ${buyScore.priceScore}/3 | SELL score ${sellScore.priceScore}/3</div>
-                </div>
-                <div class="box">
-                    <div class="k">Timing</div>
-                    <div class="checks">${timingChecks}</div>
-                    <div class="small">Time Window: ${hex.window}</div>
-                </div>
-                <div class="box">
-                    <div class="k">Overall Confluence</div>
-                    <div class="v">${overall}</div>
-                    <div class="small">Matrix trend: ${trend.toUpperCase()}</div>
-                </div>
-                <div class="box">
-                    <div class="k">Secondary Matrix Level</div>
-                    <div class="v">${selected ? fmt(selected.opposite) : `${fmt(matrix.lower)} / ${fmt(matrix.upper)}`}</div>
-                    <div class="small">${selected ? `Opposite reaction boundary from Matrix 24.` : 'Both Matrix boundaries shown because no side was selected.'}</div>
-                </div>
-            `;
-
-            const reasonParts = [];
-            if(selected && overall === 'HIGH') {
-                reasonParts.push(`Matrix ${selected.kind === 'SELL' ? 'upper' : 'lower'} boundary is the strongest side by current price confluence.`);
-                reasonParts.push(`Gann is ${selected.gannHit ? 'nearby' : 'not nearby'} and SQ9 is ${selected.sq9Hit ? 'nearby' : 'not nearby'}.`);
-                reasonParts.push(`Timing score is ${(hex.hasConfluence ? 1 : 0) + (astro.closest ? 1 : 0)}/2 from Hexagon and Astro.`);
-            } else {
-                reasonParts.push('The systems do not clearly support one side strongly enough, so this page does not force BUY or SELL.');
-                reasonParts.push('Matrix still shows reaction boundaries, but Gann/SQ9/timing confluence is not decisive.');
+                    <div class="box">
+                        <div class="k">Expected Timing Window</div>
+                        <div class="v">${selected.bestWindow.label}</div>
+                        <div class="small">${selected.bestWindow.source}</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Setup Status</div>
+                        <div class="v">${status.text}</div>
+                        <div class="small">Price in zone: ${selected.priceInZone ? 'Yes' : 'No'} | Time active: ${selected.inWindow ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Risk / Targets</div>
+                        <div class="v">SL ${fmt(selected.sl)}</div>
+                        <div class="small">TP1 ${fmt(selected.targets[0])} | TP2 ${fmt(selected.targets[1])} | TP3 ${fmt(selected.targets[2])}</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Multi-Timeframe</div>
+                        <div class="v">${context.bias}</div>
+                        <div class="small">1H zone ${fmt(selected.entryLow)}-${fmt(selected.entryHigh)} | 15M ${selected.confirmation.state}</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Timing Evidence</div>
+                        <div class="v">${timeConf}</div>
+                        <div class="small">Hexagon ${selected.bestWindow.hexHit ? 'Yes' : 'No'} | Astro ${selected.bestWindow.astroHit ? 'Yes' : 'No'}</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Event Type</div>
+                        <div class="v">${selected.event.eventType}</div>
+                        <div class="small">${selected.event.reason}</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Gann Time Confidence</div>
+                        <div class="v">${confidenceText(backtests.find(b => b.name === 'Gann time cycles alone'))}</div>
+                        <div class="small">Reduced if it fails to beat random windows.</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Overall Confidence</div>
+                        <div class="v">${confidenceText(full)}</div>
+                        <div class="small">${full ? full.label : 'Backtest unavailable.'}</div>
+                    </div>
+                `;
             }
-            reasonParts.push('Hexagon and Astro are used only as timing context, not direction predictors.');
-            $('reasonText').textContent = reasonParts.join(' ');
 
-            renderTable('matrixDetails', [
-                ['Anchor', `${fmt(anchor.base)} (${anchor.reason})`],
-                ['Trend inference', trendReason],
-                ['Active hour', `${matrix.activeHour}:00, column ${matrix.col + 1}`],
-                ['Channel', `${fmt(matrix.lower)} - ${fmt(matrix.upper)}`],
-                ['BUY level / SL / TP', `${fmt(matrix.lower)} / ${fmt(matrix.buySL)} / ${matrix.buyTargets.map(x => fmt(x)).join(', ')}`],
-                ['SELL level / SL / TP', `${fmt(matrix.upper)} / ${fmt(matrix.sellSL)} / ${matrix.sellTargets.map(x => fmt(x)).join(', ')}`]
+            $('reasonText').textContent = selected
+                ? `${selectionReason} Hexagon and Astro only affect timing rank; they do not create BUY/SELL direction by themselves.`
+                : `${selectionReason} The engine refuses to force a side when evidence is not strong enough.`;
+
+            renderTable('contextTable', [
+                ['4H Bias', context.bias],
+                ['Reason', context.reason],
+                ['4H ATR', fmt(context.atr)],
+                ['Confirmed pivots', context.pivots.slice(-6).map(p => `${p.kind} ${fmt(p.price)} at ${new Date(p.time * 1000).toLocaleString()}`).join('<br>') || '--']
             ]);
-            renderTable('priceDetails', [
-                ['BUY confluence', `Score ${buyScore.priceScore}/3; Gann ${buyScore.gann ? fmt(buyScore.gann.price) : '--'} (${buyScore.gann ? fmt(buyScore.gann.distance) : '--'} away); SQ9 ${buyScore.sq9 ? fmt(buyScore.sq9.price) : '--'} (${buyScore.sq9 ? fmt(buyScore.sq9.distance) : '--'} away)`],
-                ['SELL confluence', `Score ${sellScore.priceScore}/3; Gann ${sellScore.gann ? fmt(sellScore.gann.price) : '--'} (${sellScore.gann ? fmt(sellScore.gann.distance) : '--'} away); SQ9 ${sellScore.sq9 ? fmt(sellScore.sq9.price) : '--'} (${sellScore.sq9 ? fmt(sellScore.sq9.distance) : '--'} away)`]
+            renderTable('priceTable', [
+                ['Matrix channel', `${fmt(matrix.buyLevel)}-${fmt(matrix.sellLevel)}; active hour ${matrix.activeHour}:00 Baghdad`],
+                ['BUY score', `${buyZone.score}; evidence ${buyZone.checks.map(c => `${c.name}:${c.hit ? 'yes' : 'no'}`).join(', ')}`],
+                ['SELL score', `${sellZone.score}; evidence ${sellZone.checks.map(c => `${c.name}:${c.hit ? 'yes' : 'no'}`).join(', ')}`],
+                ['Gann/SQ9 source', 'Gann levels use planetary.html sqrt transform; Square of 9 uses sq9.html spiral cross/diagonal logic.']
             ]);
-            renderTable('timeDetails', [
-                ['Hexagon closest', hex.closest ? `${hex.closest.label}, ${hex.closest.distanceMinutes.toFixed(0)} minutes away, ${hex.closest.importantType}` : '--'],
-                ['Hexagon upcoming', hex.upcoming.map(c => `${c.label} (${c.forwardMinutes.toFixed(0)}m)`).join(', ')],
-                ['Astro closest', astro.closest ? `${astro.closest.p1.id}/${astro.closest.p2.id}, ${astro.closest.aspectName}, ${fmt(astro.closest.orb, 2)} degree orb, ${astro.closest.classification}` : '--'],
-                ['Astro window', astro.closest ? `${astro.closest.start.toLocaleString()} - ${astro.closest.end.toLocaleString()}` : '--'],
-                ['Price degree', `${fmt(astro.priceDegree, 1)} degrees by Astro sqrt method`]
+            renderTable('timeTable', [
+                ['Best window', timeWindows[0] ? `${timeWindows[0].label}; ${timeWindows[0].source}; score ${timeWindows[0].score}/3` : '--'],
+                ['Upcoming windows', timeWindows.slice(0, 6).map(w => `${w.label} (${w.source}, score ${w.score})`).join('<br>')],
+                ['Matrix/Gann hours', MATRIX_GOLDEN_HOURS.map(h => `${String(h).padStart(2, '0')}:00`).join(', ')],
+                ['Timezone', BAGHDAD_TZ]
+            ]);
+            renderTable('executionTable', [
+                ['15M confirmation', selected ? selected.confirmation.state : '--'],
+                ['Reason', selected ? selected.confirmation.reason : '--'],
+                ['Move classifier', selected ? `${selected.event.eventType}: ${selected.event.reason}` : '--']
             ]);
             $('debugOutput').textContent = JSON.stringify(data, null, 2);
         }
 
         async function analyze() {
-            const price = parseFloat($('currentPrice').value);
+            const price = Number($('currentPrice').value);
             if(!Number.isFinite(price) || price <= 0) {
-                renderError(price, 'Please enter a valid XAU/USD price.');
+                $('mainStatus').textContent = 'NO TRADE';
+                $('reasonText').textContent = 'Please enter a valid XAU/USD price.';
                 return;
             }
+            $('displayPrice').textContent = fmt(price);
+            $('mainStatus').textContent = 'LOADING';
+            $('mainStatus').className = 'status';
+            $('dataStatus').textContent = 'Fetching TradeM scan and TradingView 4H/1H/15M candles.';
+            $('reasonText').textContent = 'Building the setup from price first, then timing, then 15M confirmation, then backtest evidence.';
 
-            renderLoading(price);
+            const dataNotes = [];
+            let candles4h = [], candles1h = [], candles15 = [], scan = null;
+            try { scan = await fetchTradeMScan(); dataNotes.push('TradeM scan loaded'); } catch(e) { dataNotes.push(e.message); }
             try {
-                const now = new Date();
-                const activeHour = activeHourFromDate(now);
-                const scan = await fetchTradeMScan();
-                const inferred = inferTrendFromScan(scan);
-                const anchor = selectSq24AnchorFromTradeM(scan, inferred.trend, DEFAULT_STEP);
-                const matrix = calculateMatrixPlan(price, anchor.base, DEFAULT_STEP, inferred.trend, activeHour);
-                const gannLevels = generateGannLevels(anchor.base, inferred.trend, GANN_SHAPE, GANN_CYCLES);
-                const sq9Levels = generateSq9Levels(anchor.base, DEFAULT_STEP, inferred.trend, SQ9_CELLS);
-                const buyScore = scoreBoundary(matrix.lower, 'BUY', matrix, gannLevels, sq9Levels);
-                const sellScore = scoreBoundary(matrix.upper, 'SELL', matrix, gannLevels, sq9Levels);
-                const hex = analyzeHexTime(now, inferred.trend);
-                const astro = analyzeAstro(now, price);
-                const selected = chooseSide(buyScore, sellScore, inferred.trend);
-                const timeScore = (hex.hasConfluence ? 1 : 0) + (astro.closest ? 1 : 0);
-                const selectedPriceScore = selected ? selected.priceScore : Math.max(buyScore.priceScore, sellScore.priceScore);
-                const overall = selected && selectedPriceScore >= 3 && timeScore >= 2 ? 'HIGH'
-                    : selected && selectedPriceScore >= 2 && timeScore >= 1 ? 'MEDIUM'
-                    : 'LOW';
-
-                renderResult({
-                    price,
-                    scan,
-                    anchor,
-                    trend: inferred.trend,
-                    trendReason: inferred.reason,
-                    matrix,
-                    gannLevels: gannLevels.slice(0, 20),
-                    sq9Levels: sq9Levels.slice(0, 20),
-                    buyScore,
-                    sellScore,
-                    hex,
-                    astro,
-                    selected,
-                    overall
-                });
+                [candles4h, candles1h, candles15] = await Promise.all([
+                    fetchTradingViewCandles('240', 360),
+                    fetchTradingViewCandles('60', 700),
+                    fetchTradingViewCandles('15', 900)
+                ]);
+                dataNotes.push(`TV candles loaded: 4H ${candles4h.length}, 1H ${candles1h.length}, 15M ${candles15.length}`);
             } catch(e) {
-                renderError(price, e.message || 'Unknown analysis error');
+                dataNotes.push(e.message);
             }
+
+            const context = candles4h.length >= 40 ? infer4hContext(candles4h) : { bias: 'Neutral', reason: '4H candles unavailable.', pivots: [], atr: null };
+            let anchor;
+            const manualAnchor = Number($('manualAnchor').value);
+            if(Number.isFinite(manualAnchor) && manualAnchor > 0) {
+                anchor = {
+                    base: roundToStep(manualAnchor, DEFAULT_STEP),
+                    trend: $('manualTrend').value === 'down' ? 'down' : 'up',
+                    reason: 'Manual override from Details panel',
+                    marketPrice: null
+                };
+                dataNotes.push('Manual anchor override active');
+            } else {
+                try {
+                    anchor = scan ? autoAnchorFromScan(scan, DEFAULT_STEP) : autoAnchorFromPivots(candles1h, context.bias, DEFAULT_STEP);
+                } catch(e) {
+                    try {
+                        anchor = autoAnchorFromPivots(candles1h, context.bias, DEFAULT_STEP);
+                        dataNotes.push(`Anchor fallback: ${e.message}`);
+                    } catch(fallbackErr) {
+                        $('mainStatus').textContent = 'NO TRADE';
+                        $('mainStatus').className = 'status none';
+                        $('dataStatus').textContent = dataNotes.join(' | ');
+                        $('simpleResult').innerHTML = '<div class="box wide"><div class="k">Result</div><div class="v bad">NO TRADE</div><div class="small">No reliable automatic anchor is available, so no setup can be built.</div></div>';
+                        $('reasonText').textContent = `Anchor selection failed. TradeM error: ${e.message}. Pivot fallback error: ${fallbackErr.message}.`;
+                        renderBacktests([]);
+                        $('debugOutput').textContent = JSON.stringify({ dataNotes, tradeMError: e.message, pivotFallbackError: fallbackErr.message }, null, 2);
+                        return;
+                    }
+                }
+            }
+
+            const activeHour = hourFromDate(new Date());
+            const matrix = calculateMatrixPlan(price, anchor.base, DEFAULT_STEP, anchor.trend, activeHour);
+            const pivots1h = candles1h.length ? findSignificantPivots(candles1h, 3, 0.8).slice(-20) : [];
+            const gannLevels = generateGannLevels(anchor.base, anchor.trend, 45, 2);
+            const sq9Levels = generateSq9Levels(anchor.base, DEFAULT_STEP, anchor.trend, 25);
+            const ranges = candles1h.length ? rangeDivisionLevels(candles1h) : [];
+            const buyZone = scorePriceZone('BUY', matrix, gannLevels, sq9Levels, ranges, pivots1h, context);
+            const sellZone = scorePriceZone('SELL', matrix, gannLevels, sq9Levels, ranges, pivots1h, context);
+            const timeWindows = buildTimeWindows(new Date());
+            const provisional = buyZone.score >= sellZone.score ? buyZone : sellZone;
+            const backtests = runBacktests(candles15, provisional.side, provisional, timeWindows);
+            const choice = chooseBestSetup(price, buyZone, sellZone, timeWindows, context, candles15, backtests);
+
+            const snapshot = {
+                price,
+                scan,
+                anchor,
+                context,
+                matrix,
+                gannLevels,
+                sq9Levels,
+                ranges,
+                pivots1h,
+                buyZone,
+                sellZone,
+                timeWindows,
+                backtests,
+                selected: choice.setup,
+                selectionReason: choice.reason,
+                dataNotes
+            };
+            saveLivePrediction(snapshot);
+            render(snapshot);
         }
 
         $('analyzeBtn').addEventListener('click', analyze);
-        $('currentPrice').addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') analyze();
-        });
+        $('currentPrice').addEventListener('keydown', e => { if(e.key === 'Enter') analyze(); });
     </script>
 </body>
 </html>
