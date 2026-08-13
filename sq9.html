@@ -42,6 +42,28 @@
         canvas { background: transparent; display: block;}
         
         #container-sq9 { position: relative; display: flex; align-items: center; justify-content: center;}
+        .sq9-search-info { margin-top: 10px; padding: 10px; border: 1px solid rgba(255, 153, 0, 0.45); border-radius: 5px; background: rgba(255, 153, 0, 0.06); color: #fff; font-size: 11px; line-height: 1.55; font-family: monospace; }
+        .sq9-search-info strong { color: var(--neon-orange); }
+        .signal-fab { position: fixed; right: 18px; bottom: 18px; z-index: 99999; border: 1px solid var(--neon-cyan); background: rgba(0, 255, 204, 0.16); color: var(--neon-cyan); border-radius: 6px; padding: 11px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 0 18px rgba(0, 255, 204, 0.25); letter-spacing: 0; }
+        html[dir="rtl"] .signal-fab { right: auto; left: 18px; }
+        .signal-panel { position: fixed; right: 18px; bottom: 70px; width: min(360px, calc(100vw - 36px)); max-height: calc(100vh - 120px); overflow-y: auto; z-index: 99998; display: none; background: rgba(8, 8, 12, 0.97); border: 1px solid var(--neon-cyan); border-radius: 8px; box-shadow: 0 0 24px rgba(0,0,0,0.85); padding: 14px; box-sizing: border-box; backdrop-filter: blur(8px); }
+        html[dir="rtl"] .signal-panel { right: auto; left: 18px; direction: rtl; }
+        .signal-panel.active { display: block; }
+        .signal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; color: var(--neon-cyan); font-weight: 900; }
+        .signal-close { background: transparent; border: 1px solid #444; color: #fff; border-radius: 4px; cursor: pointer; width: 28px; height: 28px; }
+        .signal-panel label { display: block; color: var(--neon-orange); font-size: 12px; margin-bottom: 6px; font-weight: 800; text-align: center; }
+        .signal-result { margin-top: 12px; display: grid; gap: 8px; font-family: monospace; font-size: 12px; line-height: 1.45; }
+        .signal-row { border: 1px solid #222; border-radius: 6px; padding: 8px; background: rgba(255,255,255,0.035); }
+        .signal-row b { color: var(--neon-cyan); }
+        .signal-buy { color: #40ff87; }
+        .signal-sell { color: #ff5b6c; }
+        .signal-wait { color: #ffd166; }
+        @media (max-width: 600px) {
+            .signal-fab { bottom: 12px; right: 12px; left: auto; padding: 10px 12px; font-size: 12px; }
+            html[dir="rtl"] .signal-fab { right: auto; left: 12px; }
+            .signal-panel { right: 12px; bottom: 58px; width: calc(100vw - 24px); }
+            html[dir="rtl"] .signal-panel { right: auto; left: 12px; }
+        }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -92,6 +114,7 @@
                 </select>
             </div>
         </div>
+        <div id="sq9SearchInfo" class="sq9-search-info" data-i18n="txt_search_wait">Enter a current price to find its nearest SQ9 angle level.</div>
     </div>
 
     <div id="viewport-maps">
@@ -102,6 +125,17 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <button class="signal-fab" id="sq9SignalBtn" data-i18n="btn_sq9_signal">SQ9 SIGNAL</button>
+    <div class="signal-panel" id="sq9SignalPanel">
+        <div class="signal-head">
+            <span data-i18n="title_sq9_signal">SQ9 SIGNAL</span>
+            <button class="signal-close" id="sq9SignalClose">X</button>
+        </div>
+        <label data-i18n="lbl_current_price">Current Price</label>
+        <input type="number" id="sq9CurrentPrice" data-i18n-ph="ph_current_price" placeholder="e.g. 4402.50" style="border-color:var(--neon-orange); color:var(--neon-orange);">
+        <div id="sq9SignalResult" class="signal-result"></div>
     </div>
 
     <script>
@@ -130,6 +164,31 @@
             }
         };
 
+        const sq9Text = {
+            ku: {
+                lbl_sq9_center: "نرخی ئەنگەر / پیڤۆت", lbl_sq9_search: "نرخی ئێستا / گەڕان", ph_sq9_search: "نموونە: 2350.50", lbl_sq9_step: "هەنگاوی خشتەی بینراو",
+                btn_sq9_signal: "SQ9 سیگناڵ", title_sq9_signal: "SQ9 سیگناڵ", lbl_current_price: "نرخی ئێستا", ph_current_price: "نموونە: 4402.50", txt_search_wait: "نرخی ئێستا بنووسە بۆ دۆزینەوەی نزیکترین ئاستی گۆشەی SQ9.",
+                anchor: "ئەنگەر", current: "ئێستا", nearest_level: "نزیکترین ئاست", angle: "گۆشە", major: "سەرەکی", secondary: "لاوەکی", support: "پاڵپشتی", resistance: "بەرگری",
+                buy_zone: "ناوچەی کڕین / پاڵپشتی", sell_zone: "ناوچەی فرۆشتن / بەرگری", wait: "چاوەڕێ", breakout: "شکاندن / چاوەڕێ", stop_loss: "وەستاندنی زیان", tp1: "TP1", tp2: "TP2", tp3: "TP3",
+                bias: "ئاراستە / بایەس", entry_zone: "ناوچەی چوونەژوورەوە", invalidation: "هەڵوەشاندنەوە / SL", distance: "دووری", relevant_angle: "گۆشەی پەیوەندیداری گان", why: "هۆکار", strength: "هێز"
+            },
+            ar: {
+                lbl_sq9_center: "سعر الارتكاز / المحور", lbl_sq9_search: "السعر الحالي / البحث", ph_sq9_search: "مثال: 2350.50", lbl_sq9_step: "خطوة اللولب المرئية",
+                btn_sq9_signal: "إشارة SQ9", title_sq9_signal: "إشارة SQ9", lbl_current_price: "السعر الحالي", ph_current_price: "مثال: 4402.50", txt_search_wait: "أدخل السعر الحالي للعثور على أقرب مستوى زاوية SQ9.",
+                anchor: "الارتكاز", current: "الحالي", nearest_level: "أقرب مستوى", angle: "الزاوية", major: "رئيسي", secondary: "ثانوي", support: "دعم", resistance: "مقاومة",
+                buy_zone: "منطقة شراء / دعم", sell_zone: "منطقة بيع / مقاومة", wait: "انتظار", breakout: "اختراق / انتظار", stop_loss: "وقف الخسارة", tp1: "TP1", tp2: "TP2", tp3: "TP3",
+                bias: "الاتجاه / الميل", entry_zone: "منطقة الدخول المقترحة", invalidation: "الإبطال / SL", distance: "المسافة", relevant_angle: "زاوية جان المرتبطة", why: "السبب", strength: "القوة"
+            },
+            en: {
+                lbl_sq9_center: "Anchor / Pivot Price", lbl_sq9_search: "Current/Search Price", ph_sq9_search: "e.g. 2350.50", lbl_sq9_step: "Visual Spiral Step",
+                btn_sq9_signal: "SQ9 SIGNAL", title_sq9_signal: "SQ9 SIGNAL", lbl_current_price: "Current Price", ph_current_price: "e.g. 4402.50", txt_search_wait: "Enter a current price to find its nearest SQ9 angle level.",
+                anchor: "Anchor", current: "Current", nearest_level: "Nearest Level", angle: "Angle", major: "Major", secondary: "Secondary", support: "Support", resistance: "Resistance",
+                buy_zone: "Buy Zone / Support", sell_zone: "Sell Zone / Resistance", wait: "Wait", breakout: "Breakout / Wait", stop_loss: "Stop Loss", tp1: "TP1", tp2: "TP2", tp3: "TP3",
+                bias: "Direction/Bias", entry_zone: "Suggested Entry Zone", invalidation: "Invalidation / SL", distance: "Distance", relevant_angle: "Relevant Gann Angle", why: "Why", strength: "Strength"
+            }
+        };
+        Object.keys(sq9Text).forEach(lang => Object.assign(lexicon[lang], sq9Text[lang]));
+
         let currentLang = 'ku';
 
         function applyLanguage() {
@@ -151,6 +210,10 @@
             var btnMenu = document.getElementById('btn-menu');
             var btnCloseMenu = document.getElementById('btn-close-menu');
             var sidebar = document.getElementById('sidebar');
+            var signalBtn = document.getElementById('sq9SignalBtn');
+            var signalPanel = document.getElementById('sq9SignalPanel');
+            var signalClose = document.getElementById('sq9SignalClose');
+            var currentInput = document.getElementById('sq9CurrentPrice');
 
             if(btnMenu) {
                 btnMenu.addEventListener('click', function(e) {
@@ -163,6 +226,30 @@
                     sidebar.classList.remove('active');
                 });
             }
+            if(signalBtn && signalPanel) {
+                signalBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    signalPanel.classList.toggle('active');
+                    updateSq9Signal();
+                });
+            }
+            if(signalClose && signalPanel) {
+                signalClose.addEventListener('click', function() {
+                    signalPanel.classList.remove('active');
+                });
+            }
+            if(currentInput) {
+                currentInput.addEventListener('input', function() {
+                    saveSet();
+                    updateSq9Signal();
+                    const searchInput = document.getElementById('sq9SearchPrice');
+                    if(searchInput && !searchInput.value) {
+                        searchInput.value = currentInput.value;
+                        saveSet();
+                    }
+                    drawSq9();
+                });
+            }
             
             applyLanguage();
             loadSet();
@@ -171,7 +258,7 @@
             drawSq9();
         });
 
-        const savedIds = ['sq9CenterPrice', 'sq9SearchPrice', 'sq9StepValue', 'sq9GridCells', 'sq9TrendDir'];
+        const savedIds = ['sq9CenterPrice', 'sq9SearchPrice', 'sq9StepValue', 'sq9GridCells', 'sq9TrendDir', 'sq9CurrentPrice'];
 
         function loadSet() {
             try {
@@ -195,15 +282,15 @@
         savedIds.forEach(id => {
             let el = document.getElementById(id);
             if(el) {
-                el.addEventListener('change', () => { saveSet(); drawSq9(); });
-                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); drawSq9(); });
+                el.addEventListener('change', () => { saveSet(); drawSq9(); updateSq9Signal(); });
+                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); drawSq9(); updateSq9Signal(); });
             }
         });
 
         function drawSq9() {
             const canvas = document.getElementById('sq9Canvas'); if(!canvas) return;
             const ctx = canvas.getContext('2d');
-            const centerPrice = Math.round(parseFloat(document.getElementById('sq9CenterPrice').value)) || 2304;
+            const centerPrice = parseFloat(document.getElementById('sq9CenterPrice').value) || 2304;
             const stepVal = parseFloat(document.getElementById('sq9StepValue').value) || 1;
             const trendDir = document.getElementById('sq9TrendDir').value;
             const searchPrice = parseFloat(document.getElementById('sq9SearchPrice').value);
@@ -284,7 +371,7 @@
                         
                         let isCenter = (row === centerIdx && col === centerIdx);
                         let isCross = (row === centerIdx || col === centerIdx || Math.abs(row - centerIdx) === Math.abs(col - centerIdx));
-                        let isTarget = (searchPrice && num === searchPrice);
+                        let isTarget = false;
 
                         let bgCol = '#050505';
                         let textCol = '#777';
@@ -321,6 +408,305 @@
         }
 
         // کۆنترۆڵکردنی جووڵە و زووم بۆ شاشەی نەخشەکە
+        const SQ9_ANGLES = [45, 90, 135, 180, 225, 270, 315, 360];
+        const SQ9_MAJOR = [90, 180, 270, 360];
+
+        function t(key) {
+            return (lexicon[currentLang] && lexicon[currentLang][key]) || (lexicon.en && lexicon.en[key]) || key;
+        }
+
+        function readNum(id, fallback) {
+            const el = document.getElementById(id);
+            const n = el ? parseFloat(el.value) : NaN;
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function fmtPrice(value) {
+            if (!Number.isFinite(value)) return "-";
+            const abs = Math.abs(value);
+            const digits = abs >= 100 ? 2 : abs >= 1 ? 4 : 6;
+            return value.toFixed(digits);
+        }
+
+        function fmtPct(distance, base) {
+            if (!Number.isFinite(distance) || !Number.isFinite(base) || base === 0) return "-";
+            return ((Math.abs(distance) / Math.abs(base)) * 100).toFixed(2) + "%";
+        }
+
+        function getSq9Level(price, angle, direction) {
+            const root = Math.sqrt(price);
+            const factor = angle / 180;
+            const shifted = direction === "lower" ? root - factor : root + factor;
+            return shifted * shifted;
+        }
+
+        function getSq9Levels(anchorPrice) {
+            if (!Number.isFinite(anchorPrice) || anchorPrice <= 0) return [];
+            return SQ9_ANGLES.flatMap(angle => {
+                const strength = SQ9_MAJOR.includes(angle) ? "major" : "secondary";
+                return [
+                    { price: getSq9Level(anchorPrice, angle, "lower"), angle, side: "below", role: "support", strength },
+                    { price: getSq9Level(anchorPrice, angle, "upper"), angle, side: "above", role: "resistance", strength }
+                ];
+            }).sort((a, b) => a.price - b.price);
+        }
+
+        function findNearestSq9Level(price, levels) {
+            if (!Number.isFinite(price) || !levels.length) return null;
+            return levels.reduce((best, level) => {
+                const distance = Math.abs(price - level.price);
+                return !best || distance < best.distance ? { ...level, distance, signedDistance: price - level.price } : best;
+            }, null);
+        }
+
+        function getLevelWindow(price, levels, anchorPrice) {
+            const all = levels.concat([{ price: anchorPrice, angle: 0, side: "anchor", role: "anchor", strength: "major" }]).sort((a, b) => a.price - b.price);
+            const lower = [...all].reverse().find(level => level.price <= price) || all[0];
+            const upper = all.find(level => level.price >= price) || all[all.length - 1];
+            return { all, lower, upper, idxLower: all.indexOf(lower), idxUpper: all.indexOf(upper) };
+        }
+
+        function getTolerance(price, levels, anchorPrice) {
+            const win = getLevelWindow(price, levels, anchorPrice);
+            const span = Math.abs(win.upper.price - win.lower.price) || Math.abs(anchorPrice) * 0.002 || 1;
+            return Math.max(span * 0.15, Math.abs(anchorPrice) * 0.00025);
+        }
+
+        function zoneAround(level, tolerance) {
+            if (!level) return "-";
+            return fmtPrice(level.price - tolerance) + " - " + fmtPrice(level.price + tolerance);
+        }
+
+        function describeLevel(level) {
+            if (!level) return "-";
+            const role = level.role === "support" ? t("support") : level.role === "resistance" ? t("resistance") : t("anchor");
+            const strength = level.strength === "major" ? t("major") : t("secondary");
+            return fmtPrice(level.price) + " | " + level.angle + "deg | " + role + " | " + strength;
+        }
+
+        function nextLevels(all, startIndex, dir, count) {
+            const picked = [];
+            let i = startIndex + dir;
+            while (i >= 0 && i < all.length && picked.length < count) {
+                if (all[i].role !== "anchor") picked.push(all[i]);
+                i += dir;
+            }
+            return picked;
+        }
+
+        function generateSq9Signal(currentPrice, anchorPrice, trendDir) {
+            const levels = getSq9Levels(anchorPrice);
+            const nearest = findNearestSq9Level(currentPrice, levels);
+            const win = getLevelWindow(currentPrice, levels, anchorPrice);
+            const tolerance = getTolerance(currentPrice, levels, anchorPrice);
+            const lowerDist = currentPrice - win.lower.price;
+            const upperDist = win.upper.price - currentPrice;
+            const nearSupport = win.lower.role === "support" && lowerDist >= 0 && lowerDist <= tolerance;
+            const nearResistance = win.upper.role === "resistance" && upperDist >= 0 && upperDist <= tolerance;
+            let bias = "WAIT / NO TRADE";
+            let cls = "signal-wait";
+            let why = "";
+            let entry = "-";
+            let sl = "-";
+            let tps = ["-", "-", "-"];
+            let relevant = nearest;
+
+            if (nearSupport && trendDir === "up") {
+                bias = "BUY / support reaction zone";
+                cls = "signal-buy";
+                relevant = win.lower;
+                entry = zoneAround(win.lower, tolerance);
+                sl = describeLevel(nextLevels(win.all, win.idxLower, -1, 1)[0] || win.lower);
+                tps = nextLevels(win.all, win.idxLower, 1, 3).map(describeLevel);
+                why = "Price is " + fmtPct(lowerDist, currentPrice) + " above the " + win.lower.angle + "deg support.";
+            } else if (nearResistance && trendDir === "down") {
+                bias = "SELL / resistance reaction zone";
+                cls = "signal-sell";
+                relevant = win.upper;
+                entry = zoneAround(win.upper, tolerance);
+                sl = describeLevel(nextLevels(win.all, win.idxUpper, 1, 1)[0] || win.upper);
+                tps = nextLevels(win.all, win.idxUpper, -1, 3).map(describeLevel);
+                why = "Price is " + fmtPct(upperDist, currentPrice) + " below the " + win.upper.angle + "deg resistance.";
+            } else if (nearSupport || nearResistance) {
+                bias = "WAIT / counter-trend SQ9 level";
+                why = "Price is near a SQ9 level, but trend interpretation does not favor fading it.";
+            } else if (nearest && nearest.distance <= tolerance) {
+                bias = t("breakout");
+                why = "Price has crossed a nearby SQ9 level; use the next level instead of an automatic reversal.";
+            } else {
+                why = "Price is between " + describeLevel(win.lower) + " and " + describeLevel(win.upper) + "; no strong SQ9 entry.";
+            }
+
+            while (tps.length < 3) tps.push("-");
+            return { bias, cls, why, entry, sl, tps, nearest, relevant, lower: win.lower, upper: win.upper, tolerance };
+        }
+
+        function updateSq9SearchInfo(anchorPrice, searchPrice, levels) {
+            const info = document.getElementById("sq9SearchInfo");
+            if (!info) return;
+            if (!Number.isFinite(searchPrice)) {
+                info.innerHTML = t("txt_search_wait");
+                return;
+            }
+            const nearest = findNearestSq9Level(searchPrice, levels);
+            if (!nearest) return;
+            const role = nearest.role === "support" ? t("buy_zone") : t("sell_zone");
+            info.innerHTML = "<strong>" + t("nearest_level") + ":</strong><br>" +
+                describeLevel(nearest) + "<br>" +
+                "<strong>" + t("distance") + ":</strong> " + fmtPrice(nearest.signedDistance) + " (" + fmtPct(nearest.distance, searchPrice) + ")<br>" +
+                "<strong>" + role + "</strong>";
+        }
+
+        function updateSq9Signal() {
+            const result = document.getElementById("sq9SignalResult");
+            if (!result) return;
+            const currentPrice = readNum("sq9CurrentPrice", NaN);
+            const anchorPrice = readNum("sq9CenterPrice", 2304);
+            const trendDir = (document.getElementById("sq9TrendDir") || {}).value || "down";
+            if (!Number.isFinite(anchorPrice) || anchorPrice <= 0) {
+                result.innerHTML = '<div class="signal-row signal-wait">Anchor / Pivot Price must be greater than zero.</div>';
+                return;
+            }
+            if (!Number.isFinite(currentPrice)) {
+                result.innerHTML = '<div class="signal-row signal-wait">' + t("txt_search_wait") + "</div>";
+                return;
+            }
+            const signal = generateSq9Signal(currentPrice, anchorPrice, trendDir);
+            result.innerHTML =
+                '<div class="signal-row"><b>' + t("current") + ':</b> ' + fmtPrice(currentPrice) + '<br><b>' + t("anchor") + ':</b> ' + fmtPrice(anchorPrice) + '</div>' +
+                '<div class="signal-row"><b>' + t("nearest_level") + ':</b><br>' + describeLevel(signal.nearest) + '<br><b>' + t("distance") + ':</b> ' + fmtPrice(signal.nearest.signedDistance) + ' (' + fmtPct(signal.nearest.distance, currentPrice) + ')</div>' +
+                '<div class="signal-row"><b>' + t("support") + ':</b><br>' + describeLevel(signal.lower) + '<br><b>' + t("resistance") + ':</b><br>' + describeLevel(signal.upper) + '</div>' +
+                '<div class="signal-row ' + signal.cls + '"><b>' + t("bias") + ':</b><br>' + signal.bias + '<br><b>' + t("why") + ':</b><br>' + signal.why + '</div>' +
+                '<div class="signal-row"><b>' + t("entry_zone") + ':</b><br>' + signal.entry + '<br><b>' + t("invalidation") + ':</b><br>' + signal.sl + '</div>' +
+                '<div class="signal-row"><b>' + t("tp1") + ':</b> ' + signal.tps[0] + '<br><b>' + t("tp2") + ':</b> ' + signal.tps[1] + '<br><b>' + t("tp3") + ':</b> ' + signal.tps[2] + '</div>' +
+                '<div class="signal-row"><b>' + t("relevant_angle") + ':</b><br>' + describeLevel(signal.relevant) + '</div>';
+        }
+
+        function drawSq9() {
+            const canvas = document.getElementById('sq9Canvas'); if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const centerPrice = readNum('sq9CenterPrice', 2304);
+            const stepVal = readNum('sq9StepValue', 1);
+            const trendDir = (document.getElementById('sq9TrendDir') || {}).value || 'down';
+            const searchPrice = readNum('sq9SearchPrice', NaN);
+            let gridCells = parseInt((document.getElementById('sq9GridCells') || {}).value) || 9;
+            if (gridCells % 2 === 0) gridCells++;
+
+            const levels = getSq9Levels(centerPrice);
+            const searchNearest = findNearestSq9Level(searchPrice, levels);
+            updateSq9SearchInfo(centerPrice, searchPrice, levels);
+            updateSq9Signal();
+
+            const cellSize = 55;
+            const gridPixelSize = gridCells * cellSize;
+            const radius = ((gridPixelSize / 2) * Math.SQRT2) + 35;
+            const baseSize = (radius * 2) + 170;
+            canvas.width = baseSize; canvas.height = baseSize;
+            canvas.style.width = baseSize + 'px'; canvas.style.height = baseSize + 'px';
+            ctx.clearRect(0, 0, baseSize, baseSize);
+
+            const center = baseSize / 2;
+            const gridStartX = center - (gridPixelSize / 2);
+            const gridStartY = center - (gridPixelSize / 2);
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(179, 102, 255, 0.3)';
+            ctx.beginPath(); ctx.arc(center, center, radius, 0, 2 * Math.PI); ctx.stroke();
+            for (let i = 0; i < 360; i++) {
+                let angleRad = Math.PI + (i * Math.PI / 180), cosA = Math.cos(angleRad), sinA = Math.sin(angleRad);
+                if (i % 5 === 0) {
+                    ctx.strokeStyle = SQ9_MAJOR.includes(i) ? '#b366ff' : '#553388';
+                    ctx.lineWidth = SQ9_MAJOR.includes(i) ? 3 : 2;
+                    ctx.beginPath(); ctx.moveTo(center + radius * cosA, center + radius * sinA); ctx.lineTo(center + (radius + 25) * cosA, center + (radius + 25) * sinA); ctx.stroke();
+                    if (i % 15 === 0) {
+                        ctx.save(); ctx.translate(center + (radius + 40) * cosA, center + (radius + 40) * sinA);
+                        ctx.rotate(angleRad + Math.PI/2);
+                        ctx.fillStyle = (i % 90 === 0) ? '#b366ff' : '#777';
+                        ctx.font = 'bold 12px Arial'; ctx.fillText(i + 'deg', 0, 0);
+                        ctx.restore();
+                    }
+                } else {
+                    ctx.strokeStyle = '#1a0d26'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(center + radius * cosA, center + radius * sinA); ctx.lineTo(center + (radius + 10) * cosA, center + (radius + 10) * sinA); ctx.stroke();
+                }
+            }
+
+            let grid = Array(gridCells).fill().map(() => Array(gridCells).fill(null));
+            let x = Math.floor(gridCells / 2), y = Math.floor(gridCells / 2), value = centerPrice;
+            let actualStep = (trendDir === 'up') ? stepVal : -stepVal;
+            grid[y][x] = { value, nearestLevel: null };
+            let dirs = [[-1, 0], [0, -1], [1, 0], [0, 1]];
+            let dirIdx = 0, steps = 1, count = 1, totalCells = gridCells * gridCells;
+            while (count < totalCells) {
+                for (let i = 0; i < 2; i++) {
+                    for (let j = 0; j < steps; j++) {
+                        if (count >= totalCells) break;
+                        x += dirs[dirIdx][0]; y += dirs[dirIdx][1];
+                        value = parseFloat((value + actualStep).toFixed(6));
+                        if (x >= 0 && x < gridCells && y >= 0 && y < gridCells) grid[y][x] = { value, nearestLevel: null };
+                        count++;
+                    }
+                    dirIdx = (dirIdx + 1) % 4;
+                }
+                steps++;
+            }
+
+            const cells = [];
+            for (let row = 0; row < gridCells; row++) {
+                for (let col = 0; col < gridCells; col++) {
+                    if (grid[row][col]) cells.push({ row, col, ...grid[row][col] });
+                }
+            }
+            levels.forEach(level => {
+                const closest = cells.reduce((best, cell) => {
+                    const d = Math.abs(cell.value - level.price);
+                    return !best || d < best.d ? { cell, d } : best;
+                }, null);
+                if (closest && (!closest.cell.nearestLevel || closest.d < closest.cell.nearestLevel.distance)) {
+                    closest.cell.nearestLevel = { ...level, distance: closest.d };
+                }
+            });
+
+            let centerIdx = Math.floor(gridCells / 2);
+            cells.forEach(cell => {
+                let cellX = gridStartX + cell.col * cellSize, cellY = gridStartY + cell.row * cellSize;
+                let isCenter = (cell.row === centerIdx && cell.col === centerIdx);
+                let isCross = (cell.row === centerIdx || cell.col === centerIdx || Math.abs(cell.row - centerIdx) === Math.abs(cell.col - centerIdx));
+                let isSearchNearest = searchNearest && cell.nearestLevel && cell.nearestLevel.angle === searchNearest.angle && cell.nearestLevel.side === searchNearest.side;
+                let bgCol = '#050505', textCol = '#777', borderCol = '#222', borderW = 1;
+                if (isSearchNearest) {
+                    bgCol = 'rgba(255, 153, 0, 0.88)'; textCol = '#fff'; borderCol = '#00ffff'; borderW = 3;
+                } else if (isCenter) {
+                    bgCol = '#fff7cc'; textCol = '#000'; borderCol = '#d4af37'; borderW = 3;
+                } else if (cell.nearestLevel) {
+                    const alpha = cell.nearestLevel.strength === 'major' ? 0.55 : 0.28;
+                    bgCol = cell.nearestLevel.role === 'support' ? `rgba(64, 255, 135, ${alpha})` : `rgba(255, 91, 108, ${alpha})`;
+                    textCol = '#fff';
+                    borderCol = cell.nearestLevel.role === 'support' ? '#40ff87' : '#ff5b6c';
+                    borderW = cell.nearestLevel.strength === 'major' ? 3 : 2;
+                } else if (isCross) {
+                    bgCol = '#1a0033'; textCol = '#b366ff'; borderCol = 'rgba(179, 102, 255, 0.8)'; borderW = 2;
+                }
+                ctx.fillStyle = bgCol; ctx.fillRect(cellX, cellY, cellSize, cellSize);
+                ctx.strokeStyle = borderCol; ctx.lineWidth = borderW; ctx.strokeRect(cellX, cellY, cellSize, cellSize);
+                ctx.fillStyle = textCol; ctx.font = isSearchNearest ? `bold ${cellSize * 0.32}px Arial` : `bold ${cellSize * 0.28}px Arial`;
+                if (isSearchNearest || isCenter || cell.nearestLevel) { ctx.shadowBlur = 10; ctx.shadowColor = borderCol; }
+                ctx.fillText(fmtPrice(cell.value), cellX + cellSize/2, cellY + cellSize/2 - (cell.nearestLevel ? 5 : 0));
+                if (cell.nearestLevel) {
+                    ctx.font = 'bold 10px Arial';
+                    ctx.fillText(cell.nearestLevel.angle + 'deg', cellX + cellSize/2, cellY + cellSize/2 + 14);
+                }
+                ctx.shadowBlur = 0;
+            });
+
+            const labelX = 22, labelY = 24;
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = 'bold 13px Arial';
+            ctx.fillStyle = '#fff'; ctx.fillText('Anchor: ' + fmtPrice(centerPrice), labelX, labelY);
+            ctx.fillStyle = '#40ff87'; ctx.fillText('Green = Buy Zone / Support', labelX, labelY + 22);
+            ctx.fillStyle = '#ff5b6c'; ctx.fillText('Red = Sell Zone / Resistance', labelX, labelY + 44);
+            ctx.fillStyle = '#ff9900'; ctx.fillText('Orange/Cyan = Current/Search nearest SQ9 level', labelX, labelY + 66);
+            ctx.fillStyle = '#b366ff'; ctx.fillText('Purple = Gann angle geometry; bold cells = major levels', labelX, labelY + 88);
+        }
+
         let sc = window.innerWidth < 600 ? 0.35 : 0.6;
         let px = 0, py = 0, dg = false, sx, sy, iDist = 0;
         const vM = document.getElementById('viewport-maps'), zL = document.getElementById('zoom-layer');

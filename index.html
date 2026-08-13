@@ -351,6 +351,10 @@
         .hub-card.w-astro::before { background: var(--neon-purple); }
         .hub-card.w-astro:hover { border-color: var(--neon-purple); box-shadow: 0 0 15px rgba(179, 102, 255, 0.2); }
 
+        .hub-card.w-pivot { border-color: rgba(0, 255, 204, 0.4); color: #fff; }
+        .hub-card.w-pivot::before { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-gold)); }
+        .hub-card.w-pivot:hover { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 255, 204, 0.2); }
+
         .hub-card:active { transform: scale(0.97); }
 
         .hub-icon { font-size: 30px; min-width: 40px; text-align: center; }
@@ -435,6 +439,13 @@
                         <span class="hub-desc" id="h-d5">نەخشەی ئەستێرەکان، گەڕانەوەی هەسارەکان</span>
                     </div>
                 </a>
+                <a href="pivot.html" class="hub-card w-pivot">
+                    <span class="hub-icon">P</span>
+                    <div class="hub-info">
+                        <span class="hub-name" id="h-n6">Pivot Strategy</span>
+                        <span class="hub-desc" id="h-d6">High / Low / Close pivot calculation and trading zones</span>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
@@ -507,6 +518,19 @@
             }
         };
 
+        Object.assign(lexicon.ku, {
+            h_n6: "ستراتیژی Pivot",
+            h_d6: "ژماردنی Pivot بە High / Low / Close و ناوچەکانی مامەڵە"
+        });
+        Object.assign(lexicon.ar, {
+            h_n6: "استراتيجية Pivot",
+            h_d6: "حساب Pivot من High / Low / Close ومناطق التداول"
+        });
+        Object.assign(lexicon.en, {
+            h_n6: "Pivot Strategy",
+            h_d6: "High / Low / Close pivot calculation and trading zones"
+        });
+
         let lang = 'ku';
 
         function setLanguage(selectedLang) {
@@ -529,6 +553,7 @@
             document.getElementById('h-n3').innerText = dict.h_n3; document.getElementById('h-d3').innerText = dict.h_d3;
             document.getElementById('h-n4').innerText = dict.h_n4; document.getElementById('h-d4').innerText = dict.h_d4;
             document.getElementById('h-n5').innerText = dict.h_n5; document.getElementById('h-d5').innerText = dict.h_d5;
+            document.getElementById('h-n6').innerText = dict.h_n6; document.getElementById('h-d6').innerText = dict.h_d6;
 
             // جێگیرکردنی دەقی مافی پارێزراو
             document.getElementById('txt-dev-credit-lock').innerHTML = dict.copyright;

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>San FX - Pivot Strategy</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffcc;
+            --neon-gold: #d4af37;
+            --neon-purple: #b366ff;
+            --neon-orange: #ff9900;
+            --buy: #19e27c;
+            --sell: #ff5166;
+            --wait: #ffd166;
+            --bg: #050508;
+            --panel: rgba(10, 10, 15, 0.94);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at center, #151522 0%, #000 78%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 15px;
+            background: rgba(12, 12, 12, 0.95);
+            border-bottom: 1px solid var(--neon-cyan);
+            direction: ltr;
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-toggle, .calc-btn {
+            border: none;
+            border-radius: 5px;
+            background: var(--neon-cyan);
+            color: #000;
+            padding: 9px 14px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.28);
+        }
+
+        .brand { color: var(--neon-gold); font-weight: 900; font-family: monospace; font-size: 12px; }
+        .back-arrow-btn { color: var(--neon-cyan); text-decoration: none; font-size: 24px; padding: 0 6px; }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            width: 318px;
+            height: 100%;
+            background: #0a0a0f;
+            z-index: 100;
+            transition: 0.28s;
+            padding: 72px 18px 20px;
+            overflow-y: auto;
+            box-shadow: 0 0 24px rgba(0,0,0,0.9);
+        }
+        html[dir="rtl"] .sidebar { right: -330px; border-left: 1px solid var(--neon-cyan); direction: rtl; }
+        html[dir="rtl"] .sidebar.active { right: 0; }
+        html[dir="ltr"] .sidebar { left: -330px; border-right: 1px solid var(--neon-cyan); direction: ltr; }
+        html[dir="ltr"] .sidebar.active { left: 0; }
+        .close-menu { position: absolute; top: 15px; border: 1px solid var(--neon-cyan); background: transparent; color: var(--neon-cyan); border-radius: 4px; padding: 4px 9px; cursor: pointer; }
+        html[dir="rtl"] .close-menu { left: 15px; }
+        html[dir="ltr"] .close-menu { right: 15px; }
+
+        .menu-item { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #222; }
+        .menu-item label { display: block; margin-bottom: 7px; color: var(--neon-cyan); font-size: 12px; font-weight: 900; text-align: center; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #050505;
+            color: #fff;
+            font-size: 15px;
+            font-family: monospace;
+            font-weight: 800;
+            text-align: center;
+            outline: none;
+        }
+        input:focus, select:focus { border-color: var(--neon-cyan); box-shadow: 0 0 12px rgba(0,255,204,0.14); }
+
+        .wrap {
+            width: min(1180px, calc(100vw - 28px));
+            margin: 22px auto 32px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 16px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(0,255,204,0.18);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 0 26px rgba(0,0,0,0.45);
+        }
+
+        .title { margin: 0 0 5px; color: var(--neon-gold); font-size: 22px; letter-spacing: 0; }
+        .sub { color: #aaa; font-size: 12px; margin-bottom: 14px; line-height: 1.5; }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .metric { border: 1px solid #222; border-radius: 6px; padding: 12px; background: rgba(255,255,255,0.035); text-align: center; }
+        .metric b { display: block; color: #888; font-size: 11px; margin-bottom: 7px; }
+        .metric span { color: #fff; font-family: monospace; font-weight: 900; font-size: 18px; }
+
+        .levels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .side-title { margin: 0 0 8px; font-size: 13px; text-align: center; }
+        .buy-title { color: var(--buy); }
+        .sell-title { color: var(--sell); }
+        .level-row {
+            display: grid;
+            grid-template-columns: 52px 1fr;
+            gap: 8px;
+            align-items: center;
+            min-height: 36px;
+            margin-bottom: 7px;
+        }
+        .tag { border-radius: 5px; padding: 8px 6px; background: #101015; text-align: center; font-weight: 900; font-size: 12px; border: 1px solid #2a2a35; }
+        .price { border-radius: 5px; padding: 8px; background: #050505; border: 1px solid #24242c; text-align: center; font-family: monospace; font-weight: 900; }
+        .res .tag, .res .price { border-color: rgba(255,81,102,0.55); }
+        .sup .tag, .sup .price { border-color: rgba(25,226,124,0.55); }
+        .near .tag, .near .price { border-color: var(--neon-orange); box-shadow: 0 0 14px rgba(255,153,0,0.22); }
+        .pivot-line { margin: 12px 0; border: 1px solid var(--neon-gold); color: #000; background: var(--neon-gold); border-radius: 6px; padding: 10px; text-align: center; font-family: monospace; font-weight: 900; }
+
+        .signal { display: grid; gap: 10px; }
+        .signal-card { border: 1px solid #24242c; border-radius: 7px; background: rgba(255,255,255,0.035); padding: 12px; line-height: 1.5; font-size: 13px; }
+        .signal-card b { color: var(--neon-cyan); }
+        .bias { font-size: 20px; font-weight: 900; text-align: center; }
+        .bias.buy { color: var(--buy); }
+        .bias.sell { color: var(--sell); }
+        .bias.wait { color: var(--wait); }
+        .formula { font-family: monospace; color: #bbb; font-size: 11px; line-height: 1.6; }
+
+        @media (max-width: 860px) {
+            .wrap { grid-template-columns: 1fr; }
+            .summary { grid-template-columns: 1fr; }
+            .levels { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    <div class="header">
+        <button class="menu-toggle" id="btn-menu" data-i18n="btn_menu">Settings</button>
+        <div class="brand">Pivot Strategy @San_FX</div>
+        <a href="index.html?showHub=true" class="back-arrow-btn">Back</a>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <button class="close-menu" id="btn-close-menu">X</button>
+        <h3 style="color:var(--neon-cyan);text-align:center;margin-top:0;" data-i18n="side_title">Pivot Strategy</h3>
+
+        <div class="menu-item">
+            <label data-i18n="lbl_method">Pivot Method</label>
+            <select id="pivotMethod">
+                <option value="classic">Classic Floor</option>
+                <option value="fibonacci">Fibonacci</option>
+                <option value="camarilla">Camarilla</option>
+                <option value="woodie">Woodie</option>
+                <option value="demark">DeMark</option>
+            </select>
+        </div>
+        <div class="menu-item">
+            <label data-i18n="lbl_high">Previous High</label>
+            <input type="number" id="pivotHigh" step="0.01" placeholder="High">
+        </div>
+        <div class="menu-item">
+            <label data-i18n="lbl_low">Previous Low</label>
+            <input type="number" id="pivotLow" step="0.01" placeholder="Low">
+        </div>
+        <div class="menu-item">
+            <label data-i18n="lbl_close">Previous Close</label>
+            <input type="number" id="pivotClose" step="0.01" placeholder="Close">
+        </div>
+        <div class="menu-item">
+            <label data-i18n="lbl_open">Previous Open (DeMark)</label>
+            <input type="number" id="pivotOpen" step="0.01" placeholder="Open">
+        </div>
+        <div class="menu-item">
+            <label data-i18n="lbl_current">Current Price</label>
+            <input type="number" id="pivotCurrent" step="0.01" placeholder="Current">
+        </div>
+        <div class="menu-item">
+            <label data-i18n="lbl_trend">Market Bias Filter</label>
+            <select id="pivotTrend">
+                <option value="neutral">Neutral</option>
+                <option value="up">UP</option>
+                <option value="down">DOWN</option>
+            </select>
+        </div>
+        <button class="calc-btn" id="btnCalc" data-i18n="btn_calc" style="width:100%;">Calculate</button>
+    </aside>
+
+    <main class="wrap">
+        <section class="panel">
+            <h1 class="title" data-i18n="main_title">Pivot Strategy Calculator</h1>
+            <div class="sub" data-i18n="main_sub">Use previous High, Low, and Close. Levels are calculated first; the strategy only interprets price around those levels.</div>
+
+            <div class="summary">
+                <div class="metric"><b data-i18n="sum_method">Method</b><span id="sumMethod">Classic</span></div>
+                <div class="metric"><b data-i18n="sum_range">Range</b><span id="sumRange">-</span></div>
+                <div class="metric"><b data-i18n="sum_pivot">Pivot</b><span id="sumPivot">-</span></div>
+            </div>
+
+            <div class="levels">
+                <div>
+                    <h3 class="side-title sell-title" data-i18n="res_title">Sell Zones / Resistance</h3>
+                    <div id="resLevels"></div>
+                </div>
+                <div>
+                    <h3 class="side-title buy-title" data-i18n="sup_title">Buy Zones / Support</h3>
+                    <div id="supLevels"></div>
+                </div>
+            </div>
+            <div class="pivot-line" id="pivotLine">PIVOT -</div>
+        </section>
+
+        <section class="panel signal">
+            <h2 class="title" style="font-size:19px;" data-i18n="strategy_title">Strategy Signal</h2>
+            <div id="biasBox" class="bias wait">WAIT</div>
+            <div class="signal-card" id="nearestBox">Enter High / Low / Close.</div>
+            <div class="signal-card" id="planBox">No trade until price is near a calculated pivot level.</div>
+            <div class="signal-card formula" id="formulaBox"></div>
+        </section>
+    </main>
+
+    <script>
+        const lexicon = {
+            ku: {
+                btn_menu: "ڕێکخستن", side_title: "ستراتیژی Pivot", lbl_method: "جۆری Pivot", lbl_high: "High ـی پێشوو", lbl_low: "Low ـی پێشوو", lbl_close: "Close ـی پێشوو", lbl_open: "Open ـی پێشوو (DeMark)", lbl_current: "نرخی ئێستا", lbl_trend: "فلتەری ئاراستە", btn_calc: "ژماردن",
+                main_title: "Pivot Strategy Calculator", main_sub: "High و Low و Close ـی ماوەی پێشوو بەکاربهێنە. ئاستەکان یەکەم ژمێردرێن، ستراتیژی تەنها لێکدانەوە دەکات.", sum_method: "جۆر", sum_range: "مەودا", sum_pivot: "Pivot", res_title: "ناوچەی فرۆشتن / بەرگری", sup_title: "ناوچەی کڕین / پاڵپشتی", strategy_title: "سیگناڵی ستراتیژی"
+            },
+            ar: {
+                btn_menu: "إعدادات", side_title: "استراتيجية Pivot", lbl_method: "نوع Pivot", lbl_high: "القمة السابقة", lbl_low: "القاع السابق", lbl_close: "الإغلاق السابق", lbl_open: "الافتتاح السابق (DeMark)", lbl_current: "السعر الحالي", lbl_trend: "فلتر الاتجاه", btn_calc: "حساب",
+                main_title: "حاسبة استراتيجية Pivot", main_sub: "استخدم قمة وقاع وإغلاق الفترة السابقة. يتم حساب المستويات أولا، ثم يتم تفسير السعر حولها.", sum_method: "النوع", sum_range: "المدى", sum_pivot: "Pivot", res_title: "مناطق بيع / مقاومة", sup_title: "مناطق شراء / دعم", strategy_title: "إشارة الاستراتيجية"
+            },
+            en: {
+                btn_menu: "Settings", side_title: "Pivot Strategy", lbl_method: "Pivot Method", lbl_high: "Previous High", lbl_low: "Previous Low", lbl_close: "Previous Close", lbl_open: "Previous Open (DeMark)", lbl_current: "Current Price", lbl_trend: "Market Bias Filter", btn_calc: "Calculate",
+                main_title: "Pivot Strategy Calculator", main_sub: "Use previous High, Low, and Close. Levels are calculated first; the strategy only interprets price around those levels.", sum_method: "Method", sum_range: "Range", sum_pivot: "Pivot", res_title: "Sell Zones / Resistance", sup_title: "Buy Zones / Support", strategy_title: "Strategy Signal"
+            }
+        };
+
+        const ids = ["pivotMethod", "pivotHigh", "pivotLow", "pivotClose", "pivotOpen", "pivotCurrent", "pivotTrend"];
+        let currentLang = "ku";
+
+        function applyLanguage() {
+            try { currentLang = localStorage.getItem("rfx_lang") || "ku"; } catch(e) {}
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === "en" ? "ltr" : "rtl";
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const key = el.getAttribute("data-i18n");
+                if (lexicon[currentLang] && lexicon[currentLang][key]) el.textContent = lexicon[currentLang][key];
+            });
+        }
+
+        function saveSettings() {
+            try { ids.forEach(id => localStorage.setItem("rfx_pivot_" + id, document.getElementById(id).value)); } catch(e) {}
+        }
+
+        function loadSettings() {
+            try {
+                ids.forEach(id => {
+                    const value = localStorage.getItem("rfx_pivot_" + id);
+                    if (value !== null) document.getElementById(id).value = value;
+                });
+            } catch(e) {}
+        }
+
+        function num(id) {
+            const value = parseFloat(document.getElementById(id).value);
+            return Number.isFinite(value) ? value : NaN;
+        }
+
+        function fmt(value) {
+            if (!Number.isFinite(value)) return "-";
+            const abs = Math.abs(value);
+            return value.toFixed(abs >= 100 ? 2 : abs >= 1 ? 4 : 6);
+        }
+
+        function calculatePivotLevels(method, high, low, close, open) {
+            const range = high - low;
+            if (method === "fibonacci") {
+                const p = (high + low + close) / 3;
+                return { method: "Fibonacci", pivot: p, range, resistance: [p + range * 0.382, p + range * 0.618, p + range, p + range * 1.272], support: [p - range * 0.382, p - range * 0.618, p - range, p - range * 1.272], formula: "P=(H+L+C)/3; R/S = P +/- Range x 0.382, 0.618, 1.000, 1.272" };
+            }
+            if (method === "camarilla") {
+                return { method: "Camarilla", pivot: (high + low + close) / 3, range, resistance: [close + range * 1.1 / 12, close + range * 1.1 / 6, close + range * 1.1 / 4, close + range * 1.1 / 2], support: [close - range * 1.1 / 12, close - range * 1.1 / 6, close - range * 1.1 / 4, close - range * 1.1 / 2], formula: "Camarilla: R/S = C +/- Range x 1.1 / 12, 6, 4, 2" };
+            }
+            if (method === "woodie") {
+                const p = (high + low + 2 * close) / 4;
+                return { method: "Woodie", pivot: p, range, resistance: [2 * p - low, p + range, high + 2 * (p - low), p + 3 * range], support: [2 * p - high, p - range, low - 2 * (high - p), p - 3 * range], formula: "Woodie: P=(H+L+2C)/4; R1=2P-L; S1=2P-H" };
+            }
+            if (method === "demark") {
+                const referenceOpen = Number.isFinite(open) ? open : close;
+                const x = close < referenceOpen ? high + 2 * low + close : close > referenceOpen ? 2 * high + low + close : high + low + 2 * close;
+                const p = x / 4;
+                return { method: "DeMark", pivot: p, range, resistance: [x / 2 - low], support: [x / 2 - high], formula: "DeMark: if C<O then X=H+2L+C; if C>O then X=2H+L+C; else X=H+L+2C. P=X/4; R1=X/2-L; S1=X/2-H" };
+            }
+            const p = (high + low + close) / 3;
+            return { method: "Classic Floor", pivot: p, range, resistance: [2 * p - low, p + range, high + 2 * (p - low), p + 3 * range], support: [2 * p - high, p - range, low - 2 * (high - p), p - 3 * range], formula: "Classic: P=(H+L+C)/3; R1=2P-L; S1=2P-H; R2=P+Range; S2=P-Range" };
+        }
+
+        function flatten(levels) {
+            return levels.support.map((price, i) => ({ name: "S" + (i + 1), price, type: "support" }))
+                .concat([{ name: "P", price: levels.pivot, type: "pivot" }])
+                .concat(levels.resistance.map((price, i) => ({ name: "R" + (i + 1), price, type: "resistance" })))
+                .sort((a, b) => a.price - b.price);
+        }
+
+        function nearestLevels(current, levels) {
+            const all = flatten(levels);
+            const below = [...all].reverse().find(level => level.price <= current) || all[0];
+            const above = all.find(level => level.price >= current) || all[all.length - 1];
+            const nearest = all.reduce((best, level) => {
+                const d = Math.abs(current - level.price);
+                return !best || d < best.distance ? { ...level, distance: d, signed: current - level.price } : best;
+            }, null);
+            const gap = Math.abs(above.price - below.price) || levels.range || Math.abs(levels.pivot) * 0.002 || 1;
+            return { all, below, above, nearest, tolerance: Math.max(gap * 0.12, Math.abs(levels.pivot) * 0.00025) };
+        }
+
+        function strategy(current, levels, trend) {
+            if (!Number.isFinite(current)) return { bias: "WAIT", cls: "wait", text: "Enter current price for strategy interpretation.", entry: "-", sl: "-", tp: "-" };
+            const n = nearestLevels(current, levels);
+            const fromSupport = n.below.type === "support" && current - n.below.price <= n.tolerance;
+            const fromResistance = n.above.type === "resistance" && n.above.price - current <= n.tolerance;
+            const idxBelow = n.all.indexOf(n.below);
+            const idxAbove = n.all.indexOf(n.above);
+            if (fromSupport && trend !== "down") {
+                const targets = n.all.slice(idxBelow + 1, idxBelow + 4).map(l => l.name + " " + fmt(l.price)).join(" | ");
+                const sl = n.all[idxBelow - 1] || n.below;
+                return { bias: "BUY ZONE / SUPPORT", cls: "buy", text: "Price is near calculated support " + n.below.name + ". This is a candidate reaction zone, not a guaranteed reversal.", entry: fmt(n.below.price - n.tolerance) + " - " + fmt(n.below.price + n.tolerance), sl: sl.name + " " + fmt(sl.price), tp: targets || "-" };
+            }
+            if (fromResistance && trend !== "up") {
+                const targets = n.all.slice(Math.max(0, idxAbove - 3), idxAbove).reverse().map(l => l.name + " " + fmt(l.price)).join(" | ");
+                const sl = n.all[idxAbove + 1] || n.above;
+                return { bias: "SELL ZONE / RESISTANCE", cls: "sell", text: "Price is near calculated resistance " + n.above.name + ". This is a candidate reaction zone, not a guaranteed reversal.", entry: fmt(n.above.price - n.tolerance) + " - " + fmt(n.above.price + n.tolerance), sl: sl.name + " " + fmt(sl.price), tp: targets || "-" };
+            }
+            if (n.nearest.distance <= n.tolerance) {
+                return { bias: "BREAKOUT / WAIT", cls: "wait", text: "Price has crossed or is sitting on " + n.nearest.name + ". Wait for acceptance or rejection before using the next pivot level.", entry: "-", sl: "-", tp: "-" };
+            }
+            return { bias: "WAIT / NO TRADE", cls: "wait", text: "Price is between " + n.below.name + " " + fmt(n.below.price) + " and " + n.above.name + " " + fmt(n.above.price) + ". No strong pivot entry.", entry: "-", sl: "-", tp: "-" };
+        }
+
+        function drawLevel(container, levels, prefix, kind, currentInfo) {
+            container.innerHTML = "";
+            levels.slice().reverse().forEach((price, i) => {
+                const index = levels.length - i;
+                const name = prefix + index;
+                const near = currentInfo && currentInfo.nearest.name === name ? " near" : "";
+                container.insertAdjacentHTML("beforeend", '<div class="level-row ' + kind + near + '"><div class="tag">' + name + '</div><div class="price">' + fmt(price) + '</div></div>');
+            });
+        }
+
+        function updatePivot() {
+            saveSettings();
+            const high = num("pivotHigh"), low = num("pivotLow"), close = num("pivotClose"), open = num("pivotOpen"), current = num("pivotCurrent");
+            const method = document.getElementById("pivotMethod").value;
+            const trend = document.getElementById("pivotTrend").value;
+            if (!Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(close) || high <= low) {
+                document.getElementById("nearestBox").textContent = "Enter valid Previous High, Low, and Close. High must be above Low.";
+                return;
+            }
+            const levels = calculatePivotLevels(method, high, low, close, open);
+            const near = Number.isFinite(current) ? nearestLevels(current, levels) : null;
+            const sig = strategy(current, levels, trend);
+
+            document.getElementById("sumMethod").textContent = levels.method;
+            document.getElementById("sumRange").textContent = fmt(levels.range);
+            document.getElementById("sumPivot").textContent = fmt(levels.pivot);
+            document.getElementById("pivotLine").textContent = "PIVOT " + fmt(levels.pivot);
+            drawLevel(document.getElementById("resLevels"), levels.resistance, "R", "res", near);
+            drawLevel(document.getElementById("supLevels"), levels.support, "S", "sup", near);
+
+            const biasBox = document.getElementById("biasBox");
+            biasBox.textContent = sig.bias;
+            biasBox.className = "bias " + sig.cls;
+            document.getElementById("nearestBox").innerHTML = near ? "<b>Nearest:</b> " + near.nearest.name + " " + fmt(near.nearest.price) + "<br><b>Distance:</b> " + fmt(near.nearest.signed) + "<br><b>Support:</b> " + near.below.name + " " + fmt(near.below.price) + "<br><b>Resistance:</b> " + near.above.name + " " + fmt(near.above.price) : "Enter current price for nearest-level detection.";
+            document.getElementById("planBox").innerHTML = "<b>Why:</b> " + sig.text + "<br><b>Entry Zone:</b> " + sig.entry + "<br><b>SL / Invalidation:</b> " + sig.sl + "<br><b>TP:</b> " + sig.tp;
+            document.getElementById("formulaBox").textContent = levels.formula;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const sidebar = document.getElementById("sidebar");
+            document.getElementById("btn-menu").addEventListener("click", e => { e.stopPropagation(); sidebar.classList.toggle("active"); });
+            document.getElementById("btn-close-menu").addEventListener("click", () => sidebar.classList.remove("active"));
+            document.getElementById("btnCalc").addEventListener("click", () => { updatePivot(); sidebar.classList.remove("active"); });
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener("input", updatePivot);
+                el.addEventListener("change", updatePivot);
+            });
+            applyLanguage();
+            loadSettings();
+            updatePivot();
+        });
+    </script>
+</body>
+</html>
