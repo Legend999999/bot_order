@@ -57,7 +57,35 @@
         .badge.next { color: #00110d; background: #fff; border-color: #fff; }
         .badge.current { color: #000; background: #ff3399; border-color: #ff3399; }
         .badge.past { color: #aaa; background: #151515; }
-        @media (max-width: 700px) { .today-panel { top: 54px; width: 94vw; } .time-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .today-title, .next-time { grid-template-columns: 1fr; display: grid; } }
+        .today-toggle { background: rgba(0,255,204,0.12); border: 1px solid rgba(0,255,204,0.35); color: var(--neon-cyan); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 900; cursor: pointer; }
+        .today-body { display: block; }
+        .today-panel.collapsed .today-body { display: none; }
+        .next-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+        .detail-pill { border: 1px solid rgba(255,255,255,0.09); border-radius: 6px; padding: 5px; background: rgba(255,255,255,0.035); color: #b9c7d0; font-size: 10px; }
+        .detail-pill b { color: #fff; display: block; font-size: 12px; }
+        .window-range { color: var(--neon-gold); font-family: monospace; font-weight: 900; }
+        .canvas-controls { position: fixed; left: 14px; bottom: 16px; z-index: 9500; display: flex; gap: 7px; flex-wrap: wrap; max-width: min(96vw, 460px); }
+        .canvas-controls button { background: rgba(9, 13, 18, 0.92); border: 1px solid rgba(0,255,204,0.45); color: var(--neon-cyan); border-radius: 8px; min-width: 42px; min-height: 38px; padding: 7px 10px; font-weight: 900; box-shadow: 0 6px 20px rgba(0,0,0,0.38); touch-action: manipulation; }
+        .analysis-panel { position: fixed; top: 86px; right: 14px; width: 360px; max-height: calc(100vh - 112px); overflow: auto; z-index: 8500; background: rgba(5, 8, 12, 0.94); border: 1px solid rgba(0,255,204,0.35); border-radius: 10px; padding: 12px; box-sizing: border-box; box-shadow: 0 16px 40px rgba(0,0,0,0.62); backdrop-filter: blur(8px); direction: ltr; }
+        html[dir="rtl"] .analysis-panel { left: 14px; right: auto; }
+        .analysis-section { border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(255,255,255,0.035); padding: 10px; margin-bottom: 10px; }
+        .analysis-section h4 { margin: 0 0 8px; color: var(--neon-gold); font-size: 12px; letter-spacing: .4px; text-transform: uppercase; }
+        .analysis-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 5px 0; font-size: 11px; color: #b9c7d0; }
+        .analysis-row:last-child { border-bottom: 0; }
+        .analysis-row b { color: #fff; font-family: monospace; text-align: right; }
+        .score-list { margin: 0; padding-left: 16px; color: #cbd7df; font-size: 11px; line-height: 1.45; }
+        .level-grid { display: grid; gap: 5px; }
+        .level-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 6px; background: rgba(0,0,0,0.22); font-size: 11px; color: #cbd7df; }
+        .level-item strong { color: var(--neon-gold); font-family: monospace; }
+        .angle-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+        .angle-card { border: 1px solid rgba(0,255,204,0.16); border-radius: 7px; padding: 6px; background: rgba(0,255,204,0.045); font-size: 10px; color: #aebbc5; text-align: center; }
+        .angle-card strong { color: var(--neon-cyan); display: block; font-size: 13px; }
+        .cycle-form { display: grid; grid-template-columns: 1fr 96px; gap: 7px; margin-bottom: 8px; }
+        .cycle-list { display: grid; gap: 5px; }
+        .cycle-item { border-left: 3px solid var(--neon-gold); padding: 6px; background: rgba(212,175,55,0.07); font-size: 11px; color: #d9e5ea; }
+        .warning-note { color: #ffd9d9; border: 1px solid rgba(255,51,51,0.25); background: rgba(255,51,51,0.08); border-radius: 7px; padding: 8px; font-size: 11px; line-height: 1.4; }
+        @media (max-width: 1100px) { .analysis-panel { top: auto; bottom: 64px; left: 50% !important; right: auto !important; transform: translateX(-50%); width: min(94vw, 760px); max-height: 34vh; } }
+        @media (max-width: 700px) { .today-panel { top: 54px; width: 94vw; padding: 8px; } .time-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .today-title, .next-time { grid-template-columns: 1fr; display: grid; } .next-detail-grid { grid-template-columns: 1fr 1fr; } .analysis-panel { bottom: 78px; max-height: 30vh; font-size: 12px; } .canvas-controls { left: 8px; right: 8px; bottom: 8px; justify-content: center; } .canvas-controls button { min-height: 36px; font-size: 12px; } }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -72,15 +100,24 @@
         <div class="today-title">
             <span>TODAY'S IMPORTANT TIMES</span>
             <span id="hex-today-date">Asia/Baghdad</span>
+            <button class="today-toggle" id="hex-today-toggle" type="button">Collapse</button>
         </div>
-        <div class="next-time">
-            <div>
-                <div style="color:#aaa;font-size:10px;font-weight:900;">NEXT IMPORTANT TIME</div>
-                <div class="time" id="hex-next-time">--:--</div>
+        <div class="today-body">
+            <div class="next-time">
+                <div>
+                    <div style="color:#aaa;font-size:10px;font-weight:900;">NEXT GANN WINDOW</div>
+                    <div class="time" id="hex-next-time">--:--</div>
+                    <div class="window-range" id="hex-next-window">--:-- - --:--</div>
+                </div>
+                <div id="hex-next-reason" style="font-size:11px;color:#d8f7ff;">Calculating Hexagon hour geometry...</div>
             </div>
-            <div id="hex-next-reason" style="font-size:11px;color:#d8f7ff;">Calculating Hexagon hour geometry...</div>
+            <div class="next-detail-grid">
+                <div class="detail-pill"><b id="hex-current-time">--:--</b>Baghdad time</div>
+                <div class="detail-pill"><b id="hex-countdown">--</b>Countdown</div>
+                <div class="detail-pill"><b id="hex-market-note">GEOMETRY</b>Market confirmation unavailable</div>
+            </div>
+            <div class="time-list" id="hex-time-list"></div>
         </div>
-        <div class="time-list" id="hex-time-list"></div>
     </section>
 
     <div class="sidebar" id="sidebar">
@@ -123,6 +160,53 @@
         </div>
     </div>
 
+    <aside class="analysis-panel" id="analysisPanel">
+        <div class="analysis-section">
+            <h4>GANN GEOMETRY</h4>
+            <div class="analysis-row"><span>Mode</span><b id="analysisMode">--</b></div>
+            <div class="analysis-row"><span>Center</span><b id="analysisCenter">--</b></div>
+            <div class="analysis-row"><span>Target</span><b id="analysisTarget">--</b></div>
+            <div class="analysis-row"><span>Geometry score</span><b id="analysisScore">--</b></div>
+            <ul class="score-list" id="analysisScoreWhy"></ul>
+        </div>
+        <div class="analysis-section">
+            <h4>TARGET ANALYSIS</h4>
+            <div id="targetAnalysis">Enter a target to inspect its Hexagon ring, side, angle, and nearby levels.</div>
+        </div>
+        <div class="analysis-section">
+            <h4>PRICE ANALYSIS</h4>
+            <div id="priceAnalysis">Switch to Price Analysis for support/resistance candidates.</div>
+        </div>
+        <div class="analysis-section">
+            <h4>GANN ANGLES</h4>
+            <div class="angle-grid" id="anglePanel"></div>
+        </div>
+        <div class="analysis-section">
+            <h4>GANN TIME CYCLES</h4>
+            <div class="cycle-form">
+                <input id="cycleAnchorInput" type="datetime-local">
+                <button id="cycleUseNow" type="button">Use Now</button>
+            </div>
+            <div class="cycle-list" id="cyclePanel"></div>
+        </div>
+        <div class="analysis-section">
+            <h4>MARKET CONFIRMATION</h4>
+            <div class="warning-note">Market confirmation unavailable — geometry analysis only. No BUY/SELL signal is generated from Hexagon geometry.</div>
+        </div>
+        <div class="analysis-section">
+            <h4>IMPLEMENTATION NOTE</h4>
+            <div class="warning-note" id="implementationNote">CURRENT IMPLEMENTATION: preserved existing axial Hexagon spiral traversal from dHx(). PDF/GANN REFERENCE: local reference identifies Hexagon/SQ9 price-time usage, but no machine-readable alternate traversal was found, so geometry was not rewritten blindly.</div>
+        </div>
+    </aside>
+
+    <div class="canvas-controls" id="canvasControls">
+        <button type="button" data-view-action="reset">Reset View</button>
+        <button type="button" data-view-action="zoomIn">Zoom +</button>
+        <button type="button" data-view-action="zoomOut">Zoom -</button>
+        <button type="button" data-view-action="center">Center</button>
+        <button type="button" data-view-action="fit">Fit Hexagon</button>
+    </div>
+
     <script>
         // فەرهەنگی زمانەکان بۆ مینووی شەش‌گۆشە
         const lexicon = {
@@ -151,6 +235,13 @@
 
         let currentLang = 'ku';
         const BAGHDAD_TZ = 'Asia/Baghdad';
+        const IMPORTANT_ANGLES = [45, 60, 90, 120, 180, 240, 270, 315, 360];
+        const MAX_SAFE_LAYERS = 40;
+        const MAX_SAFE_PRICE = 100000000;
+        let HEX_CELLS = [];
+        let HEX_LAST_TIME_WINDOWS = [];
+        let HEX_LAST_TARGET = null;
+        let redrawTimer = null;
 
         function getBaghdadParts(date = new Date()) {
             const parts = new Intl.DateTimeFormat('en-GB', {
@@ -167,12 +258,54 @@
         function scoreHexCell(ring, side, indexInSide) {
             // New ranking/display logic based on existing hexagon.html -> dHx() geometry.
             // The original grid visually emphasizes center cells, side starts, and mid-turn cells.
-            if(ring === 0) return { score: 100, strength: 'HIGH', why: 'center of the hour spiral' };
-            if(indexInSide === 0) return { score: Math.max(95 - ring * 4, 68), strength: ring <= 4 ? 'HIGH' : 'MEDIUM', why: 'hexagon corner / important axis' };
-            if(ring > 1 && ((ring % 2 === 0 && indexInSide === ring / 2) || (ring % 2 !== 0 && (indexInSide === Math.floor(ring / 2) || indexInSide === Math.ceil(ring / 2))))) {
-                return { score: Math.max(72 - ring * 3, 48), strength: ring <= 5 ? 'MEDIUM' : 'LOW', why: 'mid-turn alignment' };
+            if(ring === 0) return { score: 100, strength: 'HIGH', why: 'center of the hour spiral', scoreParts: ['Center of spiral +45', 'Primary origin alignment +35', 'All axes begin here +20'] };
+            if(indexInSide === 0) {
+                const score = Math.max(95 - ring * 4, 68);
+                return { score, strength: ring <= 4 ? 'HIGH' : 'MEDIUM', why: 'hexagon corner / important axis', scoreParts: [`Hexagon corner alignment +35`, `Major 60° axis family +25`, `Ring ${ring} proximity weighting +${Math.max(score - 60, 8)}`] };
             }
-            return { score: 0, strength: 'LOW', why: 'normal cell' };
+            if(ring > 1 && ((ring % 2 === 0 && indexInSide === ring / 2) || (ring % 2 !== 0 && (indexInSide === Math.floor(ring / 2) || indexInSide === Math.ceil(ring / 2))))) {
+                const score = Math.max(72 - ring * 3, 48);
+                return { score, strength: ring <= 5 ? 'MEDIUM' : 'LOW', why: 'mid-turn alignment', scoreParts: ['Mid-side turn alignment +24', 'Secondary geometry point +18', `Ring ${ring} weighting +${Math.max(score - 42, 6)}`] };
+            }
+            return { score: 0, strength: 'LOW', why: 'normal cell', scoreParts: ['Normal cell: no major Hexagon alignment'] };
+        }
+
+        function angleStrength(angle) {
+            if(!Number.isFinite(angle)) return null;
+            let normalized = ((angle % 360) + 360) % 360;
+            let nearest = IMPORTANT_ANGLES.map(a => ({ angle: a, dist: Math.min(Math.abs(normalized - a), 360 - Math.abs(normalized - a)) })).sort((a,b) => a.dist - b.dist)[0];
+            if(!nearest || nearest.dist > 8) return null;
+            return nearest;
+        }
+
+        function clampInputs() {
+            const layersEl = document.getElementById('hexGridLayers');
+            const stepEl = document.getElementById('hexStepValue');
+            const baseEl = document.getElementById('hexBaseInput');
+            const targetEl = document.getElementById('hexTargetInput');
+            const md = document.getElementById('hexDataType').value;
+            let layers = parseInt(layersEl.value);
+            if(!Number.isFinite(layers) || layers < 3) layers = 3;
+            if(layers > MAX_SAFE_LAYERS) layers = MAX_SAFE_LAYERS;
+            layersEl.value = layers;
+            let step = parseFloat(stepEl.value);
+            if(!Number.isFinite(step) || step === 0) step = 1;
+            if(Math.abs(step) > 1000000) step = Math.sign(step) * 1000000;
+            stepEl.value = step;
+            if(md === 'price') {
+                [baseEl, targetEl].forEach(el => {
+                    if(!el || el.value === '') return;
+                    let n = parseFloat(el.value);
+                    if(!Number.isFinite(n)) el.value = '';
+                    else if(n < 0) el.value = 0;
+                    else if(n > MAX_SAFE_PRICE) el.value = MAX_SAFE_PRICE;
+                });
+            }
+        }
+
+        function scheduleDraw() {
+            clearTimeout(redrawTimer);
+            redrawTimer = setTimeout(() => { clampInputs(); saveSet(); dHx(); updateHexTodayTimes(); }, 80);
         }
 
         function generateHexHourImportance() {
@@ -187,8 +320,9 @@
             function addHour(ring, side, indexInSide) {
                 const hr = ((Math.round(hourCursor) % 24) + 24) % 24;
                 const s = scoreHexCell(ring, side, indexInSide);
+                const angle = side === 0 && ring === 0 ? 0 : ((side * 60) + ((indexInSide / Math.max(ring, 1)) * 60)) % 360;
                 if(s.score > 0 && (!bestByHour[hr] || s.score > bestByHour[hr].score)) {
-                    bestByHour[hr] = { hour: hr, ring, side, indexInSide, ...s };
+                    bestByHour[hr] = { hour: hr, ring, side, indexInSide, angle, windowStart: (hr * 60 - 10 + 1440) % 1440, windowEnd: (hr * 60 + 10) % 1440, ...s };
                 }
                 hourCursor += step * dir;
             }
@@ -205,6 +339,27 @@
             return Object.values(bestByHour).sort((a, b) => b.score - a.score || a.hour - b.hour);
         }
 
+        function minutesToClock(totalMinutes) {
+            totalMinutes = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
+            return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`;
+        }
+
+        function classifyWindow(x, nowMinutes, nextHour) {
+            const center = x.hour * 60;
+            const diff = ((center - nowMinutes + 1440) % 1440);
+            const inWindow = Math.min(Math.abs(nowMinutes - center), 1440 - Math.abs(nowMinutes - center)) <= 10;
+            if(inWindow) return 'CURRENT';
+            if(nextHour === x.hour) return 'NEXT';
+            if(diff > 0 && diff <= 720) return 'UPCOMING';
+            return 'PAST';
+        }
+
+        function formatCountdown(minutes) {
+            if(minutes <= 0) return 'Window active';
+            const h = Math.floor(minutes / 60), m = minutes % 60;
+            return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
+        }
+
         function updateHexTodayTimes() {
             const panel = document.getElementById('hex-today-panel');
             if(!panel) return;
@@ -214,14 +369,18 @@
             const next = ranked
                 .map(x => ({ ...x, forward: ((x.hour * 60) - nowMinutes + 1440) % 1440 }))
                 .sort((a, b) => a.forward - b.forward || b.score - a.score)[0];
+            HEX_LAST_TIME_WINDOWS = ranked;
             document.getElementById('hex-today-date').innerText = `TODAY - ${formatBaghdadToday()} - KURDISTAN UTC+3`;
+            document.getElementById('hex-current-time').innerText = `${String(parts.hour).padStart(2,'0')}:${String(parts.minute).padStart(2,'0')}`;
             document.getElementById('hex-next-time').innerText = next ? `${String(next.hour).padStart(2, '0')}:00` : '--:--';
-            document.getElementById('hex-next-reason').innerHTML = next ? `Hexagon ring: <b>${next.ring}</b><br>Position: ${next.why}<br>Strength: <b>${next.strength}</b>` : 'No important hour found from current Hexagon settings.';
+            document.getElementById('hex-next-window').innerText = next ? `${minutesToClock(next.windowStart)} - ${minutesToClock(next.windowEnd)}` : '--:-- - --:--';
+            document.getElementById('hex-countdown').innerText = next ? formatCountdown(next.forward) : '--';
+            document.getElementById('hex-market-note').innerText = 'GEOMETRY ONLY';
+            document.getElementById('hex-next-reason').innerHTML = next ? `Potential Gann Reaction Window<br>Strength: <b>${next.score}/100 — ${next.strength}</b><br>Ring ${next.ring} • Side ${next.side + 1} • Position ${next.indexInSide}<br>${Number.isFinite(next.angle) ? `Angle ~ ${Math.round(next.angle)}°<br>` : ''}${next.why}` : 'No important hour found from current Hexagon settings.';
             document.getElementById('hex-time-list').innerHTML = ranked.map(x => {
-                const start = x.hour * 60, end = start + 59;
-                const state = nowMinutes >= start && nowMinutes <= end ? 'CURRENT' : (start < nowMinutes ? 'PAST' : (next && x.hour === next.hour ? 'NEXT' : 'UPCOMING'));
+                const state = classifyWindow(x, nowMinutes, next ? next.hour : null);
                 const stateClass = state === 'CURRENT' ? 'current' : (state === 'NEXT' ? 'next' : (state === 'PAST' ? 'past' : 'low'));
-                return `<div class="time-chip"><strong>${String(x.hour).padStart(2, '0')}:00</strong>Ring ${x.ring} | ${x.why}<br><span class="badge ${x.strength.toLowerCase()}">${x.strength}</span> <span class="badge ${stateClass}">${state}</span></div>`;
+                return `<div class="time-chip"><strong>${String(x.hour).padStart(2, '0')}:00</strong><span class="window-range">${minutesToClock(x.windowStart)}-${minutesToClock(x.windowEnd)}</span><br>Score ${x.score}/100 • Ring ${x.ring} • Side ${x.side + 1}<br>${Number.isFinite(x.angle) ? `Angle ~ ${Math.round(x.angle)}° • ` : ''}${x.why}<br><span class="badge ${x.strength.toLowerCase()}">${x.strength}</span> <span class="badge ${stateClass}">${state}</span></div>`;
             }).join('');
         }
 
@@ -264,6 +423,7 @@
             upT();
             dHx();
             updateHexTodayTimes();
+            setupTerminalUi();
             setInterval(updateHexTodayTimes, 60000);
         });
 
@@ -315,12 +475,41 @@
         savedIds.forEach(id => {
             let el = document.getElementById(id);
             if(el) {
-                el.addEventListener('change', () => { saveSet(); dHx(); updateHexTodayTimes(); });
-                if(el.tagName === 'INPUT') el.addEventListener('input', () => { saveSet(); dHx(); updateHexTodayTimes(); });
+                el.addEventListener('change', scheduleDraw);
+                if(el.tagName === 'INPUT') el.addEventListener('input', scheduleDraw);
             }
         });
 
+        function setupTerminalUi() {
+            const toggle = document.getElementById('hex-today-toggle');
+            if(toggle) toggle.addEventListener('click', () => {
+                const panel = document.getElementById('hex-today-panel');
+                panel.classList.toggle('collapsed');
+                toggle.innerText = panel.classList.contains('collapsed') ? 'Expand' : 'Collapse';
+            });
+            const cycleNow = document.getElementById('cycleUseNow');
+            if(cycleNow) cycleNow.addEventListener('click', () => {
+                const input = document.getElementById('cycleAnchorInput');
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                input.value = now.toISOString().slice(0,16);
+                renderTimeCycles();
+            });
+            const cycleInput = document.getElementById('cycleAnchorInput');
+            if(cycleInput) cycleInput.addEventListener('change', renderTimeCycles);
+            const controls = document.getElementById('canvasControls');
+            if(controls) controls.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-view-action]');
+                if(!btn) return;
+                handleViewAction(btn.dataset.viewAction);
+            });
+            renderTimeCycles();
+        }
+
         function dHx() {
+            clampInputs();
+            HEX_CELLS = [];
+            HEX_LAST_TARGET = null;
             const cv = document.getElementById('hexCanvas');
             const ct = cv.getContext('2d');
             const SZ = 3800, cx = 1900, cy = 1900;
@@ -330,7 +519,7 @@
             let md = document.getElementById('hexDataType').value;
             let bvR = document.getElementById('hexBaseInput').value;
             let tvR = document.getElementById('hexTargetInput').value;
-            const ly = parseInt(document.getElementById('hexGridLayers').value) || 12;
+            const ly = Math.min(Math.max(parseInt(document.getElementById('hexGridLayers').value) || 12, 3), MAX_SAFE_LAYERS);
             const sm = parseFloat(document.getElementById('hexStepValue').value) || 1;
             const tr = document.getElementById('hexTrendDir').value === 'up' ? 1 : -1;
             
@@ -451,6 +640,7 @@
                     ct.restore();
                 }
             }
+            drawBaghdadTimeMarkers(ct, cx, cy, hR);
 
             // لۆجیکی ناوەوە (خانەکان)
             let vO, sMs = 0;
@@ -480,7 +670,7 @@
             let dr = [{q: 1, r: 0}, {q: 0, r: 1}, {q: -1, r: 1}, {q: -1, r: 0}, {q: 0, r: -1}, {q: 1, r: -1}];
             let q = 0, rr = 0;
 
-            function dH(x, y, s, t, iC, tg, iE, iT) {
+            function dH(x, y, s, t, iC, tg, iE, iT, meta) {
                 ct.beginPath(); 
                 for(let i=0; i<6; i++) { 
                     let a = (Math.PI / 3) * i, hx = x + s * Math.cos(a), hy = y + s * Math.sin(a); 
@@ -506,6 +696,14 @@
                 let iS = (tg || iE || iT || iC); 
                 ct.font = iS ? `bold ${Math.max(11, s * 0.32) + 2}px Arial` : `${Math.max(10, s * 0.3)}px Arial`; 
                 ct.fillText(t, x, y);
+                if(meta) {
+                    const angle = ((Math.atan2(y - cy, x - cx) * 180 / Math.PI) + 360) % 360;
+                    const angleHit = angleStrength(angle);
+                    const scoreInfo = scoreHexCell(meta.ring, meta.side || 0, meta.indexInSide || 0);
+                    const cell = { ...meta, x, y, value: t, isCenter: iC, isTarget: tg, isCorner: iE, isMidTurn: iT, angle, angleHit, ...scoreInfo };
+                    HEX_CELLS.push(cell);
+                    if(tg) HEX_LAST_TARGET = cell;
+                }
             }
 
             function gDV() {
@@ -527,7 +725,7 @@
             }
 
             let fV = gDV(); 
-            dH(cx, cy, hS - 2, fV, !0, fV === tF, !1, !1);
+            dH(cx, cy, hS - 2, fV, !0, fV === tF, !1, !1, { ring: 0, side: 0, indexInSide: 0, sequence: 0 });
             
             for(let r=1; r<ly; r++) {
                 q += dr[4].q; 
@@ -543,12 +741,180 @@
                             if(r % 2 === 0 && j === r / 2) iT = !0; 
                             if(r % 2 !== 0 && (j === Math.floor(r / 2) || j === Math.ceil(r / 2))) iT = !0; 
                         }
-                        dH(x, y, hS - 2.5, dV, !1, dV === tF, iE, iT);
+                        dH(x, y, hS - 2.5, dV, !1, dV === tF, iE, iT, { ring: r, side: i, indexInSide: j, sequence: HEX_CELLS.length });
                         q += dr[i].q; 
                         rr += dr[i].r;
                     }
                 }
             }
+            renderAnalysisPanels();
+        }
+
+        function drawBaghdadTimeMarkers(ct, cx, cy, hR) {
+            const parts = getBaghdadParts();
+            const nowAngle = ((parts.hour % 24) + parts.minute / 60) * 15 * Math.PI / 180;
+            const next = generateHexHourImportance()
+                .map(x => ({ ...x, forward: ((x.hour * 60) - (parts.hour * 60 + parts.minute) + 1440) % 1440 }))
+                .sort((a,b) => a.forward - b.forward || b.score - a.score)[0];
+            function marker(angleRad, color, label, radiusOffset, width) {
+                ct.save();
+                ct.strokeStyle = color;
+                ct.fillStyle = color;
+                ct.lineWidth = width;
+                ct.shadowBlur = 12;
+                ct.shadowColor = color;
+                ct.beginPath();
+                ct.moveTo(cx + (hR - 70) * Math.cos(angleRad), cy + (hR - 70) * Math.sin(angleRad));
+                ct.lineTo(cx + (hR + radiusOffset) * Math.cos(angleRad), cy + (hR + radiusOffset) * Math.sin(angleRad));
+                ct.stroke();
+                ct.beginPath();
+                ct.arc(cx + (hR + radiusOffset + 12) * Math.cos(angleRad), cy + (hR + radiusOffset + 12) * Math.sin(angleRad), 12, 0, Math.PI * 2);
+                ct.fill();
+                ct.font = "bold 24px Courier New";
+                ct.textAlign = "center";
+                ct.textBaseline = "middle";
+                ct.fillText(label, cx + (hR + radiusOffset + 52) * Math.cos(angleRad), cy + (hR + radiusOffset + 52) * Math.sin(angleRad));
+                ct.restore();
+            }
+            marker(nowAngle, '#ff3399', 'NOW', 34, 5);
+            if(next) marker((next.hour * 15) * Math.PI / 180, '#d4af37', 'NEXT', 74, 4);
+        }
+
+        function renderAnalysisPanels() {
+            const md = document.getElementById('hexDataType').value;
+            const base = document.getElementById('hexBaseInput').value;
+            const target = document.getElementById('hexTargetInput').value;
+            const targetCell = HEX_LAST_TARGET || findNearestTargetCell(md, target);
+            const scoreCell = targetCell || HEX_CELLS.find(c => c.isCenter) || HEX_CELLS[0];
+            setText('analysisMode', md.toUpperCase());
+            setText('analysisCenter', base || '--');
+            setText('analysisTarget', target || 'No target');
+            setText('analysisScore', scoreCell ? `${scoreCell.score}/100 ${scoreCell.strength}` : '--');
+            document.getElementById('analysisScoreWhy').innerHTML = scoreCell ? scoreCell.scoreParts.map(x => `<li>${escapeHtml(x)}</li>`).join('') : '<li>No geometry score available</li>';
+            renderTargetAnalysis(targetCell, md, target);
+            renderPriceAnalysis(md, base, targetCell);
+            renderAnglePanel(targetCell);
+            renderTimeCycles();
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if(el) el.innerText = value;
+        }
+
+        function escapeHtml(v) {
+            return String(v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        function findNearestTargetCell(md, target) {
+            if(!target || !HEX_CELLS.length) return null;
+            if(md === 'price') {
+                const n = parseFloat(target);
+                if(!Number.isFinite(n)) return null;
+                return HEX_CELLS.map(c => ({ c, d: Math.abs(parseFloat(c.value) - n) })).filter(x => Number.isFinite(x.d)).sort((a,b) => a.d - b.d)[0]?.c || null;
+            }
+            return HEX_CELLS.find(c => c.value === target || String(c.value).toLowerCase() === String(target).toLowerCase()) || null;
+        }
+
+        function renderTargetAnalysis(cell, md, target) {
+            const box = document.getElementById('targetAnalysis');
+            if(!box) return;
+            if(!target) {
+                box.innerHTML = '<div class="warning-note">No target entered. Search Target remains preserved; enter a target to inspect exact geometry.</div>';
+                return;
+            }
+            if(!cell) {
+                box.innerHTML = '<div class="warning-note">Target is outside the rendered Hexagon layers or invalid for the selected mode.</div>';
+                return;
+            }
+            const stronger = nearbyStrongLevels(cell).slice(0, 4);
+            box.innerHTML = `
+                <div class="analysis-row"><span>Target</span><b>${escapeHtml(target)}</b></div>
+                <div class="analysis-row"><span>Matched cell</span><b>${escapeHtml(cell.value)}</b></div>
+                <div class="analysis-row"><span>Ring / Side / Position</span><b>${cell.ring} / ${cell.side + 1} / ${cell.indexInSide}</b></div>
+                <div class="analysis-row"><span>Angle relationship</span><b>${Math.round(cell.angle)}°${cell.angleHit ? ` near ${cell.angleHit.angle}°` : ''}</b></div>
+                <div class="analysis-row"><span>Distance from center</span><b>${cell.ring} rings</b></div>
+                <div class="analysis-row"><span>Geometry strength</span><b>${cell.score}/100 ${cell.strength}</b></div>
+                <ul class="score-list">${cell.scoreParts.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+                <div class="level-grid">${stronger.map(l => `<div class="level-item"><span>${escapeHtml(l.value)} · Ring ${l.ring} · ${l.why}</span><strong>${l.score}</strong></div>`).join('')}</div>
+            `;
+        }
+
+        function renderPriceAnalysis(md, base, targetCell) {
+            const box = document.getElementById('priceAnalysis');
+            if(!box) return;
+            if(md !== 'price') {
+                box.innerHTML = '<div class="warning-note">Price Analysis panel is active only in Price Analysis mode. Hour/Date modes keep their original behavior.</div>';
+                return;
+            }
+            const start = parseFloat(base);
+            const target = parseFloat(document.getElementById('hexTargetInput').value);
+            const numericCells = HEX_CELLS.map(c => ({ ...c, num: parseFloat(c.value) })).filter(c => Number.isFinite(c.num));
+            const strong = numericCells.filter(c => c.score >= 48).sort((a,b) => Math.abs(a.num - (Number.isFinite(target) ? target : start)) - Math.abs(b.num - (Number.isFinite(target) ? target : start))).slice(0, 8);
+            const supports = numericCells.filter(c => Number.isFinite(target) && c.num < target && c.score >= 45).sort((a,b) => b.num - a.num).slice(0, 5);
+            const resistances = numericCells.filter(c => Number.isFinite(target) && c.num > target && c.score >= 45).sort((a,b) => a.num - b.num).slice(0, 5);
+            const dist = Number.isFinite(target) && Number.isFinite(start) ? target - start : null;
+            const pct = dist !== null && start !== 0 ? (dist / start) * 100 : null;
+            box.innerHTML = `
+                <div class="analysis-row"><span>Starting price</span><b>${Number.isFinite(start) ? start : '--'}</b></div>
+                <div class="analysis-row"><span>Searched target</span><b>${Number.isFinite(target) ? target : 'No target'}</b></div>
+                <div class="analysis-row"><span>Gann angle relationship</span><b>${targetCell ? `${Math.round(targetCell.angle)}°${targetCell.angleHit ? ` near ${targetCell.angleHit.angle}°` : ''}` : '--'}</b></div>
+                <div class="analysis-row"><span>Distance from start</span><b>${dist !== null ? dist.toFixed(2) : '--'}</b></div>
+                <div class="analysis-row"><span>Distance %</span><b>${pct !== null ? pct.toFixed(3) + '%' : '--'}</b></div>
+                <h4 style="margin-top:10px;">Strongest Nearby Levels</h4>
+                <div class="level-grid">${strong.map(l => `<div class="level-item"><span>${l.num.toFixed(2)} · Ring ${l.ring} · ${l.why}</span><strong>${l.score}</strong></div>`).join('') || '<div class="warning-note">No strong nearby levels inside current layers.</div>'}</div>
+                <h4 style="margin-top:10px;">Support Candidates</h4>
+                <div class="level-grid">${supports.map(l => `<div class="level-item"><span>${l.num.toFixed(2)} · Ring ${l.ring}</span><strong>${l.score}</strong></div>`).join('') || '<div class="warning-note">Enter a target to calculate supports.</div>'}</div>
+                <h4 style="margin-top:10px;">Resistance Candidates</h4>
+                <div class="level-grid">${resistances.map(l => `<div class="level-item"><span>${l.num.toFixed(2)} · Ring ${l.ring}</span><strong>${l.score}</strong></div>`).join('') || '<div class="warning-note">Enter a target to calculate resistance.</div>'}</div>
+            `;
+        }
+
+        function nearbyStrongLevels(cell) {
+            if(!cell) return [];
+            return HEX_CELLS.filter(c => c !== cell && c.score >= 48)
+                .map(c => ({ ...c, dist: Math.hypot(c.x - cell.x, c.y - cell.y) }))
+                .sort((a,b) => a.dist - b.dist);
+        }
+
+        function renderAnglePanel(cell) {
+            const panel = document.getElementById('anglePanel');
+            if(!panel) return;
+            const source = cell || HEX_CELLS.find(c => c.isCenter) || HEX_CELLS[0];
+            panel.innerHTML = IMPORTANT_ANGLES.map(a => {
+                let nearest = HEX_CELLS.map(c => ({ c, d: Math.min(Math.abs(c.angle - a), 360 - Math.abs(c.angle - a)) })).sort((x,y) => x.d - y.d)[0];
+                const active = source && Math.min(Math.abs(source.angle - a), 360 - Math.abs(source.angle - a)) <= 8;
+                return `<div class="angle-card" style="${active ? 'border-color:#d4af37;background:rgba(212,175,55,.12);' : ''}"><strong>${a}°</strong>${nearest ? `${escapeHtml(nearest.c.value)}<br>${nearest.d.toFixed(1)}° away` : 'No cell'}</div>`;
+            }).join('');
+        }
+
+        function renderTimeCycles() {
+            const panel = document.getElementById('cyclePanel');
+            if(!panel) return;
+            const input = document.getElementById('cycleAnchorInput');
+            let anchor = input && input.value ? new Date(input.value) : new Date();
+            if(isNaN(anchor.getTime())) {
+                panel.innerHTML = '<div class="warning-note">Invalid high/low/date anchor. Choose a valid date/time.</div>';
+                return;
+            }
+            const periods = [
+                { label: '7 hours', ms: 7 * 3600000 }, { label: '14 hours', ms: 14 * 3600000 }, { label: '21 hours', ms: 21 * 3600000 },
+                { label: '1 day', ms: 86400000 }, { label: '3 days', ms: 3 * 86400000 }, { label: '7 days / 1 week', ms: 7 * 86400000 },
+                { label: '14 days', ms: 14 * 86400000 }, { label: '21 days', ms: 21 * 86400000 }, { label: '45 days', ms: 45 * 86400000 }, { label: '90 days', ms: 90 * 86400000 }
+            ];
+            panel.innerHTML = periods.slice(0, 8).map(p => {
+                const d = new Date(anchor.getTime() + p.ms);
+                return `<div class="cycle-item"><b>${p.label}</b><br>${d.toLocaleString('en-GB', { timeZone: BAGHDAD_TZ, hour12: false })}<br>Potential timing point — not a reversal guarantee.</div>`;
+            }).join('');
+        }
+
+        function handleViewAction(action) {
+            if(action === 'reset') { sc = window.innerWidth < 600 ? 0.35 : 0.45; px = 0; py = 0; }
+            if(action === 'zoomIn') sc = Math.min(5, sc * 1.18);
+            if(action === 'zoomOut') sc = Math.max(0.1, sc / 1.18);
+            if(action === 'center') { px = 0; py = 0; }
+            if(action === 'fit') { sc = Math.min(window.innerWidth / 3900, window.innerHeight / 3900) * 1.85; sc = Math.max(0.18, Math.min(sc, 0.7)); px = 0; py = 0; }
+            upT();
         }
 
         // کۆنترۆڵکردنی جووڵە و زووم بۆ شاشەی نەخشەکە
