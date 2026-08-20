@@ -1,0 +1,692 @@
+/* =========================================================
+   Institutional Trading Terminal Theme
+   Professional Fintech Redesign - XAU/USD
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+
+:root {
+  /* Core surfaces - Deep Graphite & Cool Steel */
+  --bg: #090a0c;
+  --bg-2: #0e1115;
+  --panel: #14171c;
+  --panel2: #1a1e24;
+  --panel-solid: #16191f;
+  
+  /* Borders & Lines */
+  --line: rgba(255, 255, 255, 0.06);
+  --line-strong: rgba(255, 255, 255, 0.12);
+
+  /* Typography */
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --muted: #64748b;
+
+  /* Accents — Muted Professional Palette */
+  --accent: #3b82f6; /* Muted Blue */
+  --accent-dim: rgba(59, 130, 246, 0.1);
+  --warn: #f59e0b; /* Amber */
+  --warn-dim: rgba(245, 158, 11, 0.1);
+
+  /* Signal colors - Controlled & Strict */
+  --buy: #10b981; /* Emerald */
+  --buy-dim: rgba(16, 185, 129, 0.1);
+  --sell: #ef4444; /* Crimson */
+  --sell-dim: rgba(239, 68, 68, 0.1);
+  --wait: #94a3b8; /* Neutral Blue-Gray */
+  --wait-dim: rgba(148, 163, 184, 0.1);
+
+  /* Geometry & Layout */
+  --radius: 8px; /* Sharper, professional corners */
+  --radius-sm: 4px;
+  --radius-lg: 12px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  
+  /* Font Stacks */
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'JetBrains Mono', Consolas, monospace;
+}
+
+* { 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent; 
+}
+
+html, body {
+  margin: 0; 
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body { 
+  overflow: hidden; 
+  user-select: none; 
+  letter-spacing: 0; 
+}
+
+button, input, select { 
+  font: inherit; 
+}
+
+/* ---------------- Animations ---------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .sidebar, #bot-modal, .menu-item, .signal-box {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* ---------------- Header ---------------- */
+.header {
+  position: fixed; 
+  inset: 0 0 auto 0; 
+  height: 50px; 
+  z-index: 10000;
+  display: grid; 
+  grid-template-columns: auto 1fr auto; 
+  align-items: center; 
+  gap: 16px;
+  padding: 0 20px; 
+  background: rgba(9, 10, 12, 0.85);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+
+.center-brand-text {
+  justify-self: center; 
+  font-size: 12px; 
+  font-weight: 600;
+  letter-spacing: 0.15em; 
+  text-transform: uppercase; 
+  color: var(--text-dim);
+}
+
+.menu-toggle, .back-arrow-btn {
+  height: 30px; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  border-radius: var(--radius-sm); 
+  border: 1px solid var(--line);
+  background: transparent; 
+  color: var(--text); 
+  cursor: pointer;
+  font-size: 12px; 
+  padding: 0 12px; 
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.menu-toggle:hover, .back-arrow-btn:hover { 
+  background: var(--panel); 
+  border-color: var(--line-strong); 
+}
+
+/* ---------------- Important Hours Panel ---------------- */
+.matrix-hours-panel {
+  position: fixed; 
+  top: 66px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  z-index: 9200;
+  width: min(700px, calc(100vw - 32px)); 
+  padding: 16px;
+  border: 1px solid var(--line); 
+  border-radius: var(--radius);
+  background: rgba(20, 23, 28, 0.95); 
+  box-shadow: var(--shadow); 
+  backdrop-filter: blur(10px);
+}
+
+.matrix-hours-title {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+  margin-bottom: 12px; 
+  padding-bottom: 8px; 
+  border-bottom: 1px solid var(--line);
+  color: var(--text-dim); 
+  font-size: 10px; 
+  font-weight: 600; 
+  letter-spacing: 0.05em; 
+  text-transform: uppercase;
+}
+
+.matrix-hour-list {
+  display: flex; 
+  justify-content: space-between; 
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.matrix-hour-chip {
+  flex: 1; 
+  min-width: 90px;
+  padding: 10px 8px; 
+  border: 1px solid var(--line); 
+  border-radius: var(--radius-sm);
+  background: var(--bg-2); 
+  text-align: center; 
+  color: var(--muted); 
+  font-size: 10px;
+  display: flex; 
+  flex-direction: column; 
+  align-items: center;
+}
+
+.matrix-hour-chip strong {
+  display: block; 
+  color: var(--text); 
+  font-family: var(--mono); 
+  font-size: 13px; 
+  font-weight: 700; 
+  margin-top: 2px;
+}
+
+.mh-badge {
+  display: inline-block; 
+  margin-top: 6px; 
+  padding: 2px 6px; 
+  border-radius: 2px;
+  font-size: 9px; 
+  font-weight: 700; 
+  letter-spacing: 0.05em; 
+  text-transform: uppercase;
+}
+
+.mh-current { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+.mh-next { background: var(--warn-dim); color: var(--warn); border: 1px solid var(--warn); }
+.mh-upcoming { background: transparent; color: var(--text-dim); border: 1px solid var(--line); }
+.mh-past { background: transparent; color: var(--muted); border: 1px dotted var(--line); opacity: 0.5; }
+
+/* ---------------- Floating Bot Trigger Button ---------------- */
+#San-bot-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9000;
+  padding: 10px 18px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, var(--panel2) 0%, var(--panel) 100%);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 12px rgba(59, 130, 246, 0.2);
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#San-bot-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(59, 130, 246, 0.3);
+}
+
+/* =========================================================
+   Gann Bot Modal Framework & Independent Scrolling Architecture
+   ========================================================= */
+
+#bot-modal {
+  display: none; /* Controlled dynamically via JS */
+  position: fixed;
+  z-index: 999900;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(760px, calc(100vw - 32px));
+  max-height: 88vh;
+  max-height: 88dvh;
+  background: var(--panel-solid);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevents outer modal spillover */
+}
+
+/* Enforce flexbox layout when JS sets style.display = 'block' */
+#bot-modal[style*="display: block"],
+#bot-modal[style*="block"] {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Modal Close Button */
+.close-bot {
+  position: absolute;
+  top: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  z-index: 10;
+}
+html[dir="rtl"] .close-bot { left: 16px; }
+html[dir="ltr"] .close-bot { right: 16px; }
+
+.close-bot:hover {
+  background: var(--sell-dim);
+  color: var(--sell);
+  border-color: var(--sell);
+}
+
+/* Fixed Controls Header inside Modal */
+#bot-modal > h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.bot-msg {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.price-control-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.price-control-row select {
+  flex: 1;
+}
+
+.bot-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  outline: none;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.live-price-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  display: inline-block;
+}
+.live-dot.ok { background: var(--buy); box-shadow: 0 0 8px var(--buy); }
+.live-dot.manual { background: var(--warn); }
+.live-dot.err { background: var(--sell); }
+
+.bot-btn-submit {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.bot-btn-submit:hover {
+  filter: brightness(1.1);
+}
+.bot-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   Bot Results Container - Vertical Scrollable Area
+   ========================================================= */
+
+#bot-results {
+  flex: 1 1 auto;
+  min-height: 0; /* Crucial for internal flex scrolling */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 10px;
+  padding: 8px 4px 40px 4px; /* Generous bottom padding so final TP3/SELL setup is never cut off */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Desktop layout: Side-by-side trading cards for BUY and SELL setups */
+@media (min-width: 680px) {
+  #bot-results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  #bot-status {
+    grid-column: 1 / -1;
+  }
+}
+
+#bot-status {
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.level-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 6px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.level-card small {
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.level-card b {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Professional Signal Card Styling */
+.signal-box {
+  padding: 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.8;
+  position: relative;
+  box-shadow: var(--shadow);
+  word-break: break-word;
+}
+
+/* BUY Card - Emerald Accent */
+.signal-box.buy-signal {
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(20, 23, 28, 0.95) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+}
+html[dir="rtl"] .signal-box.buy-signal { border-right: 4px solid var(--buy); }
+html[dir="ltr"] .signal-box.buy-signal { border-left: 4px solid var(--buy); }
+
+/* SELL Card - Crimson Accent */
+.signal-box.sell-signal {
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(20, 23, 28, 0.95) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.08);
+}
+html[dir="rtl"] .signal-box.sell-signal { border-right: 4px solid var(--sell); }
+html[dir="ltr"] .signal-box.sell-signal { border-left: 4px solid var(--sell); }
+
+.target-val {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.plan-state {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  display: inline-block;
+  letter-spacing: 0.03em;
+}
+
+.plan-state.state-active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid #10b981;
+}
+
+.plan-state.state-near {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+}
+
+.plan-state.state-far {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid #64748b;
+}
+
+/* ---------------- Sidebar Settings ---------------- */
+.sidebar {
+  position: fixed; 
+  top: 0; 
+  bottom: 0; 
+  width: min(320px, 85vw); 
+  z-index: 999999; 
+  padding: 70px 20px 24px;
+  overflow-y: auto; 
+  background: var(--panel-solid); 
+  box-shadow: var(--shadow-lg);
+  border-right: 1px solid var(--line-strong);
+}
+
+html[dir="rtl"] .sidebar { right: 0; transform: translateX(100%); border-left: 1px solid var(--line-strong); border-right: none; }
+html[dir="rtl"] .sidebar.active { transform: translateX(0); }
+html[dir="ltr"] .sidebar { left: 0; transform: translateX(-100%); }
+html[dir="ltr"] .sidebar.active { transform: translateX(0); }
+
+.close-menu {
+  position: absolute; 
+  top: 10px; 
+  width: 30px; 
+  height: 30px; 
+  border: none;
+  background: transparent; 
+  color: var(--text-dim); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer;
+}
+html[dir="rtl"] .close-menu { left: 16px; }
+html[dir="ltr"] .close-menu { right: 16px; }
+
+.menu-item {
+  margin-top: 20px; 
+  padding: 0; 
+  border: none; 
+  background: transparent;
+}
+
+.menu-item label {
+  display: block; 
+  margin-bottom: 8px; 
+  color: var(--text-dim) !important; 
+  font-size: 10px; 
+  font-weight: 600;
+  letter-spacing: 0.05em; 
+  text-transform: uppercase;
+}
+
+input, select {
+  width: 100%; 
+  height: 36px; 
+  padding: 0 12px; 
+  border: 1px solid var(--line-strong); 
+  border-radius: var(--radius-sm);
+  background: var(--bg); 
+  color: var(--text); 
+  font-family: var(--mono); 
+  font-size: 13px; 
+  outline: none;
+}
+
+input:focus, select:focus { 
+  border-color: var(--accent); 
+}
+
+.helper-text { 
+  margin-top: 6px; 
+  color: var(--muted); 
+  font-size: 11px; 
+}
+
+.anchor-status { 
+  margin-top: 8px; 
+  padding: 8px 12px; 
+  border-radius: var(--radius-sm); 
+  font-size: 11px; 
+  font-family: var(--mono); 
+}
+.anchor-status.ok { border: 1px solid rgba(16, 185, 129, 0.3); background: var(--buy-dim); color: var(--buy); }
+.anchor-status.warn { border: 1px solid rgba(245, 158, 11, 0.3); background: var(--warn-dim); color: var(--warn); }
+.anchor-status.error { border: 1px solid rgba(239, 68, 68, 0.3); background: var(--sell-dim); color: var(--sell); }
+
+.mini-btn {
+  width: 100%; 
+  height: 36px; 
+  margin-top: 8px; 
+  border: 1px solid var(--line-strong); 
+  border-radius: var(--radius-sm);
+  background: var(--panel2); 
+  color: var(--text); 
+  font-weight: 500; 
+  font-size: 12px; 
+  cursor: pointer;
+}
+.mini-btn:hover { background: var(--line); }
+
+/* ---------------- Map Canvas Viewport ---------------- */
+#viewport-maps {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  overflow: hidden;
+  cursor: grab;
+  background: var(--bg);
+}
+
+.map-area {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#zoom-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+#container-talisman {
+  position: relative;
+  width: 5600px;
+  height: 5600px;
+}
+
+#sq24Canvas {
+  display: block;
+  width: 5600px;
+  height: 5600px;
+}
+
+/* =========================================================
+   Mobile Responsive & Bottom Sheet Adaptations
+   ========================================================= */
+
+@media (max-width: 679px) {
+  #bot-modal {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    height: 90vh;
+    height: 90dvh;
+    max-height: 90vh;
+    max-height: 90dvh;
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)) 16px;
+  }
+
+  #bot-results {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: calc(50px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .matrix-hours-panel {
+    top: 58px;
+    width: calc(100vw - 20px);
+    padding: 12px;
+  }
+  
+  #San-bot-btn {
+    bottom: 16px;
+    left: 16px;
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
